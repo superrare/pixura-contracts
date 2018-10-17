@@ -79,8 +79,11 @@ contract ERC721Market {
       address owner = erc721.ownerOf(_tokenId);
       owner.transfer(tokenPrice);
 
-      //transfer token
+      // transfer token
       erc721.safeTransferFrom(owner, msg.sender, _tokenId);
+
+      // wipe the token price
+      tokenPrices[_originContract][_tokenId] = 0;
 
       emit Sold(_originContract, msg.sender, owner, tokenPrice, _tokenId);
     }
