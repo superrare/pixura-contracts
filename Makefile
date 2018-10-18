@@ -29,5 +29,5 @@ compile-contracts: ## compiles contracts and updates abi data in the data folder
 ######################################################
 
 build: ## build the library
-  make compile-contracts; \
+	make compile-contracts; \
 	stack build;
