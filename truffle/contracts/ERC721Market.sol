@@ -7,8 +7,11 @@ import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
 contract ERC721Market {
     using SafeMath for uint256;
 
-    // Mapping from token ID to the creator's address
+    // Mapping from ERC721 contract to mapping of tokenId to sale price
     mapping(address => mapping (uint256 => uint256)) private tokenPrices; 
+
+    // Mapping from ERC721 contract to mapping of tokenId to token owner that set the sale price.
+    mapping(address => mapping (uint256 => address)) private tokenOwners; 
 
     event Sold(
       address indexed _originContract,
@@ -45,6 +48,7 @@ contract ERC721Market {
       require(erc721.isApprovedForAll(msg.sender, this));
       _;
     }
+    
 
     /**
      * @dev Checks that the token owned by the sender
@@ -66,10 +70,11 @@ contract ERC721Market {
       address _originContract,
       uint256 _tokenId
     )
-      approvedForOwner(_originContract, _tokenId)
       public
+      approvedForOwner(_originContract, _tokenId)
       payable
     {
+      priceSetByOwner(_originContract, _tokenId);
       uint256 tokenPrice = tokenPrices[_originContract][_tokenId];
       require(tokenPrice > 0);
       require(tokenPrice == msg.value);
@@ -99,9 +104,9 @@ contract ERC721Market {
       uint256 _tokenId,
       uint256 _amount
     )
+      public
       approvedForSender(_originContract)
       tokenOwner(_originContract, _tokenId)
-      public
       payable
     {
       tokenPrices[_originContract][_tokenId] = _amount;
@@ -121,5 +126,17 @@ contract ERC721Market {
       public view returns (uint256)
     {
       return tokenPrices[_originContract][_tokenId];
+    }
+    
+    /**
+     * @dev Checks that the token is owned by the same person who set the sale price
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId address of the contract storing the token.
+     */
+    function priceSetByOwner(address _originContract, uint256 _tokenId) internal view {
+      ERC721Basic erc721 = ERC721Basic(_originContract);
+      address owner = erc721.ownerOf(_tokenId);
+      address perceivedOwner = tokenOwners[_originContract][_tokenId];
+      require(owner == perceivedOwner);
     }
 }
