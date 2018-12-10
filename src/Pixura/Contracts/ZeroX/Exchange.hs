@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
 
-module Pixura.Contracts.ERC721 where
+module Pixura.Contracts.ZeroX.Exchange where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|truffle/build/contracts/ERC721.json|]
+[abiFrom|truffle/build/contracts/Exchange.json|]

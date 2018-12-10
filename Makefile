@@ -22,7 +22,6 @@ stylish: ## stylish all
 compile-contracts: ## compiles contracts and updates abi data in the data folder
 	cd truffle; \
 	truffle compile;
-	cp truffle/build/contracts/* ./data
 
 ######################################################
 #### Build

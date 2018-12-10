@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
 
-module Contracts.ERC20 where
+module Pixura.Contracts.ERC20 where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|data/ERC20.json|]
+[abiFrom|truffle/build/contracts/ERC20.json|]
