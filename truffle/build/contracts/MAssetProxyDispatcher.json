@@ -1,0 +1,620 @@
+{
+  "contractName": "MAssetProxyDispatcher",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "assetProxyId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "getAssetProxy",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "assetProxy",
+          "type": "address"
+        }
+      ],
+      "name": "registerAssetProxy",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "id",
+          "type": "bytes4"
+        },
+        {
+          "indexed": false,
+          "name": "assetProxy",
+          "type": "address"
+        }
+      ],
+      "name": "AssetProxyRegistered",
+      "type": "event"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\nimport \"../interfaces/IAssetProxyDispatcher.sol\";\n\n\ncontract MAssetProxyDispatcher is\n    IAssetProxyDispatcher\n{\n    // Logs registration of new asset proxy\n    event AssetProxyRegistered(\n        bytes4 id,              // Id of new registered AssetProxy.\n        address assetProxy      // Address of new registered AssetProxy.\n    );\n\n    /// @dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n    /// @param assetData Byte array encoded for the asset.\n    /// @param from Address to transfer token from.\n    /// @param to Address to transfer token to.\n    /// @param amount Amount of token to transfer.\n    function dispatchTransferFrom(\n        bytes memory assetData,\n        address from,\n        address to,\n        uint256 amount\n    )\n        internal;\n}\n",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MAssetProxyDispatcher.sol",
+  "ast": {
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MAssetProxyDispatcher.sol",
+    "exportedSymbols": {
+      "MAssetProxyDispatcher": [
+        5807
+      ]
+    },
+    "id": 5808,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5786,
+        "literals": [
+          "solidity",
+          "0.4",
+          ".24"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "580:23:45"
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IAssetProxyDispatcher.sol",
+        "file": "../interfaces/IAssetProxyDispatcher.sol",
+        "id": 5787,
+        "nodeType": "ImportDirective",
+        "scope": 5808,
+        "sourceUnit": 4861,
+        "src": "605:49:45",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 5788,
+              "name": "IAssetProxyDispatcher",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 4860,
+              "src": "695:21:45",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IAssetProxyDispatcher_$4860",
+                "typeString": "contract IAssetProxyDispatcher"
+              }
+            },
+            "id": 5789,
+            "nodeType": "InheritanceSpecifier",
+            "src": "695:21:45"
+          }
+        ],
+        "contractDependencies": [
+          4860
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": false,
+        "id": 5807,
+        "linearizedBaseContracts": [
+          5807,
+          4860
+        ],
+        "name": "MAssetProxyDispatcher",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 5795,
+            "name": "AssetProxyRegistered",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 5794,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5791,
+                  "indexed": false,
+                  "name": "id",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5795,
+                  "src": "803:9:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes4",
+                    "typeString": "bytes4"
+                  },
+                  "typeName": {
+                    "id": 5790,
+                    "name": "bytes4",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "803:6:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes4",
+                      "typeString": "bytes4"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5793,
+                  "indexed": false,
+                  "name": "assetProxy",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5795,
+                  "src": "871:18:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 5792,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "871:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "793:148:45"
+            },
+            "src": "767:175:45"
+          },
+          {
+            "body": null,
+            "documentation": "@dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n @param assetData Byte array encoded for the asset.\n @param from Address to transfer token from.\n @param to Address to transfer token to.\n @param amount Amount of token to transfer.",
+            "id": 5806,
+            "implemented": false,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "dispatchTransferFrom",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5804,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5797,
+                  "name": "assetData",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1296:22:45",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5796,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1296:5:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5799,
+                  "name": "from",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1328:12:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 5798,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1328:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5801,
+                  "name": "to",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1350:10:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 5800,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1350:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5803,
+                  "name": "amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1370:14:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5802,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1370:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1286:104:45"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 5805,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1407:0:45"
+            },
+            "scope": 5807,
+            "src": "1257:151:45",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 5808,
+        "src": "657:753:45"
+      }
+    ],
+    "src": "580:831:45"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MAssetProxyDispatcher.sol",
+    "exportedSymbols": {
+      "MAssetProxyDispatcher": [
+        5807
+      ]
+    },
+    "id": 5808,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 5786,
+        "literals": [
+          "solidity",
+          "0.4",
+          ".24"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "580:23:45"
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IAssetProxyDispatcher.sol",
+        "file": "../interfaces/IAssetProxyDispatcher.sol",
+        "id": 5787,
+        "nodeType": "ImportDirective",
+        "scope": 5808,
+        "sourceUnit": 4861,
+        "src": "605:49:45",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 5788,
+              "name": "IAssetProxyDispatcher",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 4860,
+              "src": "695:21:45",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_IAssetProxyDispatcher_$4860",
+                "typeString": "contract IAssetProxyDispatcher"
+              }
+            },
+            "id": 5789,
+            "nodeType": "InheritanceSpecifier",
+            "src": "695:21:45"
+          }
+        ],
+        "contractDependencies": [
+          4860
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": false,
+        "id": 5807,
+        "linearizedBaseContracts": [
+          5807,
+          4860
+        ],
+        "name": "MAssetProxyDispatcher",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 5795,
+            "name": "AssetProxyRegistered",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 5794,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5791,
+                  "indexed": false,
+                  "name": "id",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5795,
+                  "src": "803:9:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes4",
+                    "typeString": "bytes4"
+                  },
+                  "typeName": {
+                    "id": 5790,
+                    "name": "bytes4",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "803:6:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes4",
+                      "typeString": "bytes4"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5793,
+                  "indexed": false,
+                  "name": "assetProxy",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5795,
+                  "src": "871:18:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 5792,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "871:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "793:148:45"
+            },
+            "src": "767:175:45"
+          },
+          {
+            "body": null,
+            "documentation": "@dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n @param assetData Byte array encoded for the asset.\n @param from Address to transfer token from.\n @param to Address to transfer token to.\n @param amount Amount of token to transfer.",
+            "id": 5806,
+            "implemented": false,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "dispatchTransferFrom",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 5804,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 5797,
+                  "name": "assetData",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1296:22:45",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 5796,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1296:5:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5799,
+                  "name": "from",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1328:12:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 5798,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1328:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5801,
+                  "name": "to",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1350:10:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 5800,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1350:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 5803,
+                  "name": "amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 5806,
+                  "src": "1370:14:45",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 5802,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1370:7:45",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1286:104:45"
+            },
+            "payable": false,
+            "returnParameters": {
+              "id": 5805,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "1407:0:45"
+            },
+            "scope": 5807,
+            "src": "1257:151:45",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 5808,
+        "src": "657:753:45"
+      }
+    ],
+    "src": "580:831:45"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.4.24+commit.e67f0147.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.1",
+  "updatedAt": "2018-12-10T21:26:31.032Z"
+}
