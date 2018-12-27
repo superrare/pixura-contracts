@@ -9,6 +9,12 @@ import './ERC721Creator.sol';
 contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
     using SafeMath for uint256;
 
+    // operator address
+    address private operator;
+    
+    // operationCost 
+    uint256 private operationCost;
+
     // Mapping from token ID to the creator's address
     mapping(uint256 => address) private tokenCreators;
 
@@ -24,8 +30,11 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
       string  _uri
     );
 
-    constructor(string _name, string _symbol) ERC721Token(_name, _symbol) {
+    constructor(string _name, string _symbol, address _operator, uint256 _operationCost) ERC721Token(_name, _symbol) {
+      operator = _operator;
+      operationCost = _operationCost;
     }
+
 
     /**
      * @dev Checks that the token is owned by the sender
@@ -51,8 +60,12 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
      * @dev Adds a new unique token to the supply
      * @param _uri string metadata uri associated with the token
      */
-    function addNewToken(string _uri) public {
-        createToken(_uri, msg.sender);
+    function addNewToken(string _uri) public payable {
+      if(operator != address(0)) {
+        require(operationCost <= msg.value);
+        operator.transfer(msg.value);
+      }
+      createToken(_uri, msg.sender);
     }
 
     /**
@@ -93,6 +106,15 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
       require(exists(_tokenId));
       tokenOwnerURIs[_tokenId] = _uri;
       emit TokenOwnerURISet(_tokenId, msg.sender, _uri);
+    }
+
+    /**
+     * @dev Removes the operator and operational cost for the NFT contract
+     */
+    function removeOperator() public {
+      require(operator == msg.sender);
+      operator = address(0);
+      operationCost = 0;
     }
 
     /**
