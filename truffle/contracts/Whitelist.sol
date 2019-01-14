@@ -1,15 +1,26 @@
 pragma solidity ^0.4.24;
 
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
-import './WhitelistInterface.sol';
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract Whitelist is Ownable, WhitelistInterface {
+contract Whitelist is Ownable {
 
   // Mapping of address to boolean indicating whether the address is whitelisted
   mapping(address => bool) private whitelist;
 
+  // flag controlling whether whitelist is enabled.
+  bool private whitelistEnabled = true;
+
   event AddToWhitelist(address indexed _newAddress);
   event RemoveFromWhitelist(address indexed _newAddress);
+
+
+  /**
+   * @dev Enable or disable the whitelist
+   * @param _enabled bool of whether to enable the whitelist.
+   */
+  function enableWhitelist(bool _enabled) public onlyOwner {
+    whitelistEnabled = _enabled;
+  }
 
   /**
    * @dev Adds the provided address to the whitelist
@@ -25,7 +36,7 @@ contract Whitelist is Ownable, WhitelistInterface {
    * @param _removedAddress address to be removed from the whitelist
    */
   function removeFromWhitelist(address _removedAddress) public onlyOwner {
-    whitelist[_removedAddress] = true;
+    whitelist[_removedAddress] = false;
     emit RemoveFromWhitelist(_removedAddress);
   }
 
@@ -34,7 +45,11 @@ contract Whitelist is Ownable, WhitelistInterface {
    * @param _address address to check
    * @return bool
    */
-  function isWhitelisted(address _address) external view returns (bool) {
-    return whitelist[_address];
+  function isWhitelisted(address _address) public view returns (bool) {
+    if (whitelistEnabled) {
+      return whitelist[_address];
+    } else {
+      return true;
+    }
   }
 }

@@ -1,9 +1,11 @@
 pragma solidity ^0.4.24;
 
+import "../node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
+
 /**
- * @title ERC721 Non-Fungible Token Creator basic interface
+ * @title IERC721 Non-Fungible Token Creator basic interface
  */
-contract ERC721Creator  {
+contract IERC721Creator is IERC721 {
   /**
    * @dev Gets the creator of the token
    * @param _tokenId uint256 ID of the token

@@ -1,19 +1,20 @@
 pragma solidity ^0.4.24;
 
 
-import '../node_modules/zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
-import '../node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol';
-import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
-import './ERC721Creator.sol';
+import "../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./IERC721Creator.sol";
+import "./Whitelist.sol";
 
-contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
+contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist {
     using SafeMath for uint256;
 
     // operator address
-    address private operator;
+    address public operator;
     
     // operationCost 
-    uint256 private operationCost;
+    uint256 public operationCost;
 
     // Mapping from token ID to the creator's address
     mapping(uint256 => address) private tokenCreators;
@@ -30,7 +31,15 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
       string  _uri
     );
 
-    constructor(string _name, string _symbol, address _operator, uint256 _operationCost) ERC721Token(_name, _symbol) {
+    constructor(
+      string _name, 
+      string _symbol, 
+      address _operator, 
+      uint256 _operationCost
+    ) 
+    ERC721Full(_name, _symbol)
+    // Whitelist()
+    {
       operator = _operator;
       operationCost = _operationCost;
     }
@@ -42,7 +51,7 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
      */
     modifier onlyTokenOwner(uint256 _tokenId) {
       address owner = ownerOf(_tokenId);
-      require(owner == msg.sender);
+      require(owner == msg.sender, "must be the owner of the token");
       _;
     }
 
@@ -52,7 +61,7 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
      */
     modifier onlyTokenCreator(uint256 _tokenId) {
       address creator = tokenCreator(_tokenId);
-      require(creator == msg.sender);
+      require(creator == msg.sender, "must be the creator of the token");
       _;
     }
 
@@ -61,10 +70,8 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
      * @param _uri string metadata uri associated with the token
      */
     function addNewToken(string _uri) public payable {
-      if(operator != address(0)) {
-        require(operationCost <= msg.value);
-        operator.transfer(msg.value);
-      }
+      require(isWhitelisted(msg.sender), "must be whitelisted to create tokens");
+      payOperatorWhenNeeded();
       createToken(_uri, msg.sender);
     }
 
@@ -103,7 +110,7 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
       public
       onlyTokenOwner(_tokenId)
     {
-      require(exists(_tokenId));
+      require(_exists(_tokenId), "token must exist to update the owner metadata");
       tokenOwnerURIs[_tokenId] = _uri;
       emit TokenOwnerURISet(_tokenId, msg.sender, _uri);
     }
@@ -112,7 +119,7 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
      * @dev Removes the operator and operational cost for the NFT contract
      */
     function removeOperator() public {
-      require(operator == msg.sender);
+      require(operator == msg.sender, "can only be called by the operator to remove the operator");
       operator = address(0);
       operationCost = 0;
     }
@@ -134,18 +141,31 @@ contract PixuraNFT is ERC721Token, ERC721Creator, Ownable {
     function tokenOwnerURI(uint256 _tokenId) public view returns (string) {
       return tokenOwnerURIs[_tokenId];
     }
-
+    
     /**
      * @dev Internal function creating a new token.
      * @param _uri string metadata uri associated with the token
      */
-    function createToken(string _uri, address _creator) private  returns (uint256){
+    function createToken(string _uri, address _creator) private returns (uint256){
       uint256 newId = idCounter;
       idCounter++;
       _mint(_creator, newId);
       _setTokenURI(newId, _uri);
       tokenCreators[newId] = _creator;
       return newId;
+    }
+
+    /**
+     * @dev Internal function to pay the operator when there is one.
+     */
+    function payOperatorWhenNeeded() private {
+      if (operator != address(0)) {
+        require(
+          operationCost <= msg.value, 
+          "must pay operation cost if operator set"
+        );
+        operator.transfer(msg.value);
+      }
     }
 
 }

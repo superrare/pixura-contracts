@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
 
-import '../node_modules/zeppelin-solidity/contracts/token/ERC721/ERC721Basic.sol';
-import '../node_modules/zeppelin-solidity/contracts/math/SafeMath.sol';
+import "../node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
+import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract ERC721Market {
     using SafeMath for uint256;
@@ -33,7 +33,7 @@ contract ERC721Market {
      * @param _tokenId uint256 ID of the token
      */
     modifier approvedForOwner(address _originContract, uint256 _tokenId) {
-      ERC721Basic erc721 = ERC721Basic(_originContract);
+      IERC721 erc721 = IERC721(_originContract);
       address owner = erc721.ownerOf(_tokenId);
       require(erc721.isApprovedForAll(owner, this));
       _;
@@ -44,7 +44,7 @@ contract ERC721Market {
      * @param _originContract address of the contract storing the token.
      */
     modifier approvedForSender(address _originContract) {
-      ERC721Basic erc721 = ERC721Basic(_originContract);
+      IERC721 erc721 = IERC721(_originContract);
       require(erc721.isApprovedForAll(msg.sender, this));
       _;
     }
@@ -56,7 +56,7 @@ contract ERC721Market {
      * @param _tokenId uint256 ID of the token
      */
     modifier tokenOwner(address _originContract, uint256 _tokenId) {
-      ERC721Basic erc721 = ERC721Basic(_originContract);
+      IERC721 erc721 = IERC721(_originContract);
       require(erc721.ownerOf(_tokenId) == msg.sender);
       _;
     }
@@ -78,7 +78,7 @@ contract ERC721Market {
       uint256 tokenPrice = tokenPrices[_originContract][_tokenId];
       require(tokenPrice > 0);
       require(tokenPrice == msg.value);
-      ERC721Basic erc721 = ERC721Basic(_originContract);
+      IERC721 erc721 = IERC721(_originContract);
 
       // pay owner
       address owner = erc721.ownerOf(_tokenId);
@@ -134,7 +134,7 @@ contract ERC721Market {
      * @param _tokenId address of the contract storing the token.
      */
     function priceSetByOwner(address _originContract, uint256 _tokenId) internal view {
-      ERC721Basic erc721 = ERC721Basic(_originContract);
+      IERC721 erc721 = IERC721(_originContract);
       address owner = erc721.ownerOf(_tokenId);
       address perceivedOwner = tokenOwners[_originContract][_tokenId];
       require(owner == perceivedOwner);
