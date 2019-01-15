@@ -5,16 +5,11 @@ import "../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721Full.
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./IERC721Creator.sol";
+import "./Operated.sol";
 import "./Whitelist.sol";
 
-contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist {
+contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist, Operated {
     using SafeMath for uint256;
-
-    // operator address
-    address public operator;
-    
-    // operationCost 
-    uint256 public operationCost;
 
     // Mapping from token ID to the creator's address
     mapping(uint256 => address) private tokenCreators;
@@ -38,11 +33,8 @@ contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist {
       uint256 _operationCost
     ) 
     ERC721Full(_name, _symbol)
-    // Whitelist()
-    {
-      operator = _operator;
-      operationCost = _operationCost;
-    }
+    Operated(_operator, _operationCost)
+    { }
 
 
     /**
@@ -116,15 +108,6 @@ contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist {
     }
 
     /**
-     * @dev Removes the operator and operational cost for the NFT contract
-     */
-    function removeOperator() public {
-      require(operator == msg.sender, "can only be called by the operator to remove the operator");
-      operator = address(0);
-      operationCost = 0;
-    }
-
-    /**
     * @dev Gets the creator of the token
     * @param _tokenId uint256 ID of the token
     * @return address of the creator
@@ -154,18 +137,4 @@ contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist {
       tokenCreators[newId] = _creator;
       return newId;
     }
-
-    /**
-     * @dev Internal function to pay the operator when there is one.
-     */
-    function payOperatorWhenNeeded() private {
-      if (operator != address(0)) {
-        require(
-          operationCost <= msg.value, 
-          "must pay operation cost if operator set"
-        );
-        operator.transfer(msg.value);
-      }
-    }
-
 }
