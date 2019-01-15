@@ -16,11 +16,10 @@ contract PixuraNFTContractGenerator is Ownable, Operated {
     );
 
     constructor(
-      address _operator,
       uint256 _operationCost,
       uint256 _nftOperationCost
     ) 
-    Operated(_operator, _operationCost)
+    Operated(msg.sender, _operationCost)
     {
       nftOperationCost = _nftOperationCost;
     }

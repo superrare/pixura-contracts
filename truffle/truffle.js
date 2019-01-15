@@ -1,5 +1,6 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
-var mnemonic = undefined;
+var mnemonic =
+  "dress deny dog rubber arrest scheme spare own fiscal expose dwarf neither";
 var mnemonic_live = undefined;
 
 module.exports = {
@@ -17,17 +18,25 @@ module.exports = {
       network_id: "3",
       gas: 4700000,
       provider: function() {
-        return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/Dg4Prwp0LCIkqCq1Sbga",0);
-      },
+        return new HDWalletProvider(
+          mnemonic,
+          "https://ropsten.infura.io/Dg4Prwp0LCIkqCq1Sbga",
+          0
+        );
+      }
     },
     live: {
       network_id: "1",
       gas: 4700000,
-      gasPrice:5000000000,
+      gasPrice: 5000000000,
       provider: function() {
-        return new HDWalletProvider(mnemonic_live, "http://livenet.pixura.io:8545",0);
-      },
-    },
+        return new HDWalletProvider(
+          mnemonic_live,
+          "http://livenet.pixura.io:8545",
+          0
+        );
+      }
+    }
   },
   solc: {
     optimizer: {
