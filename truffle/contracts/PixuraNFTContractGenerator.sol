@@ -32,6 +32,7 @@ contract PixuraNFTContractGenerator is Ownable, Operated {
     function createNFTContract(string _name, string _symbol) public payable returns (address) {
       payOperatorWhenNeeded();
       PixuraNFT nftContract = new PixuraNFT(_name, _symbol, operator, nftOperationCost);
+      nftContract.addToWhitelist(msg.sender);
       nftContract.transferOwnership(msg.sender);
       emit PixuraNFTContractCreated(nftContract, msg.sender);
       return nftContract;
