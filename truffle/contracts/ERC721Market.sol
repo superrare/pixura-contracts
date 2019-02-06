@@ -3,8 +3,9 @@ pragma solidity ^0.4.24;
 
 import "../node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract ERC721Market {
+contract ERC721Market is Ownable {
     using SafeMath for uint256;
 
     // Mapping from ERC721 contract to mapping of tokenId to sale price
@@ -12,6 +13,9 @@ contract ERC721Market {
 
     // Mapping from ERC721 contract to mapping of tokenId to token owner that set the sale price.
     mapping(address => mapping (uint256 => address)) private tokenOwners; 
+
+    // Marketplace fee paid to the owner of the contract.
+    uint256 private marketplaceFee = 3; // 3 %
 
     event Sold(
       address indexed _originContract,
@@ -32,7 +36,7 @@ contract ERC721Market {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      */
-    modifier approvedForOwner(address _originContract, uint256 _tokenId) {
+    modifier ownerMustHaveMarketplaceApproved(address _originContract, uint256 _tokenId) {
       IERC721 erc721 = IERC721(_originContract);
       address owner = erc721.ownerOf(_tokenId);
       require(erc721.isApprovedForAll(owner, this));
@@ -43,7 +47,7 @@ contract ERC721Market {
      * @dev Checks that the msg.sender is approved for the ERC721Market
      * @param _originContract address of the contract storing the token.
      */
-    modifier approvedForSender(address _originContract) {
+    modifier senderMustHaveMarketplaceApproved(address _originContract) {
       IERC721 erc721 = IERC721(_originContract);
       require(erc721.isApprovedForAll(msg.sender, this));
       _;
@@ -55,7 +59,7 @@ contract ERC721Market {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      */
-    modifier tokenOwner(address _originContract, uint256 _tokenId) {
+    modifier senderMustBeTokenOwner(address _originContract, uint256 _tokenId) {
       IERC721 erc721 = IERC721(_originContract);
       require(erc721.ownerOf(_tokenId) == msg.sender);
       _;
@@ -71,24 +75,31 @@ contract ERC721Market {
       uint256 _tokenId
     )
       public
-      approvedForOwner(_originContract, _tokenId)
+      ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
       payable
     {
-      priceSetByOwner(_originContract, _tokenId);
+      doesPriceSetterStillOwnTheToken(_originContract, _tokenId);
       uint256 tokenPrice = tokenPrices[_originContract][_tokenId];
-      require(tokenPrice > 0);
-      require(tokenPrice == msg.value);
+      require(tokenPrice > 0, "Tokens priced at 0 are not for sale.");
+      require(tokenPrice == msg.value, "Must purchase the token for the correct price");
       IERC721 erc721 = IERC721(_originContract);
 
-      // pay owner
+      // pay owner and pay marketplace owner
       address owner = erc721.ownerOf(_tokenId);
-      owner.transfer(tokenPrice);
+      address marketplaceOwner = this.owner();
+
+      uint256 marketFeePayment = tokenPrice * marketplaceFee / 100;
+      uint256 ownerPayment = tokenPrice - marketFeePayment;
+
+      owner.transfer(ownerPayment);
+      marketplaceOwner.transfer(marketFeePayment);
 
       // transfer token
       erc721.safeTransferFrom(owner, msg.sender, _tokenId);
 
       // wipe the token price
       tokenPrices[_originContract][_tokenId] = 0;
+      tokenOwners[_originContract][_tokenId] = address(0);
 
       emit Sold(_originContract, msg.sender, owner, tokenPrice, _tokenId);
     }
@@ -105,11 +116,12 @@ contract ERC721Market {
       uint256 _amount
     )
       public
-      approvedForSender(_originContract)
-      tokenOwner(_originContract, _tokenId)
+      senderMustHaveMarketplaceApproved(_originContract)
+      senderMustBeTokenOwner(_originContract, _tokenId)
       payable
     {
       tokenPrices[_originContract][_tokenId] = _amount;
+      tokenOwners[_originContract][_tokenId] = msg.sender;
       emit SetSalePrice(_originContract, _amount, _tokenId);
     }
 
@@ -133,10 +145,10 @@ contract ERC721Market {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId address of the contract storing the token.
      */
-    function priceSetByOwner(address _originContract, uint256 _tokenId) internal view {
+    function doesPriceSetterStillOwnTheToken(address _originContract, uint256 _tokenId) internal view {
       IERC721 erc721 = IERC721(_originContract);
       address owner = erc721.ownerOf(_tokenId);
       address perceivedOwner = tokenOwners[_originContract][_tokenId];
-      require(owner == perceivedOwner);
+      require(owner == perceivedOwner, "Current token owner must be the person to have the latest price.");
     }
 }
