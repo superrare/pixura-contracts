@@ -1,7 +1,8 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic =
   "dress deny dog rubber arrest scheme spare own fiscal expose dwarf neither";
-var mnemonic_live = undefined;
+var mnemonic_live =
+  "trouble have absorb oppose daring wedding town link media illegal snow captain";
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -32,7 +33,7 @@ module.exports = {
       provider: function() {
         return new HDWalletProvider(
           mnemonic_live,
-          "http://livenet.pixura.io:8545",
+          "http://ec2-52-41-67-76.us-west-2.compute.amazonaws.com:58545",
           0
         );
       }

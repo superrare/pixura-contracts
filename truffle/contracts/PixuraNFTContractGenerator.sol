@@ -8,7 +8,7 @@ contract PixuraNFTContractGenerator is Ownable, Operated {
     using SafeMath for uint256;
 
     // Operating cost for the NFT Contracts
-    uint256 private nftOperationCost;
+    uint256 public nftOperationCost;
 
     event PixuraNFTContractCreated(
       address indexed _contractAddress,
@@ -36,5 +36,14 @@ contract PixuraNFTContractGenerator is Ownable, Operated {
       nftContract.transferOwnership(msg.sender);
       emit PixuraNFTContractCreated(nftContract, msg.sender);
       return nftContract;
+    }
+
+    /**
+     * @dev Set the default operating cost for generated NFT contracts
+     * @param _cost uint256 initial cost to create NFT for the generated contracts
+     */
+    function setNftOperationCost(uint256 _cost) public {
+      require(msg.sender == owner(), "sender must be the owner");
+      nftOperationCost = _cost;
     }
 }
