@@ -2,7 +2,7 @@ var HDWalletProvider = require("truffle-hdwallet-provider");
 var mnemonic =
   "dress deny dog rubber arrest scheme spare own fiscal expose dwarf neither";
 var mnemonic_live =
-  "trouble have absorb oppose daring wedding town link media illegal snow captain";
+  "";
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
