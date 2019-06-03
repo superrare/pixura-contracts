@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
 
-module Pixura.Contracts.SupeRare where
+module Pixura.Contracts.SuperRare where
 
 import           Network.Ethereum.Contract.TH
 
