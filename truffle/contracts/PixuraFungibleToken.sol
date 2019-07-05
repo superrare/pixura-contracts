@@ -9,7 +9,7 @@ contract PixuraFungibleToken is ERC20, ERC20Detailed, Ownable {
     using SafeMath for uint256;
 
     // String uri holding the metadata for the token.
-    string public _uri;
+    string private _uri;
 
     event TokenURIUpdated(string indexed tokenURI);
 
