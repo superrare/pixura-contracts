@@ -3,29 +3,29 @@
   "abi": [],
   "bytecode": "0x60806040526000805460ff19169055348015601957600080fd5b5060358060276000396000f3006080604052600080fd00a165627a7a723058203f6716de87dd74a3ccdf54b7678df1365b2de2546bf10263b45c8969804f4a190029",
   "deployedBytecode": "0x6080604052600080fd00a165627a7a723058203f6716de87dd74a3ccdf54b7678df1365b2de2546bf10263b45c8969804f4a190029",
-  "sourceMap": "606:573:61:-;;;689:5;667:27;;-1:-1:-1;;667:27:61;;;606:573;5:2:-1;;;;30:1;27;20:12;5:2;606:573:61;;;;;;;",
-  "deployedSourceMap": "606:573:61:-;;;;;",
+  "sourceMap": "606:573:60:-;;;689:5;667:27;;-1:-1:-1;;667:27:60;;;606:573;5:2:-1;;;;30:1;27;20:12;5:2;606:573:60;;;;;;;",
+  "deployedSourceMap": "606:573:60:-;;;;;",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\n\ncontract ReentrancyGuard {\n\n    // Locked state of mutex\n    bool private locked = false;\n\n    /// @dev Functions with this modifer cannot be reentered. The mutex will be locked\n    ///      before function execution and unlocked after.\n    modifier nonReentrant() {\n        // Ensure mutex is unlocked\n        require(\n            !locked,\n            \"REENTRANCY_ILLEGAL\"\n        );\n\n        // Lock mutex before function call\n        locked = true;\n\n        // Perform function call\n        _;\n\n        // Unlock mutex after function call\n        locked = false;\n    }\n}\n",
   "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/ReentrancyGuard/ReentrancyGuard.sol",
   "ast": {
     "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/ReentrancyGuard/ReentrancyGuard.sol",
     "exportedSymbols": {
       "ReentrancyGuard": [
-        8686
+        7150
       ]
     },
-    "id": 8687,
+    "id": 7151,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 8664,
+        "id": 7128,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:61"
+        "src": "580:23:60"
       },
       {
         "baseContracts": [],
@@ -33,20 +33,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 8686,
+        "id": 7150,
         "linearizedBaseContracts": [
-          8686
+          7150
         ],
         "name": "ReentrancyGuard",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 8667,
+            "id": 7131,
             "name": "locked",
             "nodeType": "VariableDeclaration",
-            "scope": 8686,
-            "src": "667:27:61",
+            "scope": 7150,
+            "src": "667:27:60",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -54,10 +54,10 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 8665,
+              "id": 7129,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
-              "src": "667:4:61",
+              "src": "667:4:60",
               "typeDescriptions": {
                 "typeIdentifier": "t_bool",
                 "typeString": "bool"
@@ -66,14 +66,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "66616c7365",
-              "id": 8666,
+              "id": 7130,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "bool",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "689:5:61",
+              "src": "689:5:60",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_bool",
@@ -85,9 +85,9 @@
           },
           {
             "body": {
-              "id": 8684,
+              "id": 7148,
               "nodeType": "Block",
-              "src": "871:306:61",
+              "src": "871:306:60",
               "statements": [
                 {
                   "expression": {
@@ -95,7 +95,7 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 8671,
+                        "id": 7135,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -103,15 +103,15 @@
                         "nodeType": "UnaryOperation",
                         "operator": "!",
                         "prefix": true,
-                        "src": "938:7:61",
+                        "src": "938:7:60",
                         "subExpression": {
                           "argumentTypes": null,
-                          "id": 8670,
+                          "id": 7134,
                           "name": "locked",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 8667,
-                          "src": "939:6:61",
+                          "referencedDeclaration": 7131,
+                          "src": "939:6:60",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bool",
                             "typeString": "bool"
@@ -125,14 +125,14 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "5245454e5452414e43595f494c4c4547414c",
-                        "id": 8672,
+                        "id": 7136,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
                         "kind": "string",
                         "lValueRequested": false,
                         "nodeType": "Literal",
-                        "src": "959:20:61",
+                        "src": "959:20:60",
                         "subdenomination": null,
                         "typeDescriptions": {
                           "typeIdentifier": "t_stringliteral_adc5a435f597dc53b867636504fa90da5707dedb5941f76aa8a56bad68e5f488",
@@ -152,21 +152,21 @@
                           "typeString": "literal_string \"REENTRANCY_ILLEGAL\""
                         }
                       ],
-                      "id": 8669,
+                      "id": 7133,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        9963,
-                        9964
+                        8427,
+                        8428
                       ],
-                      "referencedDeclaration": 9964,
-                      "src": "917:7:61",
+                      "referencedDeclaration": 8428,
+                      "src": "917:7:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 8673,
+                    "id": 7137,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -174,32 +174,32 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "917:72:61",
+                    "src": "917:72:60",
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 8674,
+                  "id": 7138,
                   "nodeType": "ExpressionStatement",
-                  "src": "917:72:61"
+                  "src": "917:72:60"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 8677,
+                    "id": 7141,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 8675,
+                      "id": 7139,
                       "name": "locked",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 8667,
-                      "src": "1043:6:61",
+                      "referencedDeclaration": 7131,
+                      "src": "1043:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
                         "typeString": "bool"
@@ -210,14 +210,14 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "74727565",
-                      "id": 8676,
+                      "id": 7140,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
                       "kind": "bool",
                       "lValueRequested": false,
                       "nodeType": "Literal",
-                      "src": "1052:4:61",
+                      "src": "1052:4:60",
                       "subdenomination": null,
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -225,37 +225,37 @@
                       },
                       "value": "true"
                     },
-                    "src": "1043:13:61",
+                    "src": "1043:13:60",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
                     }
                   },
-                  "id": 8678,
+                  "id": 7142,
                   "nodeType": "ExpressionStatement",
-                  "src": "1043:13:61"
+                  "src": "1043:13:60"
                 },
                 {
-                  "id": 8679,
+                  "id": 7143,
                   "nodeType": "PlaceholderStatement",
-                  "src": "1100:1:61"
+                  "src": "1100:1:60"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 8682,
+                    "id": 7146,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 8680,
+                      "id": 7144,
                       "name": "locked",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 8667,
-                      "src": "1156:6:61",
+                      "referencedDeclaration": 7131,
+                      "src": "1156:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
                         "typeString": "bool"
@@ -266,14 +266,14 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "66616c7365",
-                      "id": 8681,
+                      "id": 7145,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
                       "kind": "bool",
                       "lValueRequested": false,
                       "nodeType": "Literal",
-                      "src": "1165:5:61",
+                      "src": "1165:5:60",
                       "subdenomination": null,
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -281,57 +281,57 @@
                       },
                       "value": "false"
                     },
-                    "src": "1156:14:61",
+                    "src": "1156:14:60",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
                     }
                   },
-                  "id": 8683,
+                  "id": 7147,
                   "nodeType": "ExpressionStatement",
-                  "src": "1156:14:61"
+                  "src": "1156:14:60"
                 }
               ]
             },
             "documentation": "@dev Functions with this modifer cannot be reentered. The mutex will be locked\n      before function execution and unlocked after.",
-            "id": 8685,
+            "id": 7149,
             "name": "nonReentrant",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 8668,
+              "id": 7132,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "868:2:61"
+              "src": "868:2:60"
             },
-            "src": "847:330:61",
+            "src": "847:330:60",
             "visibility": "internal"
           }
         ],
-        "scope": 8687,
-        "src": "606:573:61"
+        "scope": 7151,
+        "src": "606:573:60"
       }
     ],
-    "src": "580:600:61"
+    "src": "580:600:60"
   },
   "legacyAST": {
     "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/ReentrancyGuard/ReentrancyGuard.sol",
     "exportedSymbols": {
       "ReentrancyGuard": [
-        8686
+        7150
       ]
     },
-    "id": 8687,
+    "id": 7151,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 8664,
+        "id": 7128,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:61"
+        "src": "580:23:60"
       },
       {
         "baseContracts": [],
@@ -339,20 +339,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 8686,
+        "id": 7150,
         "linearizedBaseContracts": [
-          8686
+          7150
         ],
         "name": "ReentrancyGuard",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 8667,
+            "id": 7131,
             "name": "locked",
             "nodeType": "VariableDeclaration",
-            "scope": 8686,
-            "src": "667:27:61",
+            "scope": 7150,
+            "src": "667:27:60",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -360,10 +360,10 @@
               "typeString": "bool"
             },
             "typeName": {
-              "id": 8665,
+              "id": 7129,
               "name": "bool",
               "nodeType": "ElementaryTypeName",
-              "src": "667:4:61",
+              "src": "667:4:60",
               "typeDescriptions": {
                 "typeIdentifier": "t_bool",
                 "typeString": "bool"
@@ -372,14 +372,14 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "66616c7365",
-              "id": 8666,
+              "id": 7130,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
               "kind": "bool",
               "lValueRequested": false,
               "nodeType": "Literal",
-              "src": "689:5:61",
+              "src": "689:5:60",
               "subdenomination": null,
               "typeDescriptions": {
                 "typeIdentifier": "t_bool",
@@ -391,9 +391,9 @@
           },
           {
             "body": {
-              "id": 8684,
+              "id": 7148,
               "nodeType": "Block",
-              "src": "871:306:61",
+              "src": "871:306:60",
               "statements": [
                 {
                   "expression": {
@@ -401,7 +401,7 @@
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 8671,
+                        "id": 7135,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -409,15 +409,15 @@
                         "nodeType": "UnaryOperation",
                         "operator": "!",
                         "prefix": true,
-                        "src": "938:7:61",
+                        "src": "938:7:60",
                         "subExpression": {
                           "argumentTypes": null,
-                          "id": 8670,
+                          "id": 7134,
                           "name": "locked",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 8667,
-                          "src": "939:6:61",
+                          "referencedDeclaration": 7131,
+                          "src": "939:6:60",
                           "typeDescriptions": {
                             "typeIdentifier": "t_bool",
                             "typeString": "bool"
@@ -431,14 +431,14 @@
                       {
                         "argumentTypes": null,
                         "hexValue": "5245454e5452414e43595f494c4c4547414c",
-                        "id": 8672,
+                        "id": 7136,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
                         "kind": "string",
                         "lValueRequested": false,
                         "nodeType": "Literal",
-                        "src": "959:20:61",
+                        "src": "959:20:60",
                         "subdenomination": null,
                         "typeDescriptions": {
                           "typeIdentifier": "t_stringliteral_adc5a435f597dc53b867636504fa90da5707dedb5941f76aa8a56bad68e5f488",
@@ -458,21 +458,21 @@
                           "typeString": "literal_string \"REENTRANCY_ILLEGAL\""
                         }
                       ],
-                      "id": 8669,
+                      "id": 7133,
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        9963,
-                        9964
+                        8427,
+                        8428
                       ],
-                      "referencedDeclaration": 9964,
-                      "src": "917:7:61",
+                      "referencedDeclaration": 8428,
+                      "src": "917:7:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
                         "typeString": "function (bool,string memory) pure"
                       }
                     },
-                    "id": 8673,
+                    "id": 7137,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -480,32 +480,32 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "917:72:61",
+                    "src": "917:72:60",
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 8674,
+                  "id": 7138,
                   "nodeType": "ExpressionStatement",
-                  "src": "917:72:61"
+                  "src": "917:72:60"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 8677,
+                    "id": 7141,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 8675,
+                      "id": 7139,
                       "name": "locked",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 8667,
-                      "src": "1043:6:61",
+                      "referencedDeclaration": 7131,
+                      "src": "1043:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
                         "typeString": "bool"
@@ -516,14 +516,14 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "74727565",
-                      "id": 8676,
+                      "id": 7140,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
                       "kind": "bool",
                       "lValueRequested": false,
                       "nodeType": "Literal",
-                      "src": "1052:4:61",
+                      "src": "1052:4:60",
                       "subdenomination": null,
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -531,37 +531,37 @@
                       },
                       "value": "true"
                     },
-                    "src": "1043:13:61",
+                    "src": "1043:13:60",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
                     }
                   },
-                  "id": 8678,
+                  "id": 7142,
                   "nodeType": "ExpressionStatement",
-                  "src": "1043:13:61"
+                  "src": "1043:13:60"
                 },
                 {
-                  "id": 8679,
+                  "id": 7143,
                   "nodeType": "PlaceholderStatement",
-                  "src": "1100:1:61"
+                  "src": "1100:1:60"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 8682,
+                    "id": 7146,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 8680,
+                      "id": 7144,
                       "name": "locked",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 8667,
-                      "src": "1156:6:61",
+                      "referencedDeclaration": 7131,
+                      "src": "1156:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
                         "typeString": "bool"
@@ -572,14 +572,14 @@
                     "rightHandSide": {
                       "argumentTypes": null,
                       "hexValue": "66616c7365",
-                      "id": 8681,
+                      "id": 7145,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
                       "kind": "bool",
                       "lValueRequested": false,
                       "nodeType": "Literal",
-                      "src": "1165:5:61",
+                      "src": "1165:5:60",
                       "subdenomination": null,
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -587,37 +587,37 @@
                       },
                       "value": "false"
                     },
-                    "src": "1156:14:61",
+                    "src": "1156:14:60",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
                     }
                   },
-                  "id": 8683,
+                  "id": 7147,
                   "nodeType": "ExpressionStatement",
-                  "src": "1156:14:61"
+                  "src": "1156:14:60"
                 }
               ]
             },
             "documentation": "@dev Functions with this modifer cannot be reentered. The mutex will be locked\n      before function execution and unlocked after.",
-            "id": 8685,
+            "id": 7149,
             "name": "nonReentrant",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 8668,
+              "id": 7132,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "868:2:61"
+              "src": "868:2:60"
             },
-            "src": "847:330:61",
+            "src": "847:330:60",
             "visibility": "internal"
           }
         ],
-        "scope": 8687,
-        "src": "606:573:61"
+        "scope": 7151,
+        "src": "606:573:60"
       }
     ],
-    "src": "580:600:61"
+    "src": "580:600:60"
   },
   "compiler": {
     "name": "solc",
@@ -625,5 +625,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-07-08T21:48:56.377Z"
+  "updatedAt": "2019-07-08T22:27:04.655Z"
 }
