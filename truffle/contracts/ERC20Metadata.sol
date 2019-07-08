@@ -1,11 +1,10 @@
 pragma solidity ^0.4.24;
 
 import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-contract PixuraFungibleToken is ERC20, ERC20Detailed, Ownable {
+contract ERC20Metadata is ERC20, Ownable {
     using SafeMath for uint256;
 
     // String uri holding the metadata for the token.
@@ -14,12 +13,8 @@ contract PixuraFungibleToken is ERC20, ERC20Detailed, Ownable {
     event TokenURIUpdated(string indexed tokenURI);
 
     constructor(
-      string memory name,
-      string memory symbol,
-      uint8 decimals,
       string memory uri
     )
-    ERC20Detailed(name, symbol, decimals)
     {
         _uri = uri;
     }
