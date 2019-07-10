@@ -29,29 +29,29 @@
   ],
   "bytecode": "0x608060405234801561001057600080fd5b5060405161027438038061027483398101604052805101805161003a906000906020840190610041565b50506100dc565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061008257805160ff19168380011785556100af565b828001600101855582156100af579182015b828111156100af578251825591602001919060010190610094565b506100bb9291506100bf565b5090565b6100d991905b808211156100bb57600081556001016100c5565b90565b610189806100eb6000396000f3006080604052600436106100405763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663db123b1a8114610045575b600080fd5b34801561005157600080fd5b5061005a6100cf565b6040805160208082528351818301528351919283929083019185019080838360005b8381101561009457818101518382015260200161007c565b50505050905090810190601f1680156100c15780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b6000805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156101555780601f1061012a57610100808354040283529160200191610155565b820191906000526020600020905b81548152906001019060200180831161013857829003601f168201915b5050505050815600a165627a7a723058206219698e150dad2ec9d04717bbf70eee0734dac3800563cb218df5e1a35ae6ba0029",
   "deployedBytecode": "0x6080604052600436106100405763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663db123b1a8114610045575b600080fd5b34801561005157600080fd5b5061005a6100cf565b6040805160208082528351818301528351919283929083019185019080838360005b8381101561009457818101518382015260200161007c565b50505050905090810190601f1680156100c15780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b6000805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156101555780601f1061012a57610100808354040283529160200191610155565b820191906000526020600020905b81548152906001019060200180831161013857829003601f168201915b5050505050815600a165627a7a723058206219698e150dad2ec9d04717bbf70eee0734dac3800563cb218df5e1a35ae6ba0029",
-  "sourceMap": "641:1316:41:-;;;1850:105;8:9:-1;5:2;;;30:1;27;20:12;5:2;1850:105:41;;;;;;;;;;;;;;;;;1919:29;;;;:14;;:29;;;;;:::i;:::-;;1850:105;641:1316;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;641:1316:41;;;-1:-1:-1;641:1316:41;:::i;:::-;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;",
-  "deployedSourceMap": "641:1316:41:-;;;;;;;;;;;;;;;;;;;;;;;1779:27;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1779:27:41;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;8:100:-1;33:3;30:1;27:10;8:100;;;90:11;;;84:18;71:11;;;64:39;52:2;45:10;8:100;;;12:14;1779:27:41;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;1779:27:41;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o",
+  "sourceMap": "641:1316:43:-;;;1850:105;8:9:-1;5:2;;;30:1;27;20:12;5:2;1850:105:43;;;;;;;;;;;;;;;;;1919:29;;;;:14;;:29;;;;;:::i;:::-;;1850:105;641:1316;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;641:1316:43;;;-1:-1:-1;641:1316:43;:::i;:::-;;;:::o;:::-;;;;;;;;;;;;;;;;;;;;:::o;:::-;;;;;;;",
+  "deployedSourceMap": "641:1316:43:-;;;;;;;;;;;;;;;;;;;;;;;1779:27;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1779:27:43;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;8:100:-1;33:3;30:1;27:10;8:100;;;90:11;;;84:18;71:11;;;64:39;52:2;45:10;8:100;;;12:14;1779:27:43;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;-1:-1:-1;;1779:27:43;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:::o",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\n\n// solhint-disable max-line-length\ncontract LibConstants {\n   \n    // Asset data for ZRX token. Used for fee transfers.\n    // @TODO: Hardcode constant when we deploy. Currently \n    //        not constant to make testing easier.\n\n    // The proxyId for ZRX_ASSET_DATA is bytes4(keccak256(\"ERC20Token(address)\")) = 0xf47261b0\n    \n    // Kovan ZRX address is 0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570.\n    // The ABI encoded proxyId and address is 0xf47261b00000000000000000000000006ff6c0ff1d68b964901f986d4c9fa3ac68346570\n    // bytes constant public ZRX_ASSET_DATA = \"\\xf4\\x72\\x61\\xb0\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x6f\\xf6\\xc0\\xff\\x1d\\x68\\xb9\\x64\\x90\\x1f\\x98\\x6d\\x4c\\x9f\\xa3\\xac\\x68\\x34\\x65\\x70\";\n    \n    // Mainnet ZRX address is 0xe41d2489571d322189246dafa5ebde1f4699f498.\n    // The ABI encoded proxyId and address is 0xf47261b0000000000000000000000000e41d2489571d322189246dafa5ebde1f4699f498\n    // bytes constant public ZRX_ASSET_DATA = \"\\xf4\\x72\\x61\\xb0\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xe4\\x1d\\x24\\x89\\x57\\x1d\\x32\\x21\\x89\\x24\\x6d\\xaf\\xa5\\xeb\\xde\\x1f\\x46\\x99\\xf4\\x98\";\n    \n    // solhint-disable-next-line var-name-mixedcase\n    bytes public ZRX_ASSET_DATA;\n\n    // @TODO: Remove when we deploy.\n    constructor (bytes memory zrxAssetData)\n        public\n    {\n        ZRX_ASSET_DATA = zrxAssetData;\n    }\n}\n// solhint-enable max-line-length\n",
   "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibConstants.sol",
   "ast": {
     "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibConstants.sol",
     "exportedSymbols": {
       "LibConstants": [
-        5258
+        7242
       ]
     },
-    "id": 5259,
+    "id": 7243,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5245,
+        "id": 7229,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:41"
+        "src": "580:23:43"
       },
       {
         "baseContracts": [],
@@ -59,20 +59,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 5258,
+        "id": 7242,
         "linearizedBaseContracts": [
-          5258
+          7242
         ],
         "name": "LibConstants",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 5247,
+            "id": 7231,
             "name": "ZRX_ASSET_DATA",
             "nodeType": "VariableDeclaration",
-            "scope": 5258,
-            "src": "1779:27:41",
+            "scope": 7242,
+            "src": "1779:27:43",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -80,10 +80,10 @@
               "typeString": "bytes"
             },
             "typeName": {
-              "id": 5246,
+              "id": 7230,
               "name": "bytes",
               "nodeType": "ElementaryTypeName",
-              "src": "1779:5:41",
+              "src": "1779:5:43",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes_storage_ptr",
                 "typeString": "bytes"
@@ -94,26 +94,26 @@
           },
           {
             "body": {
-              "id": 5256,
+              "id": 7240,
               "nodeType": "Block",
-              "src": "1909:46:41",
+              "src": "1909:46:43",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 5254,
+                    "id": 7238,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 5252,
+                      "id": 7236,
                       "name": "ZRX_ASSET_DATA",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5247,
-                      "src": "1919:14:41",
+                      "referencedDeclaration": 7231,
+                      "src": "1919:14:43",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bytes_storage",
                         "typeString": "bytes storage ref"
@@ -123,31 +123,31 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 5253,
+                      "id": 7237,
                       "name": "zrxAssetData",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5249,
-                      "src": "1936:12:41",
+                      "referencedDeclaration": 7233,
+                      "src": "1936:12:43",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bytes_memory_ptr",
                         "typeString": "bytes memory"
                       }
                     },
-                    "src": "1919:29:41",
+                    "src": "1919:29:43",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage",
                       "typeString": "bytes storage ref"
                     }
                   },
-                  "id": 5255,
+                  "id": 7239,
                   "nodeType": "ExpressionStatement",
-                  "src": "1919:29:41"
+                  "src": "1919:29:43"
                 }
               ]
             },
             "documentation": null,
-            "id": 5257,
+            "id": 7241,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -155,16 +155,16 @@
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5250,
+              "id": 7234,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5249,
+                  "id": 7233,
                   "name": "zrxAssetData",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5257,
-                  "src": "1863:25:41",
+                  "scope": 7241,
+                  "src": "1863:25:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -172,10 +172,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5248,
+                    "id": 7232,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1863:5:41",
+                    "src": "1863:5:43",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -185,47 +185,47 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1862:27:41"
+              "src": "1862:27:43"
             },
             "payable": false,
             "returnParameters": {
-              "id": 5251,
+              "id": 7235,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1909:0:41"
+              "src": "1909:0:43"
             },
-            "scope": 5258,
-            "src": "1850:105:41",
+            "scope": 7242,
+            "src": "1850:105:43",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 5259,
-        "src": "641:1316:41"
+        "scope": 7243,
+        "src": "641:1316:43"
       }
     ],
-    "src": "580:1412:41"
+    "src": "580:1412:43"
   },
   "legacyAST": {
     "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibConstants.sol",
     "exportedSymbols": {
       "LibConstants": [
-        5258
+        7242
       ]
     },
-    "id": 5259,
+    "id": 7243,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 5245,
+        "id": 7229,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:41"
+        "src": "580:23:43"
       },
       {
         "baseContracts": [],
@@ -233,20 +233,20 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 5258,
+        "id": 7242,
         "linearizedBaseContracts": [
-          5258
+          7242
         ],
         "name": "LibConstants",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": false,
-            "id": 5247,
+            "id": 7231,
             "name": "ZRX_ASSET_DATA",
             "nodeType": "VariableDeclaration",
-            "scope": 5258,
-            "src": "1779:27:41",
+            "scope": 7242,
+            "src": "1779:27:43",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -254,10 +254,10 @@
               "typeString": "bytes"
             },
             "typeName": {
-              "id": 5246,
+              "id": 7230,
               "name": "bytes",
               "nodeType": "ElementaryTypeName",
-              "src": "1779:5:41",
+              "src": "1779:5:43",
               "typeDescriptions": {
                 "typeIdentifier": "t_bytes_storage_ptr",
                 "typeString": "bytes"
@@ -268,26 +268,26 @@
           },
           {
             "body": {
-              "id": 5256,
+              "id": 7240,
               "nodeType": "Block",
-              "src": "1909:46:41",
+              "src": "1909:46:43",
               "statements": [
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 5254,
+                    "id": 7238,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
                       "argumentTypes": null,
-                      "id": 5252,
+                      "id": 7236,
                       "name": "ZRX_ASSET_DATA",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5247,
-                      "src": "1919:14:41",
+                      "referencedDeclaration": 7231,
+                      "src": "1919:14:43",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bytes_storage",
                         "typeString": "bytes storage ref"
@@ -297,31 +297,31 @@
                     "operator": "=",
                     "rightHandSide": {
                       "argumentTypes": null,
-                      "id": 5253,
+                      "id": 7237,
                       "name": "zrxAssetData",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 5249,
-                      "src": "1936:12:41",
+                      "referencedDeclaration": 7233,
+                      "src": "1936:12:43",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bytes_memory_ptr",
                         "typeString": "bytes memory"
                       }
                     },
-                    "src": "1919:29:41",
+                    "src": "1919:29:43",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage",
                       "typeString": "bytes storage ref"
                     }
                   },
-                  "id": 5255,
+                  "id": 7239,
                   "nodeType": "ExpressionStatement",
-                  "src": "1919:29:41"
+                  "src": "1919:29:43"
                 }
               ]
             },
             "documentation": null,
-            "id": 5257,
+            "id": 7241,
             "implemented": true,
             "isConstructor": true,
             "isDeclaredConst": false,
@@ -329,16 +329,16 @@
             "name": "",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 5250,
+              "id": 7234,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 5249,
+                  "id": 7233,
                   "name": "zrxAssetData",
                   "nodeType": "VariableDeclaration",
-                  "scope": 5257,
-                  "src": "1863:25:41",
+                  "scope": 7241,
+                  "src": "1863:25:43",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
@@ -346,10 +346,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 5248,
+                    "id": 7232,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1863:5:41",
+                    "src": "1863:5:43",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -359,27 +359,27 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1862:27:41"
+              "src": "1862:27:43"
             },
             "payable": false,
             "returnParameters": {
-              "id": 5251,
+              "id": 7235,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1909:0:41"
+              "src": "1909:0:43"
             },
-            "scope": 5258,
-            "src": "1850:105:41",
+            "scope": 7242,
+            "src": "1850:105:43",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 5259,
-        "src": "641:1316:41"
+        "scope": 7243,
+        "src": "641:1316:43"
       }
     ],
-    "src": "580:1412:41"
+    "src": "580:1412:43"
   },
   "compiler": {
     "name": "solc",
@@ -387,5 +387,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-07-08T22:27:04.539Z"
+  "updatedAt": "2019-07-10T00:40:52.858Z"
 }

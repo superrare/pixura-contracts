@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE QuasiQuotes           #-}
 
-module Pixura.Contracts.Cryptopunks where
+module Pixura.Contracts.CryptoPunks where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|truffle/build/contracts/CryptopunksMarket.json|]
+[abiFrom|truffle/build/contracts/CryptoPunksMarket.json|]
