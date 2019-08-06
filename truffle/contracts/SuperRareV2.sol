@@ -5,7 +5,6 @@ import "../node_modules/openzeppelin-solidity/contracts/token/ERC721/ERC721Full.
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./IERC721Creator.sol";
-import "./Operated.sol";
 import "./Whitelist.sol";
 import "./ISuperRare.sol";
 
@@ -58,7 +57,7 @@ contract SuperRareV2 is ERC721Full, IERC721Creator, Ownable, Whitelist {
     }
 
     /**
-     * @dev Checks that the token is created by the sender.
+     * @dev Checks that the token was created by the sender.
      * @param _tokenId uint256 ID of the token.
      */
     modifier onlyTokenCreator(uint256 _tokenId) {
@@ -71,7 +70,7 @@ contract SuperRareV2 is ERC721Full, IERC721Creator, Ownable, Whitelist {
      * @dev Adds a new unique token to the supply.
      * @param _uri string metadata uri associated with the token.
      */
-    function addNewToken(string _uri) public payable {
+    function addNewToken(string _uri) public {
       require(isWhitelisted(msg.sender), "must be whitelisted to create tokens");
       _createToken(_uri, msg.sender);
     }
@@ -85,7 +84,7 @@ contract SuperRareV2 is ERC721Full, IERC721Creator, Ownable, Whitelist {
     }
 
     /**
-     * @dev Updates the token metadata URI ONLY if the owner is also the
+     * @dev Updates the token metadata if the owner is also the
      *      creator.
      * @param _tokenId uint256 ID of the token.
      * @param _uri string metadata URI.
@@ -122,12 +121,12 @@ contract SuperRareV2 is ERC721Full, IERC721Creator, Ownable, Whitelist {
      * @param _uri string metadata uri associated with the token
      * @param _creator address of the creator of the token.
      */
-    function _createToken(string _uri, address _creator) internal returns (uint256){
+    function _createToken(string _uri, address _creator) internal returns (uint256) {
       uint256 newId = idCounter;
       idCounter++;
       _mint(_creator, newId);
       _setTokenURI(newId, _uri);
-      _setTokenCreator(newId,_creator);
+      _setTokenCreator(newId, _creator);
       return newId;
     }
 }

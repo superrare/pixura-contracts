@@ -11,8 +11,7 @@ contract Whitelist is Ownable {
   bool private whitelistEnabled = true;
 
   event AddToWhitelist(address indexed _newAddress);
-  event RemoveFromWhitelist(address indexed _newAddress);
-
+  event RemoveFromWhitelist(address indexed _removedAddress);
 
   /**
    * @dev Enable or disable the whitelist
@@ -28,6 +27,7 @@ contract Whitelist is Ownable {
    */
   function addToWhitelist(address _newAddress) public onlyOwner {
     _whitelist(_newAddress);
+    emit AddToWhitelist(_newAddress);
   }
 
   /**
@@ -36,6 +36,7 @@ contract Whitelist is Ownable {
    */
   function removeFromWhitelist(address _removedAddress) public onlyOwner {
     _unWhitelist(_removedAddress);
+    emit RemoveFromWhitelist(_removedAddress);
   }
 
   /**
@@ -57,7 +58,6 @@ contract Whitelist is Ownable {
    */
   function _unWhitelist(address _removedAddress) internal {
     whitelistMap[_removedAddress] = false;
-    emit RemoveFromWhitelist(_removedAddress);
   }
 
   /**
@@ -66,6 +66,5 @@ contract Whitelist is Ownable {
    */
   function _whitelist(address _newAddress) internal {
     whitelistMap[_newAddress] = true;
-    emit AddToWhitelist(_newAddress);
   }
 }
