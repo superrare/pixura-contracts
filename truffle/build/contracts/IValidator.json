@@ -34,19 +34,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\n\ncontract IValidator {\n\n    /// @dev Verifies that a signature is valid.\n    /// @param hash Message hash that is signed.\n    /// @param signerAddress Address that should have signed the given hash.\n    /// @param signature Proof of signing.\n    /// @return Validity of order signature.\n    function isValidSignature(\n        bytes32 hash,\n        address signerAddress,\n        bytes signature\n    )\n        external\n        view\n        returns (bool isValid);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
     "exportedSymbols": {
       "IValidator": [
-        10926
+        10972
       ]
     },
-    "id": 10927,
+    "id": 10973,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10914,
+        "id": 10960,
         "literals": [
           "solidity",
           "0.4",
@@ -61,9 +61,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 10926,
+        "id": 10972,
         "linearizedBaseContracts": [
-          10926
+          10972
         ],
         "name": "IValidator",
         "nodeType": "ContractDefinition",
@@ -71,7 +71,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies that a signature is valid.\n @param hash Message hash that is signed.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof of signing.\n @return Validity of order signature.",
-            "id": 10925,
+            "id": 10971,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -79,15 +79,15 @@
             "name": "isValidSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10921,
+              "id": 10967,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10916,
+                  "id": 10962,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "931:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -96,7 +96,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10915,
+                    "id": 10961,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "931:7:53",
@@ -110,10 +110,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10918,
+                  "id": 10964,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "953:21:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -122,7 +122,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10917,
+                    "id": 10963,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "953:7:53",
@@ -136,10 +136,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10920,
+                  "id": 10966,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "984:15:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -148,7 +148,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10919,
+                    "id": 10965,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "984:5:53",
@@ -165,15 +165,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10924,
+              "id": 10970,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10923,
+                  "id": 10969,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "1053:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -182,7 +182,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 10922,
+                    "id": 10968,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1053:4:53",
@@ -197,31 +197,31 @@
               ],
               "src": "1052:14:53"
             },
-            "scope": 10926,
+            "scope": 10972,
             "src": "896:171:53",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 10927,
+        "scope": 10973,
         "src": "606:463:53"
       }
     ],
     "src": "580:490:53"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
     "exportedSymbols": {
       "IValidator": [
-        10926
+        10972
       ]
     },
-    "id": 10927,
+    "id": 10973,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10914,
+        "id": 10960,
         "literals": [
           "solidity",
           "0.4",
@@ -236,9 +236,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 10926,
+        "id": 10972,
         "linearizedBaseContracts": [
-          10926
+          10972
         ],
         "name": "IValidator",
         "nodeType": "ContractDefinition",
@@ -246,7 +246,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies that a signature is valid.\n @param hash Message hash that is signed.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof of signing.\n @return Validity of order signature.",
-            "id": 10925,
+            "id": 10971,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -254,15 +254,15 @@
             "name": "isValidSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10921,
+              "id": 10967,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10916,
+                  "id": 10962,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "931:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -271,7 +271,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10915,
+                    "id": 10961,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "931:7:53",
@@ -285,10 +285,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10918,
+                  "id": 10964,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "953:21:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -297,7 +297,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10917,
+                    "id": 10963,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "953:7:53",
@@ -311,10 +311,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10920,
+                  "id": 10966,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "984:15:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -323,7 +323,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10919,
+                    "id": 10965,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "984:5:53",
@@ -340,15 +340,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10924,
+              "id": 10970,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10923,
+                  "id": 10969,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10925,
+                  "scope": 10971,
                   "src": "1053:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -357,7 +357,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 10922,
+                    "id": 10968,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1053:4:53",
@@ -372,14 +372,14 @@
               ],
               "src": "1052:14:53"
             },
-            "scope": 10926,
+            "scope": 10972,
             "src": "896:171:53",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 10927,
+        "scope": 10973,
         "src": "606:463:53"
       }
     ],
@@ -391,5 +391,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.744Z"
+  "updatedAt": "2019-08-06T23:43:51.986Z"
 }

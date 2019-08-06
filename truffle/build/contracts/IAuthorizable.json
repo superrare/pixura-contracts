@@ -81,19 +81,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\nimport \"../../../utils/Ownable/IOwnable.sol\";\n\n\ncontract IAuthorizable is\n    IOwnable\n{\n    /// @dev Authorizes an address.\n    /// @param target Address to authorize.\n    function addAuthorizedAddress(address target)\n        external;\n\n    /// @dev Removes authorizion of an address.\n    /// @param target Address to remove authorization from.\n    function removeAuthorizedAddress(address target)\n        external;\n\n    /// @dev Removes authorizion of an address.\n    /// @param target Address to remove authorization from.\n    /// @param index Index of target in authorities array.\n    function removeAuthorizedAddressAtIndex(\n        address target,\n        uint256 index\n    )\n        external;\n    \n    /// @dev Gets all authorized addresses.\n    /// @return Array of authorized addresses.\n    function getAuthorizedAddresses()\n        external\n        view\n        returns (address[] memory);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
     "exportedSymbols": {
       "IAuthorizable": [
-        8043
+        8089
       ]
     },
-    "id": 8044,
+    "id": 8090,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 8016,
+        "id": 8062,
         "literals": [
           "solidity",
           "0.4",
@@ -103,12 +103,12 @@
         "src": "580:23:38"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/Ownable/IOwnable.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/Ownable/IOwnable.sol",
         "file": "../../../utils/Ownable/IOwnable.sol",
-        "id": 8017,
+        "id": 8063,
         "nodeType": "ImportDirective",
-        "scope": 8044,
-        "sourceUnit": 12931,
+        "scope": 8090,
+        "sourceUnit": 12977,
         "src": "605:45:38",
         "symbolAliases": [],
         "unitAlias": ""
@@ -119,31 +119,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 8018,
+              "id": 8064,
               "name": "IOwnable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 12930,
+              "referencedDeclaration": 12976,
               "src": "683:8:38",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IOwnable_$12930",
+                "typeIdentifier": "t_contract$_IOwnable_$12976",
                 "typeString": "contract IOwnable"
               }
             },
-            "id": 8019,
+            "id": 8065,
             "nodeType": "InheritanceSpecifier",
             "src": "683:8:38"
           }
         ],
         "contractDependencies": [
-          12930
+          12976
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 8043,
+        "id": 8089,
         "linearizedBaseContracts": [
-          8043,
-          12930
+          8089,
+          12976
         ],
         "name": "IAuthorizable",
         "nodeType": "ContractDefinition",
@@ -151,7 +151,7 @@
           {
             "body": null,
             "documentation": "@dev Authorizes an address.\n @param target Address to authorize.",
-            "id": 8024,
+            "id": 8070,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -159,15 +159,15 @@
             "name": "addAuthorizedAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8022,
+              "id": 8068,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8021,
+                  "id": 8067,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8024,
+                  "scope": 8070,
                   "src": "808:14:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -176,7 +176,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 8020,
+                    "id": 8066,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "808:7:38",
@@ -193,12 +193,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 8023,
+              "id": 8069,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "840:0:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "778:63:38",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -207,7 +207,7 @@
           {
             "body": null,
             "documentation": "@dev Removes authorizion of an address.\n @param target Address to remove authorization from.",
-            "id": 8029,
+            "id": 8075,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -215,15 +215,15 @@
             "name": "removeAuthorizedAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8027,
+              "id": 8073,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8026,
+                  "id": 8072,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8029,
+                  "scope": 8075,
                   "src": "988:14:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -232,7 +232,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 8025,
+                    "id": 8071,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "988:7:38",
@@ -249,12 +249,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 8028,
+              "id": 8074,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1020:0:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "955:66:38",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -263,7 +263,7 @@
           {
             "body": null,
             "documentation": "@dev Removes authorizion of an address.\n @param target Address to remove authorization from.\n @param index Index of target in authorities array.",
-            "id": 8036,
+            "id": 8082,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -271,15 +271,15 @@
             "name": "removeAuthorizedAddressAtIndex",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8034,
+              "id": 8080,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8031,
+                  "id": 8077,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8036,
+                  "scope": 8082,
                   "src": "1243:14:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -288,7 +288,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 8030,
+                    "id": 8076,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1243:7:38",
@@ -302,10 +302,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 8033,
+                  "id": 8079,
                   "name": "index",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8036,
+                  "scope": 8082,
                   "src": "1267:13:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -314,7 +314,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 8032,
+                    "id": 8078,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1267:7:38",
@@ -331,12 +331,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 8035,
+              "id": 8081,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1303:0:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "1194:110:38",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -345,7 +345,7 @@
           {
             "body": null,
             "documentation": "@dev Gets all authorized addresses.\n @return Array of authorized addresses.",
-            "id": 8042,
+            "id": 8088,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -353,22 +353,22 @@
             "name": "getAuthorizedAddresses",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8037,
+              "id": 8083,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1436:2:38"
             },
             "payable": false,
             "returnParameters": {
-              "id": 8041,
+              "id": 8087,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8040,
+                  "id": 8086,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8042,
+                  "scope": 8088,
                   "src": "1486:9:38",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -378,7 +378,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 8038,
+                      "id": 8084,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "1486:7:38",
@@ -387,7 +387,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 8039,
+                    "id": 8085,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "1486:9:38",
@@ -402,31 +402,31 @@
               ],
               "src": "1485:18:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "1405:99:38",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 8044,
+        "scope": 8090,
         "src": "653:853:38"
       }
     ],
     "src": "580:927:38"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
     "exportedSymbols": {
       "IAuthorizable": [
-        8043
+        8089
       ]
     },
-    "id": 8044,
+    "id": 8090,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 8016,
+        "id": 8062,
         "literals": [
           "solidity",
           "0.4",
@@ -436,12 +436,12 @@
         "src": "580:23:38"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/Ownable/IOwnable.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/utils/Ownable/IOwnable.sol",
         "file": "../../../utils/Ownable/IOwnable.sol",
-        "id": 8017,
+        "id": 8063,
         "nodeType": "ImportDirective",
-        "scope": 8044,
-        "sourceUnit": 12931,
+        "scope": 8090,
+        "sourceUnit": 12977,
         "src": "605:45:38",
         "symbolAliases": [],
         "unitAlias": ""
@@ -452,31 +452,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 8018,
+              "id": 8064,
               "name": "IOwnable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 12930,
+              "referencedDeclaration": 12976,
               "src": "683:8:38",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IOwnable_$12930",
+                "typeIdentifier": "t_contract$_IOwnable_$12976",
                 "typeString": "contract IOwnable"
               }
             },
-            "id": 8019,
+            "id": 8065,
             "nodeType": "InheritanceSpecifier",
             "src": "683:8:38"
           }
         ],
         "contractDependencies": [
-          12930
+          12976
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 8043,
+        "id": 8089,
         "linearizedBaseContracts": [
-          8043,
-          12930
+          8089,
+          12976
         ],
         "name": "IAuthorizable",
         "nodeType": "ContractDefinition",
@@ -484,7 +484,7 @@
           {
             "body": null,
             "documentation": "@dev Authorizes an address.\n @param target Address to authorize.",
-            "id": 8024,
+            "id": 8070,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -492,15 +492,15 @@
             "name": "addAuthorizedAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8022,
+              "id": 8068,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8021,
+                  "id": 8067,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8024,
+                  "scope": 8070,
                   "src": "808:14:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -509,7 +509,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 8020,
+                    "id": 8066,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "808:7:38",
@@ -526,12 +526,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 8023,
+              "id": 8069,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "840:0:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "778:63:38",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -540,7 +540,7 @@
           {
             "body": null,
             "documentation": "@dev Removes authorizion of an address.\n @param target Address to remove authorization from.",
-            "id": 8029,
+            "id": 8075,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -548,15 +548,15 @@
             "name": "removeAuthorizedAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8027,
+              "id": 8073,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8026,
+                  "id": 8072,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8029,
+                  "scope": 8075,
                   "src": "988:14:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -565,7 +565,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 8025,
+                    "id": 8071,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "988:7:38",
@@ -582,12 +582,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 8028,
+              "id": 8074,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1020:0:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "955:66:38",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -596,7 +596,7 @@
           {
             "body": null,
             "documentation": "@dev Removes authorizion of an address.\n @param target Address to remove authorization from.\n @param index Index of target in authorities array.",
-            "id": 8036,
+            "id": 8082,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -604,15 +604,15 @@
             "name": "removeAuthorizedAddressAtIndex",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8034,
+              "id": 8080,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8031,
+                  "id": 8077,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8036,
+                  "scope": 8082,
                   "src": "1243:14:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -621,7 +621,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 8030,
+                    "id": 8076,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1243:7:38",
@@ -635,10 +635,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 8033,
+                  "id": 8079,
                   "name": "index",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8036,
+                  "scope": 8082,
                   "src": "1267:13:38",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -647,7 +647,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 8032,
+                    "id": 8078,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1267:7:38",
@@ -664,12 +664,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 8035,
+              "id": 8081,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1303:0:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "1194:110:38",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -678,7 +678,7 @@
           {
             "body": null,
             "documentation": "@dev Gets all authorized addresses.\n @return Array of authorized addresses.",
-            "id": 8042,
+            "id": 8088,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -686,22 +686,22 @@
             "name": "getAuthorizedAddresses",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 8037,
+              "id": 8083,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1436:2:38"
             },
             "payable": false,
             "returnParameters": {
-              "id": 8041,
+              "id": 8087,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 8040,
+                  "id": 8086,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 8042,
+                  "scope": 8088,
                   "src": "1486:9:38",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -711,7 +711,7 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 8038,
+                      "id": 8084,
                       "name": "address",
                       "nodeType": "ElementaryTypeName",
                       "src": "1486:7:38",
@@ -720,7 +720,7 @@
                         "typeString": "address"
                       }
                     },
-                    "id": 8039,
+                    "id": 8085,
                     "length": null,
                     "nodeType": "ArrayTypeName",
                     "src": "1486:9:38",
@@ -735,14 +735,14 @@
               ],
               "src": "1485:18:38"
             },
-            "scope": 8043,
+            "scope": 8089,
             "src": "1405:99:38",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 8044,
+        "scope": 8090,
         "src": "653:853:38"
       }
     ],
@@ -754,5 +754,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.703Z"
+  "updatedAt": "2019-08-06T23:43:51.950Z"
 }

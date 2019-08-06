@@ -74,19 +74,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\n\ncontract ISignatureValidator {\n\n    /// @dev Approves a hash on-chain using any valid signature type.\n    ///      After presigning a hash, the preSign signature type will become valid for that hash and signer.\n    /// @param signerAddress Address that should have signed the given hash.\n    /// @param signature Proof that the hash has been signed by signer.\n    function preSign(\n        bytes32 hash,\n        address signerAddress,\n        bytes signature\n    )\n        external;\n    \n    /// @dev Approves/unnapproves a Validator contract to verify signatures on signer's behalf.\n    /// @param validatorAddress Address of Validator contract.\n    /// @param approval Approval or disapproval of  Validator contract.\n    function setSignatureValidatorApproval(\n        address validatorAddress,\n        bool approval\n    )\n        external;\n\n    /// @dev Verifies that a signature is valid.\n    /// @param hash Message hash that is signed.\n    /// @param signerAddress Address of signer.\n    /// @param signature Proof of signing.\n    /// @return Validity of order signature.\n    function isValidSignature(\n        bytes32 hash,\n        address signerAddress,\n        bytes memory signature\n    )\n        public\n        view\n        returns (bool isValid);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
     "exportedSymbols": {
       "ISignatureValidator": [
-        10898
+        10944
       ]
     },
-    "id": 10899,
+    "id": 10945,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10870,
+        "id": 10916,
         "literals": [
           "solidity",
           "0.4",
@@ -101,9 +101,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 10898,
+        "id": 10944,
         "linearizedBaseContracts": [
-          10898
+          10944
         ],
         "name": "ISignatureValidator",
         "nodeType": "ContractDefinition",
@@ -111,7 +111,7 @@
           {
             "body": null,
             "documentation": "@dev Approves a hash on-chain using any valid signature type.\n      After presigning a hash, the preSign signature type will become valid for that hash and signer.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof that the hash has been signed by signer.",
-            "id": 10879,
+            "id": 10925,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -119,15 +119,15 @@
             "name": "preSign",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10877,
+              "id": 10923,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10872,
+                  "id": 10918,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10879,
+                  "scope": 10925,
                   "src": "996:12:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -136,7 +136,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10871,
+                    "id": 10917,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "996:7:51",
@@ -150,10 +150,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10874,
+                  "id": 10920,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10879,
+                  "scope": 10925,
                   "src": "1018:21:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -162,7 +162,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10873,
+                    "id": 10919,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1018:7:51",
@@ -176,10 +176,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10876,
+                  "id": 10922,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10879,
+                  "scope": 10925,
                   "src": "1049:15:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -188,7 +188,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10875,
+                    "id": 10921,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1049:5:51",
@@ -205,12 +205,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10878,
+              "id": 10924,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1087:0:51"
             },
-            "scope": 10898,
+            "scope": 10944,
             "src": "970:118:51",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -219,7 +219,7 @@
           {
             "body": null,
             "documentation": "@dev Approves/unnapproves a Validator contract to verify signatures on signer's behalf.\n @param validatorAddress Address of Validator contract.\n @param approval Approval or disapproval of  Validator contract.",
-            "id": 10886,
+            "id": 10932,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -227,15 +227,15 @@
             "name": "setSignatureValidatorApproval",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10884,
+              "id": 10930,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10881,
+                  "id": 10927,
                   "name": "validatorAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10886,
+                  "scope": 10932,
                   "src": "1377:24:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -244,7 +244,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10880,
+                    "id": 10926,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1377:7:51",
@@ -258,10 +258,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10883,
+                  "id": 10929,
                   "name": "approval",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10886,
+                  "scope": 10932,
                   "src": "1411:13:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -270,7 +270,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 10882,
+                    "id": 10928,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1411:4:51",
@@ -287,12 +287,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10885,
+              "id": 10931,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1447:0:51"
             },
-            "scope": 10898,
+            "scope": 10944,
             "src": "1329:119:51",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -301,7 +301,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies that a signature is valid.\n @param hash Message hash that is signed.\n @param signerAddress Address of signer.\n @param signature Proof of signing.\n @return Validity of order signature.",
-            "id": 10897,
+            "id": 10943,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -309,15 +309,15 @@
             "name": "isValidSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10893,
+              "id": 10939,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10888,
+                  "id": 10934,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1723:12:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -326,7 +326,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10887,
+                    "id": 10933,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1723:7:51",
@@ -340,10 +340,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10890,
+                  "id": 10936,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1745:21:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -352,7 +352,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10889,
+                    "id": 10935,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1745:7:51",
@@ -366,10 +366,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10892,
+                  "id": 10938,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1776:22:51",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -378,7 +378,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10891,
+                    "id": 10937,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1776:5:51",
@@ -395,15 +395,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10896,
+              "id": 10942,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10895,
+                  "id": 10941,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1850:12:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -412,7 +412,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 10894,
+                    "id": 10940,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1850:4:51",
@@ -427,31 +427,31 @@
               ],
               "src": "1849:14:51"
             },
-            "scope": 10898,
+            "scope": 10944,
             "src": "1688:176:51",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 10899,
+        "scope": 10945,
         "src": "606:1260:51"
       }
     ],
     "src": "580:1287:51"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
     "exportedSymbols": {
       "ISignatureValidator": [
-        10898
+        10944
       ]
     },
-    "id": 10899,
+    "id": 10945,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10870,
+        "id": 10916,
         "literals": [
           "solidity",
           "0.4",
@@ -466,9 +466,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 10898,
+        "id": 10944,
         "linearizedBaseContracts": [
-          10898
+          10944
         ],
         "name": "ISignatureValidator",
         "nodeType": "ContractDefinition",
@@ -476,7 +476,7 @@
           {
             "body": null,
             "documentation": "@dev Approves a hash on-chain using any valid signature type.\n      After presigning a hash, the preSign signature type will become valid for that hash and signer.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof that the hash has been signed by signer.",
-            "id": 10879,
+            "id": 10925,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -484,15 +484,15 @@
             "name": "preSign",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10877,
+              "id": 10923,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10872,
+                  "id": 10918,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10879,
+                  "scope": 10925,
                   "src": "996:12:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -501,7 +501,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10871,
+                    "id": 10917,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "996:7:51",
@@ -515,10 +515,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10874,
+                  "id": 10920,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10879,
+                  "scope": 10925,
                   "src": "1018:21:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -527,7 +527,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10873,
+                    "id": 10919,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1018:7:51",
@@ -541,10 +541,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10876,
+                  "id": 10922,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10879,
+                  "scope": 10925,
                   "src": "1049:15:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -553,7 +553,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10875,
+                    "id": 10921,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1049:5:51",
@@ -570,12 +570,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10878,
+              "id": 10924,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1087:0:51"
             },
-            "scope": 10898,
+            "scope": 10944,
             "src": "970:118:51",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -584,7 +584,7 @@
           {
             "body": null,
             "documentation": "@dev Approves/unnapproves a Validator contract to verify signatures on signer's behalf.\n @param validatorAddress Address of Validator contract.\n @param approval Approval or disapproval of  Validator contract.",
-            "id": 10886,
+            "id": 10932,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -592,15 +592,15 @@
             "name": "setSignatureValidatorApproval",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10884,
+              "id": 10930,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10881,
+                  "id": 10927,
                   "name": "validatorAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10886,
+                  "scope": 10932,
                   "src": "1377:24:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -609,7 +609,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10880,
+                    "id": 10926,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1377:7:51",
@@ -623,10 +623,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10883,
+                  "id": 10929,
                   "name": "approval",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10886,
+                  "scope": 10932,
                   "src": "1411:13:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -635,7 +635,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 10882,
+                    "id": 10928,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1411:4:51",
@@ -652,12 +652,12 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10885,
+              "id": 10931,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1447:0:51"
             },
-            "scope": 10898,
+            "scope": 10944,
             "src": "1329:119:51",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -666,7 +666,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies that a signature is valid.\n @param hash Message hash that is signed.\n @param signerAddress Address of signer.\n @param signature Proof of signing.\n @return Validity of order signature.",
-            "id": 10897,
+            "id": 10943,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -674,15 +674,15 @@
             "name": "isValidSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10893,
+              "id": 10939,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10888,
+                  "id": 10934,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1723:12:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -691,7 +691,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 10887,
+                    "id": 10933,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1723:7:51",
@@ -705,10 +705,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10890,
+                  "id": 10936,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1745:21:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -717,7 +717,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10889,
+                    "id": 10935,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1745:7:51",
@@ -731,10 +731,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10892,
+                  "id": 10938,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1776:22:51",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -743,7 +743,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10891,
+                    "id": 10937,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1776:5:51",
@@ -760,15 +760,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10896,
+              "id": 10942,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10895,
+                  "id": 10941,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10897,
+                  "scope": 10943,
                   "src": "1850:12:51",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -777,7 +777,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 10894,
+                    "id": 10940,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1850:4:51",
@@ -792,14 +792,14 @@
               ],
               "src": "1849:14:51"
             },
-            "scope": 10898,
+            "scope": 10944,
             "src": "1688:176:51",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 10899,
+        "scope": 10945,
         "src": "606:1260:51"
       }
     ],
@@ -811,5 +811,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.743Z"
+  "updatedAt": "2019-08-06T23:43:51.986Z"
 }

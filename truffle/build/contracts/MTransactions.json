@@ -33,19 +33,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\npragma solidity 0.4.24;\n\nimport \"../interfaces/ITransactions.sol\";\n\n\ncontract MTransactions is\n    ITransactions\n{\n    // Hash for the EIP712 ZeroEx Transaction Schema\n    bytes32 constant internal EIP712_ZEROEX_TRANSACTION_SCHEMA_HASH = keccak256(abi.encodePacked(\n        \"ZeroExTransaction(\",\n        \"uint256 salt,\",\n        \"address signerAddress,\",\n        \"bytes data\",\n        \")\"\n    ));\n\n    /// @dev Calculates EIP712 hash of the Transaction.\n    /// @param salt Arbitrary number to ensure uniqueness of transaction hash.\n    /// @param signerAddress Address of transaction signer.\n    /// @param data AbiV2 encoded calldata.\n    /// @return EIP712 hash of the Transaction.\n    function hashZeroExTransaction(\n        uint256 salt,\n        address signerAddress,\n        bytes memory data\n    )\n        internal\n        pure\n        returns (bytes32 result);\n\n    /// @dev The current function will be called in the context of this address (either 0x transaction signer or `msg.sender`).\n    ///      If calling a fill function, this address will represent the taker.\n    ///      If calling a cancel function, this address will represent the maker.\n    /// @return Signer of 0x transaction if entry point is `executeTransaction`.\n    ///         `msg.sender` if entry point is any other function.\n    function getCurrentContextAddress()\n        internal\n        view\n        returns (address);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MTransactions.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MTransactions.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MTransactions.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MTransactions.sol",
     "exportedSymbols": {
       "MTransactions": [
-        11981
+        12027
       ]
     },
-    "id": 11982,
+    "id": 12028,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11949,
+        "id": 11995,
         "literals": [
           "solidity",
           "0.4",
@@ -55,12 +55,12 @@
         "src": "579:23:67"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
         "file": "../interfaces/ITransactions.sol",
-        "id": 11950,
+        "id": 11996,
         "nodeType": "ImportDirective",
-        "scope": 11982,
-        "sourceUnit": 10913,
+        "scope": 12028,
+        "sourceUnit": 10959,
         "src": "604:41:67",
         "symbolAliases": [],
         "unitAlias": ""
@@ -71,41 +71,41 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11951,
+              "id": 11997,
               "name": "ITransactions",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 10912,
+              "referencedDeclaration": 10958,
               "src": "678:13:67",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ITransactions_$10912",
+                "typeIdentifier": "t_contract$_ITransactions_$10958",
                 "typeString": "contract ITransactions"
               }
             },
-            "id": 11952,
+            "id": 11998,
             "nodeType": "InheritanceSpecifier",
             "src": "678:13:67"
           }
         ],
         "contractDependencies": [
-          10912
+          10958
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 11981,
+        "id": 12027,
         "linearizedBaseContracts": [
-          11981,
-          10912
+          12027,
+          10958
         ],
         "name": "MTransactions",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 11964,
+            "id": 12010,
             "name": "EIP712_ZEROEX_TRANSACTION_SCHEMA_HASH",
             "nodeType": "VariableDeclaration",
-            "scope": 11981,
+            "scope": 12027,
             "src": "751:223:67",
             "stateVariable": true,
             "storageLocation": "default",
@@ -114,7 +114,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 11953,
+              "id": 11999,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "751:7:67",
@@ -132,7 +132,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "5a65726f45785472616e73616374696f6e28",
-                      "id": 11957,
+                      "id": 12003,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -150,7 +150,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "75696e743235362073616c742c",
-                      "id": 11958,
+                      "id": 12004,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -168,7 +168,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "61646472657373207369676e6572416464726573732c",
-                      "id": 11959,
+                      "id": 12005,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -186,7 +186,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "62797465732064617461",
-                      "id": 11960,
+                      "id": 12006,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -204,7 +204,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "29",
-                      "id": 11961,
+                      "id": 12007,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -245,18 +245,18 @@
                     ],
                     "expression": {
                       "argumentTypes": null,
-                      "id": 11955,
+                      "id": 12001,
                       "name": "abi",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 16195,
+                      "referencedDeclaration": 16241,
                       "src": "827:3:67",
                       "typeDescriptions": {
                         "typeIdentifier": "t_magic_abi",
                         "typeString": "abi"
                       }
                     },
-                    "id": 11956,
+                    "id": 12002,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -270,7 +270,7 @@
                       "typeString": "function () pure returns (bytes memory)"
                     }
                   },
-                  "id": 11962,
+                  "id": 12008,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -292,18 +292,18 @@
                     "typeString": "bytes memory"
                   }
                 ],
-                "id": 11954,
+                "id": 12000,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 16202,
+                "referencedDeclaration": 16248,
                 "src": "817:9:67",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 11963,
+              "id": 12009,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -322,7 +322,7 @@
           {
             "body": null,
             "documentation": "@dev Calculates EIP712 hash of the Transaction.\n @param salt Arbitrary number to ensure uniqueness of transaction hash.\n @param signerAddress Address of transaction signer.\n @param data AbiV2 encoded calldata.\n @return EIP712 hash of the Transaction.",
-            "id": 11975,
+            "id": 12021,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -330,15 +330,15 @@
             "name": "hashZeroExTransaction",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11971,
+              "id": 12017,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11966,
+                  "id": 12012,
                   "name": "salt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1308:12:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -347,7 +347,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11965,
+                    "id": 12011,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1308:7:67",
@@ -361,10 +361,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11968,
+                  "id": 12014,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1330:21:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -373,7 +373,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11967,
+                    "id": 12013,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1330:7:67",
@@ -387,10 +387,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11970,
+                  "id": 12016,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1361:17:67",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -399,7 +399,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11969,
+                    "id": 12015,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1361:5:67",
@@ -416,15 +416,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11974,
+              "id": 12020,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11973,
+                  "id": 12019,
                   "name": "result",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1432:14:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -433,7 +433,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 11972,
+                    "id": 12018,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1432:7:67",
@@ -448,7 +448,7 @@
               ],
               "src": "1431:16:67"
             },
-            "scope": 11981,
+            "scope": 12027,
             "src": "1268:180:67",
             "stateMutability": "pure",
             "superFunction": null,
@@ -457,7 +457,7 @@
           {
             "body": null,
             "documentation": "@dev The current function will be called in the context of this address (either 0x transaction signer or `msg.sender`).\n      If calling a fill function, this address will represent the taker.\n      If calling a cancel function, this address will represent the maker.\n @return Signer of 0x transaction if entry point is `executeTransaction`.\n         `msg.sender` if entry point is any other function.",
-            "id": 11980,
+            "id": 12026,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -465,22 +465,22 @@
             "name": "getCurrentContextAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11976,
+              "id": 12022,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1925:2:67"
             },
             "payable": false,
             "returnParameters": {
-              "id": 11979,
+              "id": 12025,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11978,
+                  "id": 12024,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11980,
+                  "scope": 12026,
                   "src": "1975:7:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -489,7 +489,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11977,
+                    "id": 12023,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1975:7:67",
@@ -504,31 +504,31 @@
               ],
               "src": "1974:9:67"
             },
-            "scope": 11981,
+            "scope": 12027,
             "src": "1892:92:67",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 11982,
+        "scope": 12028,
         "src": "648:1338:67"
       }
     ],
     "src": "579:1408:67"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MTransactions.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MTransactions.sol",
     "exportedSymbols": {
       "MTransactions": [
-        11981
+        12027
       ]
     },
-    "id": 11982,
+    "id": 12028,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11949,
+        "id": 11995,
         "literals": [
           "solidity",
           "0.4",
@@ -538,12 +538,12 @@
         "src": "579:23:67"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
         "file": "../interfaces/ITransactions.sol",
-        "id": 11950,
+        "id": 11996,
         "nodeType": "ImportDirective",
-        "scope": 11982,
-        "sourceUnit": 10913,
+        "scope": 12028,
+        "sourceUnit": 10959,
         "src": "604:41:67",
         "symbolAliases": [],
         "unitAlias": ""
@@ -554,41 +554,41 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11951,
+              "id": 11997,
               "name": "ITransactions",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 10912,
+              "referencedDeclaration": 10958,
               "src": "678:13:67",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ITransactions_$10912",
+                "typeIdentifier": "t_contract$_ITransactions_$10958",
                 "typeString": "contract ITransactions"
               }
             },
-            "id": 11952,
+            "id": 11998,
             "nodeType": "InheritanceSpecifier",
             "src": "678:13:67"
           }
         ],
         "contractDependencies": [
-          10912
+          10958
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 11981,
+        "id": 12027,
         "linearizedBaseContracts": [
-          11981,
-          10912
+          12027,
+          10958
         ],
         "name": "MTransactions",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 11964,
+            "id": 12010,
             "name": "EIP712_ZEROEX_TRANSACTION_SCHEMA_HASH",
             "nodeType": "VariableDeclaration",
-            "scope": 11981,
+            "scope": 12027,
             "src": "751:223:67",
             "stateVariable": true,
             "storageLocation": "default",
@@ -597,7 +597,7 @@
               "typeString": "bytes32"
             },
             "typeName": {
-              "id": 11953,
+              "id": 11999,
               "name": "bytes32",
               "nodeType": "ElementaryTypeName",
               "src": "751:7:67",
@@ -615,7 +615,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "5a65726f45785472616e73616374696f6e28",
-                      "id": 11957,
+                      "id": 12003,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -633,7 +633,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "75696e743235362073616c742c",
-                      "id": 11958,
+                      "id": 12004,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -651,7 +651,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "61646472657373207369676e6572416464726573732c",
-                      "id": 11959,
+                      "id": 12005,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -669,7 +669,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "62797465732064617461",
-                      "id": 11960,
+                      "id": 12006,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -687,7 +687,7 @@
                     {
                       "argumentTypes": null,
                       "hexValue": "29",
-                      "id": 11961,
+                      "id": 12007,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -728,18 +728,18 @@
                     ],
                     "expression": {
                       "argumentTypes": null,
-                      "id": 11955,
+                      "id": 12001,
                       "name": "abi",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 16195,
+                      "referencedDeclaration": 16241,
                       "src": "827:3:67",
                       "typeDescriptions": {
                         "typeIdentifier": "t_magic_abi",
                         "typeString": "abi"
                       }
                     },
-                    "id": 11956,
+                    "id": 12002,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": true,
@@ -753,7 +753,7 @@
                       "typeString": "function () pure returns (bytes memory)"
                     }
                   },
-                  "id": 11962,
+                  "id": 12008,
                   "isConstant": false,
                   "isLValue": false,
                   "isPure": true,
@@ -775,18 +775,18 @@
                     "typeString": "bytes memory"
                   }
                 ],
-                "id": 11954,
+                "id": 12000,
                 "name": "keccak256",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 16202,
+                "referencedDeclaration": 16248,
                 "src": "817:9:67",
                 "typeDescriptions": {
                   "typeIdentifier": "t_function_sha3_pure$__$returns$_t_bytes32_$",
                   "typeString": "function () pure returns (bytes32)"
                 }
               },
-              "id": 11963,
+              "id": 12009,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -805,7 +805,7 @@
           {
             "body": null,
             "documentation": "@dev Calculates EIP712 hash of the Transaction.\n @param salt Arbitrary number to ensure uniqueness of transaction hash.\n @param signerAddress Address of transaction signer.\n @param data AbiV2 encoded calldata.\n @return EIP712 hash of the Transaction.",
-            "id": 11975,
+            "id": 12021,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -813,15 +813,15 @@
             "name": "hashZeroExTransaction",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11971,
+              "id": 12017,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11966,
+                  "id": 12012,
                   "name": "salt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1308:12:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -830,7 +830,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11965,
+                    "id": 12011,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1308:7:67",
@@ -844,10 +844,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11968,
+                  "id": 12014,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1330:21:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -856,7 +856,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11967,
+                    "id": 12013,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1330:7:67",
@@ -870,10 +870,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11970,
+                  "id": 12016,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1361:17:67",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -882,7 +882,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11969,
+                    "id": 12015,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1361:5:67",
@@ -899,15 +899,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11974,
+              "id": 12020,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11973,
+                  "id": 12019,
                   "name": "result",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11975,
+                  "scope": 12021,
                   "src": "1432:14:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -916,7 +916,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 11972,
+                    "id": 12018,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1432:7:67",
@@ -931,7 +931,7 @@
               ],
               "src": "1431:16:67"
             },
-            "scope": 11981,
+            "scope": 12027,
             "src": "1268:180:67",
             "stateMutability": "pure",
             "superFunction": null,
@@ -940,7 +940,7 @@
           {
             "body": null,
             "documentation": "@dev The current function will be called in the context of this address (either 0x transaction signer or `msg.sender`).\n      If calling a fill function, this address will represent the taker.\n      If calling a cancel function, this address will represent the maker.\n @return Signer of 0x transaction if entry point is `executeTransaction`.\n         `msg.sender` if entry point is any other function.",
-            "id": 11980,
+            "id": 12026,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -948,22 +948,22 @@
             "name": "getCurrentContextAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11976,
+              "id": 12022,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1925:2:67"
             },
             "payable": false,
             "returnParameters": {
-              "id": 11979,
+              "id": 12025,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11978,
+                  "id": 12024,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11980,
+                  "scope": 12026,
                   "src": "1975:7:67",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -972,7 +972,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11977,
+                    "id": 12023,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1975:7:67",
@@ -987,14 +987,14 @@
               ],
               "src": "1974:9:67"
             },
-            "scope": 11981,
+            "scope": 12027,
             "src": "1892:92:67",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 11982,
+        "scope": 12028,
         "src": "648:1338:67"
       }
     ],
@@ -1006,5 +1006,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.899Z"
+  "updatedAt": "2019-08-06T23:43:52.004Z"
 }

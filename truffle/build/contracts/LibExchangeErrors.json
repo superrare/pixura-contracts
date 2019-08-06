@@ -1,24 +1,24 @@
 {
   "contractName": "LibExchangeErrors",
   "abi": [],
-  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a7230582041adeffb935e3b83ad1983842af9e749567c240bd2acedb64f1c83a5633cc20d0029",
-  "deployedBytecode": "0x6080604052600080fd00a165627a7a7230582041adeffb935e3b83ad1983842af9e749567c240bd2acedb64f1c83a5633cc20d0029",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a72305820e9bafd9834d15a91fc56b0f94e2803291d09d71413947b970ed50952d98c0e3f0029",
+  "deployedBytecode": "0x6080604052600080fd00a165627a7a72305820e9bafd9834d15a91fc56b0f94e2803291d09d71413947b970ed50952d98c0e3f0029",
   "sourceMap": "812:3491:59:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;812:3491:59;;;;;;;",
   "deployedSourceMap": "812:3491:59:-;;;;;",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\n// solhint-disable\npragma solidity 0.4.24;\n\n\n/// @dev This contract documents the revert reasons used in the Exchange contract.\n/// This contract is intended to serve as a reference, but is not actually used for efficiency reasons.\ncontract LibExchangeErrors {\n\n    /// Order validation errors ///\n    string constant ORDER_UNFILLABLE = \"ORDER_UNFILLABLE\";                              // Order cannot be filled.\n    string constant INVALID_MAKER = \"INVALID_MAKER\";                                    // Invalid makerAddress.\n    string constant INVALID_TAKER = \"INVALID_TAKER\";                                    // Invalid takerAddress.\n    string constant INVALID_SENDER = \"INVALID_SENDER\";                                  // Invalid `msg.sender`.\n    string constant INVALID_ORDER_SIGNATURE = \"INVALID_ORDER_SIGNATURE\";                // Signature validation failed. \n    \n    /// fillOrder validation errors ///\n    string constant INVALID_TAKER_AMOUNT = \"INVALID_TAKER_AMOUNT\";                      // takerAssetFillAmount cannot equal 0.\n    string constant ROUNDING_ERROR = \"ROUNDING_ERROR\";                                  // Rounding error greater than 0.1% of takerAssetFillAmount. \n    \n    /// Signature validation errors ///\n    string constant INVALID_SIGNATURE = \"INVALID_SIGNATURE\";                            // Signature validation failed. \n    string constant SIGNATURE_ILLEGAL = \"SIGNATURE_ILLEGAL\";                            // Signature type is illegal.\n    string constant SIGNATURE_UNSUPPORTED = \"SIGNATURE_UNSUPPORTED\";                    // Signature type unsupported.\n    \n    /// cancelOrdersUptTo errors ///\n    string constant INVALID_NEW_ORDER_EPOCH = \"INVALID_NEW_ORDER_EPOCH\";                // Specified salt must be greater than or equal to existing orderEpoch.\n\n    /// fillOrKillOrder errors ///\n    string constant COMPLETE_FILL_FAILED = \"COMPLETE_FILL_FAILED\";                      // Desired takerAssetFillAmount could not be completely filled. \n\n    /// matchOrders errors ///\n    string constant NEGATIVE_SPREAD_REQUIRED = \"NEGATIVE_SPREAD_REQUIRED\";              // Matched orders must have a negative spread.\n\n    /// Transaction errors ///\n    string constant REENTRANCY_ILLEGAL = \"REENTRANCY_ILLEGAL\";                          // Recursive reentrancy is not allowed. \n    string constant INVALID_TX_HASH = \"INVALID_TX_HASH\";                                // Transaction has already been executed. \n    string constant INVALID_TX_SIGNATURE = \"INVALID_TX_SIGNATURE\";                      // Signature validation failed. \n    string constant FAILED_EXECUTION = \"FAILED_EXECUTION\";                              // Transaction execution failed. \n    \n    /// registerAssetProxy errors ///\n    string constant ASSET_PROXY_ALREADY_EXISTS = \"ASSET_PROXY_ALREADY_EXISTS\";          // AssetProxy with same id already exists.\n\n    /// dispatchTransferFrom errors ///\n    string constant ASSET_PROXY_DOES_NOT_EXIST = \"ASSET_PROXY_DOES_NOT_EXIST\";          // No assetProxy registered at given id.\n    string constant TRANSFER_FAILED = \"TRANSFER_FAILED\";                                // Asset transfer unsuccesful.\n\n    /// Length validation errors ///\n    string constant LENGTH_GREATER_THAN_0_REQUIRED = \"LENGTH_GREATER_THAN_0_REQUIRED\";  // Byte array must have a length greater than 0.\n    string constant LENGTH_GREATER_THAN_3_REQUIRED = \"LENGTH_GREATER_THAN_3_REQUIRED\";  // Byte array must have a length greater than 3.\n    string constant LENGTH_0_REQUIRED = \"LENGTH_0_REQUIRED\";                            // Byte array must have a length of 0.\n    string constant LENGTH_65_REQUIRED = \"LENGTH_65_REQUIRED\";                          // Byte array must have a length of 65.\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibExchangeErrors.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibExchangeErrors.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibExchangeErrors.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibExchangeErrors.sol",
     "exportedSymbols": {
       "LibExchangeErrors": [
-        11254
+        11300
       ]
     },
-    "id": 11255,
+    "id": 11301,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11181,
+        "id": 11227,
         "literals": [
           "solidity",
           "0.4",
@@ -33,19 +33,19 @@
         "contractKind": "contract",
         "documentation": "@dev This contract documents the revert reasons used in the Exchange contract.\n This contract is intended to serve as a reference, but is not actually used for efficiency reasons.",
         "fullyImplemented": true,
-        "id": 11254,
+        "id": 11300,
         "linearizedBaseContracts": [
-          11254
+          11300
         ],
         "name": "LibExchangeErrors",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 11184,
+            "id": 11230,
             "name": "ORDER_UNFILLABLE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "882:53:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -54,7 +54,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11182,
+              "id": 11228,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "882:6:59",
@@ -66,7 +66,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4f524445525f554e46494c4c41424c45",
-              "id": 11183,
+              "id": 11229,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -85,10 +85,10 @@
           },
           {
             "constant": true,
-            "id": 11187,
+            "id": 11233,
             "name": "INVALID_MAKER",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "997:47:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -97,7 +97,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11185,
+              "id": 11231,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "997:6:59",
@@ -109,7 +109,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f4d414b4552",
-              "id": 11186,
+              "id": 11232,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -128,10 +128,10 @@
           },
           {
             "constant": true,
-            "id": 11190,
+            "id": 11236,
             "name": "INVALID_TAKER",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1110:47:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -140,7 +140,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11188,
+              "id": 11234,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1110:6:59",
@@ -152,7 +152,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54414b4552",
-              "id": 11189,
+              "id": 11235,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -171,10 +171,10 @@
           },
           {
             "constant": true,
-            "id": 11193,
+            "id": 11239,
             "name": "INVALID_SENDER",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1223:49:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -183,7 +183,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11191,
+              "id": 11237,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1223:6:59",
@@ -195,7 +195,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f53454e444552",
-              "id": 11192,
+              "id": 11238,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -214,10 +214,10 @@
           },
           {
             "constant": true,
-            "id": 11196,
+            "id": 11242,
             "name": "INVALID_ORDER_SIGNATURE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1336:67:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -226,7 +226,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11194,
+              "id": 11240,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1336:6:59",
@@ -238,7 +238,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f4f524445525f5349474e4154555245",
-              "id": 11195,
+              "id": 11241,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -257,10 +257,10 @@
           },
           {
             "constant": true,
-            "id": 11199,
+            "id": 11245,
             "name": "INVALID_TAKER_AMOUNT",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1502:61:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -269,7 +269,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11197,
+              "id": 11243,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1502:6:59",
@@ -281,7 +281,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54414b45525f414d4f554e54",
-              "id": 11198,
+              "id": 11244,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -300,10 +300,10 @@
           },
           {
             "constant": true,
-            "id": 11202,
+            "id": 11248,
             "name": "ROUNDING_ERROR",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1630:49:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -312,7 +312,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11200,
+              "id": 11246,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1630:6:59",
@@ -324,7 +324,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "524f554e44494e475f4552524f52",
-              "id": 11201,
+              "id": 11247,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -343,10 +343,10 @@
           },
           {
             "constant": true,
-            "id": 11205,
+            "id": 11251,
             "name": "INVALID_SIGNATURE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1825:55:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -355,7 +355,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11203,
+              "id": 11249,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1825:6:59",
@@ -367,7 +367,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f5349474e4154555245",
-              "id": 11204,
+              "id": 11250,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -386,10 +386,10 @@
           },
           {
             "constant": true,
-            "id": 11208,
+            "id": 11254,
             "name": "SIGNATURE_ILLEGAL",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1946:55:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -398,7 +398,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11206,
+              "id": 11252,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1946:6:59",
@@ -410,7 +410,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5349474e41545552455f494c4c4547414c",
-              "id": 11207,
+              "id": 11253,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -429,10 +429,10 @@
           },
           {
             "constant": true,
-            "id": 11211,
+            "id": 11257,
             "name": "SIGNATURE_UNSUPPORTED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2064:63:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -441,7 +441,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11209,
+              "id": 11255,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2064:6:59",
@@ -453,7 +453,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5349474e41545552455f554e535550504f52544544",
-              "id": 11210,
+              "id": 11256,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -472,10 +472,10 @@
           },
           {
             "constant": true,
-            "id": 11214,
+            "id": 11260,
             "name": "INVALID_NEW_ORDER_EPOCH",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2225:67:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -484,7 +484,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11212,
+              "id": 11258,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2225:6:59",
@@ -496,7 +496,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f4e45575f4f524445525f45504f4348",
-              "id": 11213,
+              "id": 11259,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -515,10 +515,10 @@
           },
           {
             "constant": true,
-            "id": 11217,
+            "id": 11263,
             "name": "COMPLETE_FILL_FAILED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2421:61:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -527,7 +527,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11215,
+              "id": 11261,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2421:6:59",
@@ -539,7 +539,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "434f4d504c4554455f46494c4c5f4641494c4544",
-              "id": 11216,
+              "id": 11262,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -558,10 +558,10 @@
           },
           {
             "constant": true,
-            "id": 11220,
+            "id": 11266,
             "name": "NEGATIVE_SPREAD_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2606:69:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -570,7 +570,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11218,
+              "id": 11264,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2606:6:59",
@@ -582,7 +582,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4e454741544956455f5350524541445f5245515549524544",
-              "id": 11219,
+              "id": 11265,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -601,10 +601,10 @@
           },
           {
             "constant": true,
-            "id": 11223,
+            "id": 11269,
             "name": "REENTRANCY_ILLEGAL",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2773:57:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -613,7 +613,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11221,
+              "id": 11267,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2773:6:59",
@@ -625,7 +625,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5245454e5452414e43595f494c4c4547414c",
-              "id": 11222,
+              "id": 11268,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -644,10 +644,10 @@
           },
           {
             "constant": true,
-            "id": 11226,
+            "id": 11272,
             "name": "INVALID_TX_HASH",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2902:51:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -656,7 +656,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11224,
+              "id": 11270,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2902:6:59",
@@ -668,7 +668,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54585f48415348",
-              "id": 11225,
+              "id": 11271,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -687,10 +687,10 @@
           },
           {
             "constant": true,
-            "id": 11229,
+            "id": 11275,
             "name": "INVALID_TX_SIGNATURE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3033:61:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -699,7 +699,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11227,
+              "id": 11273,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3033:6:59",
@@ -711,7 +711,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54585f5349474e4154555245",
-              "id": 11228,
+              "id": 11274,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -730,10 +730,10 @@
           },
           {
             "constant": true,
-            "id": 11232,
+            "id": 11278,
             "name": "FAILED_EXECUTION",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3154:53:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -742,7 +742,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11230,
+              "id": 11276,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3154:6:59",
@@ -754,7 +754,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4641494c45445f455845435554494f4e",
-              "id": 11231,
+              "id": 11277,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -773,10 +773,10 @@
           },
           {
             "constant": true,
-            "id": 11235,
+            "id": 11281,
             "name": "ASSET_PROXY_ALREADY_EXISTS",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3319:73:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -785,7 +785,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11233,
+              "id": 11279,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3319:6:59",
@@ -797,7 +797,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "41535345545f50524f58595f414c52454144595f455849535453",
-              "id": 11234,
+              "id": 11280,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -816,10 +816,10 @@
           },
           {
             "constant": true,
-            "id": 11238,
+            "id": 11284,
             "name": "ASSET_PROXY_DOES_NOT_EXIST",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3491:73:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -828,7 +828,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11236,
+              "id": 11282,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3491:6:59",
@@ -840,7 +840,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "41535345545f50524f58595f444f45535f4e4f545f4558495354",
-              "id": 11237,
+              "id": 11283,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -859,10 +859,10 @@
           },
           {
             "constant": true,
-            "id": 11241,
+            "id": 11287,
             "name": "TRANSFER_FAILED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3620:51:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -871,7 +871,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11239,
+              "id": 11285,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3620:6:59",
@@ -883,7 +883,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5452414e534645525f4641494c4544",
-              "id": 11240,
+              "id": 11286,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -902,10 +902,10 @@
           },
           {
             "constant": true,
-            "id": 11244,
+            "id": 11290,
             "name": "LENGTH_GREATER_THAN_0_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3777:81:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -914,7 +914,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11242,
+              "id": 11288,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3777:6:59",
@@ -926,7 +926,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f475245415445525f5448414e5f305f5245515549524544",
-              "id": 11243,
+              "id": 11289,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -945,10 +945,10 @@
           },
           {
             "constant": true,
-            "id": 11247,
+            "id": 11293,
             "name": "LENGTH_GREATER_THAN_3_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3914:81:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -957,7 +957,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11245,
+              "id": 11291,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3914:6:59",
@@ -969,7 +969,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f475245415445525f5448414e5f335f5245515549524544",
-              "id": 11246,
+              "id": 11292,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -988,10 +988,10 @@
           },
           {
             "constant": true,
-            "id": 11250,
+            "id": 11296,
             "name": "LENGTH_0_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "4051:55:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1000,7 +1000,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11248,
+              "id": 11294,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "4051:6:59",
@@ -1012,7 +1012,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f305f5245515549524544",
-              "id": 11249,
+              "id": 11295,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1031,10 +1031,10 @@
           },
           {
             "constant": true,
-            "id": 11253,
+            "id": 11299,
             "name": "LENGTH_65_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "4178:57:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1043,7 +1043,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11251,
+              "id": 11297,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "4178:6:59",
@@ -1055,7 +1055,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f36355f5245515549524544",
-              "id": 11252,
+              "id": 11298,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1073,24 +1073,24 @@
             "visibility": "internal"
           }
         ],
-        "scope": 11255,
+        "scope": 11301,
         "src": "812:3491:59"
       }
     ],
     "src": "599:3705:59"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibExchangeErrors.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibExchangeErrors.sol",
     "exportedSymbols": {
       "LibExchangeErrors": [
-        11254
+        11300
       ]
     },
-    "id": 11255,
+    "id": 11301,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11181,
+        "id": 11227,
         "literals": [
           "solidity",
           "0.4",
@@ -1105,19 +1105,19 @@
         "contractKind": "contract",
         "documentation": "@dev This contract documents the revert reasons used in the Exchange contract.\n This contract is intended to serve as a reference, but is not actually used for efficiency reasons.",
         "fullyImplemented": true,
-        "id": 11254,
+        "id": 11300,
         "linearizedBaseContracts": [
-          11254
+          11300
         ],
         "name": "LibExchangeErrors",
         "nodeType": "ContractDefinition",
         "nodes": [
           {
             "constant": true,
-            "id": 11184,
+            "id": 11230,
             "name": "ORDER_UNFILLABLE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "882:53:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1126,7 +1126,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11182,
+              "id": 11228,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "882:6:59",
@@ -1138,7 +1138,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4f524445525f554e46494c4c41424c45",
-              "id": 11183,
+              "id": 11229,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1157,10 +1157,10 @@
           },
           {
             "constant": true,
-            "id": 11187,
+            "id": 11233,
             "name": "INVALID_MAKER",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "997:47:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1169,7 +1169,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11185,
+              "id": 11231,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "997:6:59",
@@ -1181,7 +1181,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f4d414b4552",
-              "id": 11186,
+              "id": 11232,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1200,10 +1200,10 @@
           },
           {
             "constant": true,
-            "id": 11190,
+            "id": 11236,
             "name": "INVALID_TAKER",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1110:47:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1212,7 +1212,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11188,
+              "id": 11234,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1110:6:59",
@@ -1224,7 +1224,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54414b4552",
-              "id": 11189,
+              "id": 11235,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1243,10 +1243,10 @@
           },
           {
             "constant": true,
-            "id": 11193,
+            "id": 11239,
             "name": "INVALID_SENDER",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1223:49:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1255,7 +1255,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11191,
+              "id": 11237,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1223:6:59",
@@ -1267,7 +1267,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f53454e444552",
-              "id": 11192,
+              "id": 11238,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1286,10 +1286,10 @@
           },
           {
             "constant": true,
-            "id": 11196,
+            "id": 11242,
             "name": "INVALID_ORDER_SIGNATURE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1336:67:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1298,7 +1298,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11194,
+              "id": 11240,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1336:6:59",
@@ -1310,7 +1310,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f4f524445525f5349474e4154555245",
-              "id": 11195,
+              "id": 11241,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1329,10 +1329,10 @@
           },
           {
             "constant": true,
-            "id": 11199,
+            "id": 11245,
             "name": "INVALID_TAKER_AMOUNT",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1502:61:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1341,7 +1341,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11197,
+              "id": 11243,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1502:6:59",
@@ -1353,7 +1353,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54414b45525f414d4f554e54",
-              "id": 11198,
+              "id": 11244,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1372,10 +1372,10 @@
           },
           {
             "constant": true,
-            "id": 11202,
+            "id": 11248,
             "name": "ROUNDING_ERROR",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1630:49:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1384,7 +1384,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11200,
+              "id": 11246,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1630:6:59",
@@ -1396,7 +1396,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "524f554e44494e475f4552524f52",
-              "id": 11201,
+              "id": 11247,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1415,10 +1415,10 @@
           },
           {
             "constant": true,
-            "id": 11205,
+            "id": 11251,
             "name": "INVALID_SIGNATURE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1825:55:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1427,7 +1427,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11203,
+              "id": 11249,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1825:6:59",
@@ -1439,7 +1439,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f5349474e4154555245",
-              "id": 11204,
+              "id": 11250,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1458,10 +1458,10 @@
           },
           {
             "constant": true,
-            "id": 11208,
+            "id": 11254,
             "name": "SIGNATURE_ILLEGAL",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "1946:55:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1470,7 +1470,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11206,
+              "id": 11252,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "1946:6:59",
@@ -1482,7 +1482,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5349474e41545552455f494c4c4547414c",
-              "id": 11207,
+              "id": 11253,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1501,10 +1501,10 @@
           },
           {
             "constant": true,
-            "id": 11211,
+            "id": 11257,
             "name": "SIGNATURE_UNSUPPORTED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2064:63:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1513,7 +1513,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11209,
+              "id": 11255,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2064:6:59",
@@ -1525,7 +1525,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5349474e41545552455f554e535550504f52544544",
-              "id": 11210,
+              "id": 11256,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1544,10 +1544,10 @@
           },
           {
             "constant": true,
-            "id": 11214,
+            "id": 11260,
             "name": "INVALID_NEW_ORDER_EPOCH",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2225:67:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1556,7 +1556,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11212,
+              "id": 11258,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2225:6:59",
@@ -1568,7 +1568,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f4e45575f4f524445525f45504f4348",
-              "id": 11213,
+              "id": 11259,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1587,10 +1587,10 @@
           },
           {
             "constant": true,
-            "id": 11217,
+            "id": 11263,
             "name": "COMPLETE_FILL_FAILED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2421:61:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1599,7 +1599,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11215,
+              "id": 11261,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2421:6:59",
@@ -1611,7 +1611,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "434f4d504c4554455f46494c4c5f4641494c4544",
-              "id": 11216,
+              "id": 11262,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1630,10 +1630,10 @@
           },
           {
             "constant": true,
-            "id": 11220,
+            "id": 11266,
             "name": "NEGATIVE_SPREAD_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2606:69:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1642,7 +1642,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11218,
+              "id": 11264,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2606:6:59",
@@ -1654,7 +1654,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4e454741544956455f5350524541445f5245515549524544",
-              "id": 11219,
+              "id": 11265,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1673,10 +1673,10 @@
           },
           {
             "constant": true,
-            "id": 11223,
+            "id": 11269,
             "name": "REENTRANCY_ILLEGAL",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2773:57:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1685,7 +1685,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11221,
+              "id": 11267,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2773:6:59",
@@ -1697,7 +1697,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5245454e5452414e43595f494c4c4547414c",
-              "id": 11222,
+              "id": 11268,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1716,10 +1716,10 @@
           },
           {
             "constant": true,
-            "id": 11226,
+            "id": 11272,
             "name": "INVALID_TX_HASH",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "2902:51:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1728,7 +1728,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11224,
+              "id": 11270,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "2902:6:59",
@@ -1740,7 +1740,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54585f48415348",
-              "id": 11225,
+              "id": 11271,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1759,10 +1759,10 @@
           },
           {
             "constant": true,
-            "id": 11229,
+            "id": 11275,
             "name": "INVALID_TX_SIGNATURE",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3033:61:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1771,7 +1771,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11227,
+              "id": 11273,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3033:6:59",
@@ -1783,7 +1783,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "494e56414c49445f54585f5349474e4154555245",
-              "id": 11228,
+              "id": 11274,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1802,10 +1802,10 @@
           },
           {
             "constant": true,
-            "id": 11232,
+            "id": 11278,
             "name": "FAILED_EXECUTION",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3154:53:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1814,7 +1814,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11230,
+              "id": 11276,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3154:6:59",
@@ -1826,7 +1826,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4641494c45445f455845435554494f4e",
-              "id": 11231,
+              "id": 11277,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1845,10 +1845,10 @@
           },
           {
             "constant": true,
-            "id": 11235,
+            "id": 11281,
             "name": "ASSET_PROXY_ALREADY_EXISTS",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3319:73:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1857,7 +1857,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11233,
+              "id": 11279,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3319:6:59",
@@ -1869,7 +1869,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "41535345545f50524f58595f414c52454144595f455849535453",
-              "id": 11234,
+              "id": 11280,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1888,10 +1888,10 @@
           },
           {
             "constant": true,
-            "id": 11238,
+            "id": 11284,
             "name": "ASSET_PROXY_DOES_NOT_EXIST",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3491:73:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1900,7 +1900,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11236,
+              "id": 11282,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3491:6:59",
@@ -1912,7 +1912,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "41535345545f50524f58595f444f45535f4e4f545f4558495354",
-              "id": 11237,
+              "id": 11283,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1931,10 +1931,10 @@
           },
           {
             "constant": true,
-            "id": 11241,
+            "id": 11287,
             "name": "TRANSFER_FAILED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3620:51:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1943,7 +1943,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11239,
+              "id": 11285,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3620:6:59",
@@ -1955,7 +1955,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "5452414e534645525f4641494c4544",
-              "id": 11240,
+              "id": 11286,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -1974,10 +1974,10 @@
           },
           {
             "constant": true,
-            "id": 11244,
+            "id": 11290,
             "name": "LENGTH_GREATER_THAN_0_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3777:81:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1986,7 +1986,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11242,
+              "id": 11288,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3777:6:59",
@@ -1998,7 +1998,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f475245415445525f5448414e5f305f5245515549524544",
-              "id": 11243,
+              "id": 11289,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2017,10 +2017,10 @@
           },
           {
             "constant": true,
-            "id": 11247,
+            "id": 11293,
             "name": "LENGTH_GREATER_THAN_3_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "3914:81:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2029,7 +2029,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11245,
+              "id": 11291,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "3914:6:59",
@@ -2041,7 +2041,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f475245415445525f5448414e5f335f5245515549524544",
-              "id": 11246,
+              "id": 11292,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2060,10 +2060,10 @@
           },
           {
             "constant": true,
-            "id": 11250,
+            "id": 11296,
             "name": "LENGTH_0_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "4051:55:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2072,7 +2072,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11248,
+              "id": 11294,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "4051:6:59",
@@ -2084,7 +2084,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f305f5245515549524544",
-              "id": 11249,
+              "id": 11295,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2103,10 +2103,10 @@
           },
           {
             "constant": true,
-            "id": 11253,
+            "id": 11299,
             "name": "LENGTH_65_REQUIRED",
             "nodeType": "VariableDeclaration",
-            "scope": 11254,
+            "scope": 11300,
             "src": "4178:57:59",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2115,7 +2115,7 @@
               "typeString": "string"
             },
             "typeName": {
-              "id": 11251,
+              "id": 11297,
               "name": "string",
               "nodeType": "ElementaryTypeName",
               "src": "4178:6:59",
@@ -2127,7 +2127,7 @@
             "value": {
               "argumentTypes": null,
               "hexValue": "4c454e4754485f36355f5245515549524544",
-              "id": 11252,
+              "id": 11298,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2145,7 +2145,7 @@
             "visibility": "internal"
           }
         ],
-        "scope": 11255,
+        "scope": 11301,
         "src": "812:3491:59"
       }
     ],
@@ -2157,5 +2157,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.747Z"
+  "updatedAt": "2019-08-06T23:43:51.991Z"
 }

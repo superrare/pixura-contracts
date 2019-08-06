@@ -96,19 +96,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\nimport \"../interfaces/ISignatureValidator.sol\";\n\n\ncontract MSignatureValidator is\n    ISignatureValidator\n{\n    event SignatureValidatorApproval(\n        address indexed signerAddress,     // Address that approves or disapproves a contract to verify signatures.\n        address indexed validatorAddress,  // Address of signature validator contract.\n        bool approved                      // Approval or disapproval of validator contract.\n    );\n\n    // Allowed signature types.\n    enum SignatureType {\n        Illegal,         // 0x00, default value\n        Invalid,         // 0x01\n        EIP712,          // 0x02\n        EthSign,         // 0x03\n        Wallet,          // 0x04\n        Validator,       // 0x05\n        PreSigned,       // 0x06\n        NSignatureTypes  // 0x07, number of signature types. Always leave at end.\n    }\n\n    /// @dev Verifies signature using logic defined by Wallet contract.\n    /// @param hash Any 32 byte hash.\n    /// @param walletAddress Address that should have signed the given hash\n    ///                      and defines its own signature verification method.\n    /// @param signature Proof that the hash has been signed by signer.\n    /// @return True if the address recovered from the provided signature matches the input signer address.\n    function isValidWalletSignature(\n        bytes32 hash,\n        address walletAddress,\n        bytes signature\n    )\n        internal\n        view\n        returns (bool isValid);\n\n    /// @dev Verifies signature using logic defined by Validator contract.\n    /// @param validatorAddress Address of validator contract.\n    /// @param hash Any 32 byte hash.\n    /// @param signerAddress Address that should have signed the given hash.\n    /// @param signature Proof that the hash has been signed by signer.\n    /// @return True if the address recovered from the provided signature matches the input signer address.\n    function isValidValidatorSignature(\n        address validatorAddress,\n        bytes32 hash,\n        address signerAddress,\n        bytes signature\n    )\n        internal\n        view\n        returns (bool isValid);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MSignatureValidator.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MSignatureValidator.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MSignatureValidator.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MSignatureValidator.sol",
     "exportedSymbols": {
       "MSignatureValidator": [
-        11947
+        11993
       ]
     },
-    "id": 11948,
+    "id": 11994,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11902,
+        "id": 11948,
         "literals": [
           "solidity",
           "0.4",
@@ -118,12 +118,12 @@
         "src": "580:23:66"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
         "file": "../interfaces/ISignatureValidator.sol",
-        "id": 11903,
+        "id": 11949,
         "nodeType": "ImportDirective",
-        "scope": 11948,
-        "sourceUnit": 10899,
+        "scope": 11994,
+        "sourceUnit": 10945,
         "src": "605:47:66",
         "symbolAliases": [],
         "unitAlias": ""
@@ -134,31 +134,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11904,
+              "id": 11950,
               "name": "ISignatureValidator",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 10898,
+              "referencedDeclaration": 10944,
               "src": "691:19:66",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ISignatureValidator_$10898",
+                "typeIdentifier": "t_contract$_ISignatureValidator_$10944",
                 "typeString": "contract ISignatureValidator"
               }
             },
-            "id": 11905,
+            "id": 11951,
             "nodeType": "InheritanceSpecifier",
             "src": "691:19:66"
           }
         ],
         "contractDependencies": [
-          10898
+          10944
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 11947,
+        "id": 11993,
         "linearizedBaseContracts": [
-          11947,
-          10898
+          11993,
+          10944
         ],
         "name": "MSignatureValidator",
         "nodeType": "ContractDefinition",
@@ -166,20 +166,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 11913,
+            "id": 11959,
             "name": "SignatureValidatorApproval",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 11912,
+              "id": 11958,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11907,
+                  "id": 11953,
                   "indexed": true,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11913,
+                  "scope": 11959,
                   "src": "759:29:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -188,7 +188,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11906,
+                    "id": 11952,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "759:7:66",
@@ -202,11 +202,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 11909,
+                  "id": 11955,
                   "indexed": true,
                   "name": "validatorAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11913,
+                  "scope": 11959,
                   "src": "875:32:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -215,7 +215,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11908,
+                    "id": 11954,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "875:7:66",
@@ -229,11 +229,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 11911,
+                  "id": 11957,
                   "indexed": false,
                   "name": "approved",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11913,
+                  "scope": 11959,
                   "src": "962:13:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -242,7 +242,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11910,
+                    "id": 11956,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "962:4:66",
@@ -261,52 +261,52 @@
           },
           {
             "canonicalName": "MSignatureValidator.SignatureType",
-            "id": 11922,
+            "id": 11968,
             "members": [
               {
-                "id": 11914,
+                "id": 11960,
                 "name": "Illegal",
                 "nodeType": "EnumValue",
                 "src": "1120:7:66"
               },
               {
-                "id": 11915,
+                "id": 11961,
                 "name": "Invalid",
                 "nodeType": "EnumValue",
                 "src": "1168:7:66"
               },
               {
-                "id": 11916,
+                "id": 11962,
                 "name": "EIP712",
                 "nodeType": "EnumValue",
                 "src": "1201:6:66"
               },
               {
-                "id": 11917,
+                "id": 11963,
                 "name": "EthSign",
                 "nodeType": "EnumValue",
                 "src": "1234:7:66"
               },
               {
-                "id": 11918,
+                "id": 11964,
                 "name": "Wallet",
                 "nodeType": "EnumValue",
                 "src": "1267:6:66"
               },
               {
-                "id": 11919,
+                "id": 11965,
                 "name": "Validator",
                 "nodeType": "EnumValue",
                 "src": "1300:9:66"
               },
               {
-                "id": 11920,
+                "id": 11966,
                 "name": "PreSigned",
                 "nodeType": "EnumValue",
                 "src": "1333:9:66"
               },
               {
-                "id": 11921,
+                "id": 11967,
                 "name": "NSignatureTypes",
                 "nodeType": "EnumValue",
                 "src": "1366:15:66"
@@ -319,7 +319,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies signature using logic defined by Wallet contract.\n @param hash Any 32 byte hash.\n @param walletAddress Address that should have signed the given hash\n                      and defines its own signature verification method.\n @param signature Proof that the hash has been signed by signer.\n @return True if the address recovered from the provided signature matches the input signer address.",
-            "id": 11933,
+            "id": 11979,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -327,15 +327,15 @@
             "name": "isValidWalletSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11929,
+              "id": 11975,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11924,
+                  "id": 11970,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "1938:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -344,7 +344,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 11923,
+                    "id": 11969,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1938:7:66",
@@ -358,10 +358,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11926,
+                  "id": 11972,
                   "name": "walletAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "1960:21:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -370,7 +370,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11925,
+                    "id": 11971,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1960:7:66",
@@ -384,10 +384,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11928,
+                  "id": 11974,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "1991:15:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -396,7 +396,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11927,
+                    "id": 11973,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1991:5:66",
@@ -413,15 +413,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11932,
+              "id": 11978,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11931,
+                  "id": 11977,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "2060:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -430,7 +430,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11930,
+                    "id": 11976,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2060:4:66",
@@ -445,7 +445,7 @@
               ],
               "src": "2059:14:66"
             },
-            "scope": 11947,
+            "scope": 11993,
             "src": "1897:177:66",
             "stateMutability": "view",
             "superFunction": null,
@@ -454,7 +454,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies signature using logic defined by Validator contract.\n @param validatorAddress Address of validator contract.\n @param hash Any 32 byte hash.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof that the hash has been signed by signer.\n @return True if the address recovered from the provided signature matches the input signer address.",
-            "id": 11946,
+            "id": 11992,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -462,15 +462,15 @@
             "name": "isValidValidatorSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11942,
+              "id": 11988,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11935,
+                  "id": 11981,
                   "name": "validatorAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2557:24:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -479,7 +479,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11934,
+                    "id": 11980,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2557:7:66",
@@ -493,10 +493,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11937,
+                  "id": 11983,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2591:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -505,7 +505,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 11936,
+                    "id": 11982,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2591:7:66",
@@ -519,10 +519,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11939,
+                  "id": 11985,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2613:21:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -531,7 +531,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11938,
+                    "id": 11984,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2613:7:66",
@@ -545,10 +545,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11941,
+                  "id": 11987,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2644:15:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -557,7 +557,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11940,
+                    "id": 11986,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2644:5:66",
@@ -574,15 +574,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11945,
+              "id": 11991,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11944,
+                  "id": 11990,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2713:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -591,7 +591,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11943,
+                    "id": 11989,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2713:4:66",
@@ -606,31 +606,31 @@
               ],
               "src": "2712:14:66"
             },
-            "scope": 11947,
+            "scope": 11993,
             "src": "2513:214:66",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 11948,
+        "scope": 11994,
         "src": "655:2074:66"
       }
     ],
     "src": "580:2150:66"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MSignatureValidator.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MSignatureValidator.sol",
     "exportedSymbols": {
       "MSignatureValidator": [
-        11947
+        11993
       ]
     },
-    "id": 11948,
+    "id": 11994,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11902,
+        "id": 11948,
         "literals": [
           "solidity",
           "0.4",
@@ -640,12 +640,12 @@
         "src": "580:23:66"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ISignatureValidator.sol",
         "file": "../interfaces/ISignatureValidator.sol",
-        "id": 11903,
+        "id": 11949,
         "nodeType": "ImportDirective",
-        "scope": 11948,
-        "sourceUnit": 10899,
+        "scope": 11994,
+        "sourceUnit": 10945,
         "src": "605:47:66",
         "symbolAliases": [],
         "unitAlias": ""
@@ -656,31 +656,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11904,
+              "id": 11950,
               "name": "ISignatureValidator",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 10898,
+              "referencedDeclaration": 10944,
               "src": "691:19:66",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ISignatureValidator_$10898",
+                "typeIdentifier": "t_contract$_ISignatureValidator_$10944",
                 "typeString": "contract ISignatureValidator"
               }
             },
-            "id": 11905,
+            "id": 11951,
             "nodeType": "InheritanceSpecifier",
             "src": "691:19:66"
           }
         ],
         "contractDependencies": [
-          10898
+          10944
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 11947,
+        "id": 11993,
         "linearizedBaseContracts": [
-          11947,
-          10898
+          11993,
+          10944
         ],
         "name": "MSignatureValidator",
         "nodeType": "ContractDefinition",
@@ -688,20 +688,20 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 11913,
+            "id": 11959,
             "name": "SignatureValidatorApproval",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 11912,
+              "id": 11958,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11907,
+                  "id": 11953,
                   "indexed": true,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11913,
+                  "scope": 11959,
                   "src": "759:29:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -710,7 +710,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11906,
+                    "id": 11952,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "759:7:66",
@@ -724,11 +724,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 11909,
+                  "id": 11955,
                   "indexed": true,
                   "name": "validatorAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11913,
+                  "scope": 11959,
                   "src": "875:32:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -737,7 +737,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11908,
+                    "id": 11954,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "875:7:66",
@@ -751,11 +751,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 11911,
+                  "id": 11957,
                   "indexed": false,
                   "name": "approved",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11913,
+                  "scope": 11959,
                   "src": "962:13:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -764,7 +764,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11910,
+                    "id": 11956,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "962:4:66",
@@ -783,52 +783,52 @@
           },
           {
             "canonicalName": "MSignatureValidator.SignatureType",
-            "id": 11922,
+            "id": 11968,
             "members": [
               {
-                "id": 11914,
+                "id": 11960,
                 "name": "Illegal",
                 "nodeType": "EnumValue",
                 "src": "1120:7:66"
               },
               {
-                "id": 11915,
+                "id": 11961,
                 "name": "Invalid",
                 "nodeType": "EnumValue",
                 "src": "1168:7:66"
               },
               {
-                "id": 11916,
+                "id": 11962,
                 "name": "EIP712",
                 "nodeType": "EnumValue",
                 "src": "1201:6:66"
               },
               {
-                "id": 11917,
+                "id": 11963,
                 "name": "EthSign",
                 "nodeType": "EnumValue",
                 "src": "1234:7:66"
               },
               {
-                "id": 11918,
+                "id": 11964,
                 "name": "Wallet",
                 "nodeType": "EnumValue",
                 "src": "1267:6:66"
               },
               {
-                "id": 11919,
+                "id": 11965,
                 "name": "Validator",
                 "nodeType": "EnumValue",
                 "src": "1300:9:66"
               },
               {
-                "id": 11920,
+                "id": 11966,
                 "name": "PreSigned",
                 "nodeType": "EnumValue",
                 "src": "1333:9:66"
               },
               {
-                "id": 11921,
+                "id": 11967,
                 "name": "NSignatureTypes",
                 "nodeType": "EnumValue",
                 "src": "1366:15:66"
@@ -841,7 +841,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies signature using logic defined by Wallet contract.\n @param hash Any 32 byte hash.\n @param walletAddress Address that should have signed the given hash\n                      and defines its own signature verification method.\n @param signature Proof that the hash has been signed by signer.\n @return True if the address recovered from the provided signature matches the input signer address.",
-            "id": 11933,
+            "id": 11979,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -849,15 +849,15 @@
             "name": "isValidWalletSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11929,
+              "id": 11975,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11924,
+                  "id": 11970,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "1938:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -866,7 +866,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 11923,
+                    "id": 11969,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "1938:7:66",
@@ -880,10 +880,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11926,
+                  "id": 11972,
                   "name": "walletAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "1960:21:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -892,7 +892,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11925,
+                    "id": 11971,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1960:7:66",
@@ -906,10 +906,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11928,
+                  "id": 11974,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "1991:15:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -918,7 +918,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11927,
+                    "id": 11973,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1991:5:66",
@@ -935,15 +935,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11932,
+              "id": 11978,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11931,
+                  "id": 11977,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11933,
+                  "scope": 11979,
                   "src": "2060:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -952,7 +952,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11930,
+                    "id": 11976,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2060:4:66",
@@ -967,7 +967,7 @@
               ],
               "src": "2059:14:66"
             },
-            "scope": 11947,
+            "scope": 11993,
             "src": "1897:177:66",
             "stateMutability": "view",
             "superFunction": null,
@@ -976,7 +976,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies signature using logic defined by Validator contract.\n @param validatorAddress Address of validator contract.\n @param hash Any 32 byte hash.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof that the hash has been signed by signer.\n @return True if the address recovered from the provided signature matches the input signer address.",
-            "id": 11946,
+            "id": 11992,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -984,15 +984,15 @@
             "name": "isValidValidatorSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11942,
+              "id": 11988,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11935,
+                  "id": 11981,
                   "name": "validatorAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2557:24:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1001,7 +1001,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11934,
+                    "id": 11980,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2557:7:66",
@@ -1015,10 +1015,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11937,
+                  "id": 11983,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2591:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1027,7 +1027,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 11936,
+                    "id": 11982,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "2591:7:66",
@@ -1041,10 +1041,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11939,
+                  "id": 11985,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2613:21:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1053,7 +1053,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 11938,
+                    "id": 11984,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "2613:7:66",
@@ -1067,10 +1067,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11941,
+                  "id": 11987,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2644:15:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1079,7 +1079,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11940,
+                    "id": 11986,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "2644:5:66",
@@ -1096,15 +1096,15 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11945,
+              "id": 11991,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11944,
+                  "id": 11990,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 11946,
+                  "scope": 11992,
                   "src": "2713:12:66",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1113,7 +1113,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 11943,
+                    "id": 11989,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "2713:4:66",
@@ -1128,14 +1128,14 @@
               ],
               "src": "2712:14:66"
             },
-            "scope": 11947,
+            "scope": 11993,
             "src": "2513:214:66",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 11948,
+        "scope": 11994,
         "src": "655:2074:66"
       }
     ],
@@ -1147,5 +1147,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.753Z"
+  "updatedAt": "2019-08-06T23:43:52.004Z"
 }

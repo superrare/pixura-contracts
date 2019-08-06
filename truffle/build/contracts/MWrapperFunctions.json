@@ -1009,19 +1009,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\npragma experimental ABIEncoderV2;\n\nimport \"../libs/LibOrder.sol\";\nimport \"../libs/LibFillResults.sol\";\nimport \"../interfaces/IWrapperFunctions.sol\";\n\n\ncontract MWrapperFunctions is \n    IWrapperFunctions\n{\n    /// @dev Fills the input order. Reverts if exact takerAssetFillAmount not filled.\n    /// @param order LibOrder.Order struct containing order specifications.\n    /// @param takerAssetFillAmount Desired amount of takerAsset to sell.\n    /// @param signature Proof that order has been created by maker.\n    function fillOrKillOrderInternal(\n        LibOrder.Order memory order,\n        uint256 takerAssetFillAmount,\n        bytes memory signature\n    )\n        internal\n        returns (LibFillResults.FillResults memory fillResults);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MWrapperFunctions.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MWrapperFunctions.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MWrapperFunctions.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MWrapperFunctions.sol",
     "exportedSymbols": {
       "MWrapperFunctions": [
-        12001
+        12047
       ]
     },
-    "id": 12002,
+    "id": 12048,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11983,
+        "id": 12029,
         "literals": [
           "solidity",
           "0.4",
@@ -1031,7 +1031,7 @@
         "src": "580:23:68"
       },
       {
-        "id": 11984,
+        "id": 12030,
         "literals": [
           "experimental",
           "ABIEncoderV2"
@@ -1040,34 +1040,34 @@
         "src": "604:33:68"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
         "file": "../libs/LibOrder.sol",
-        "id": 11985,
+        "id": 12031,
         "nodeType": "ImportDirective",
-        "scope": 12002,
-        "sourceUnit": 11718,
+        "scope": 12048,
+        "sourceUnit": 11764,
         "src": "639:30:68",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibFillResults.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibFillResults.sol",
         "file": "../libs/LibFillResults.sol",
-        "id": 11986,
+        "id": 12032,
         "nodeType": "ImportDirective",
-        "scope": 12002,
-        "sourceUnit": 11329,
+        "scope": 12048,
+        "sourceUnit": 11375,
         "src": "670:36:68",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IWrapperFunctions.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IWrapperFunctions.sol",
         "file": "../interfaces/IWrapperFunctions.sol",
-        "id": 11987,
+        "id": 12033,
         "nodeType": "ImportDirective",
-        "scope": 12002,
-        "sourceUnit": 11076,
+        "scope": 12048,
+        "sourceUnit": 11122,
         "src": "707:45:68",
         "symbolAliases": [],
         "unitAlias": ""
@@ -1078,31 +1078,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11988,
+              "id": 12034,
               "name": "IWrapperFunctions",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11075,
+              "referencedDeclaration": 11121,
               "src": "790:17:68",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IWrapperFunctions_$11075",
+                "typeIdentifier": "t_contract$_IWrapperFunctions_$11121",
                 "typeString": "contract IWrapperFunctions"
               }
             },
-            "id": 11989,
+            "id": 12035,
             "nodeType": "InheritanceSpecifier",
             "src": "790:17:68"
           }
         ],
         "contractDependencies": [
-          11075
+          11121
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 12001,
+        "id": 12047,
         "linearizedBaseContracts": [
-          12001,
-          11075
+          12047,
+          11121
         ],
         "name": "MWrapperFunctions",
         "nodeType": "ContractDefinition",
@@ -1110,7 +1110,7 @@
           {
             "body": null,
             "documentation": "@dev Fills the input order. Reverts if exact takerAssetFillAmount not filled.\n @param order LibOrder.Order struct containing order specifications.\n @param takerAssetFillAmount Desired amount of takerAsset to sell.\n @param signature Proof that order has been created by maker.",
-            "id": 12000,
+            "id": 12046,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -1118,31 +1118,31 @@
             "name": "fillOrKillOrderInternal",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11996,
+              "id": 12042,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11991,
+                  "id": 12037,
                   "name": "order",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1161:27:68",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Order_$11662_memory_ptr",
+                    "typeIdentifier": "t_struct$_Order_$11708_memory_ptr",
                     "typeString": "struct LibOrder.Order"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 11990,
+                    "id": 12036,
                     "name": "LibOrder.Order",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 11662,
+                    "referencedDeclaration": 11708,
                     "src": "1161:14:68",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Order_$11662_storage_ptr",
+                      "typeIdentifier": "t_struct$_Order_$11708_storage_ptr",
                       "typeString": "struct LibOrder.Order"
                     }
                   },
@@ -1151,10 +1151,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11993,
+                  "id": 12039,
                   "name": "takerAssetFillAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1198:28:68",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1163,7 +1163,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11992,
+                    "id": 12038,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1198:7:68",
@@ -1177,10 +1177,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11995,
+                  "id": 12041,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1236:22:68",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1189,7 +1189,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11994,
+                    "id": 12040,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1236:5:68",
@@ -1206,31 +1206,31 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11999,
+              "id": 12045,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11998,
+                  "id": 12044,
                   "name": "fillResults",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1299:45:68",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_FillResults_$11268_memory_ptr",
+                    "typeIdentifier": "t_struct$_FillResults_$11314_memory_ptr",
                     "typeString": "struct LibFillResults.FillResults"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 11997,
+                    "id": 12043,
                     "name": "LibFillResults.FillResults",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 11268,
+                    "referencedDeclaration": 11314,
                     "src": "1299:26:68",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_FillResults_$11268_storage_ptr",
+                      "typeIdentifier": "t_struct$_FillResults_$11314_storage_ptr",
                       "typeString": "struct LibFillResults.FillResults"
                     }
                   },
@@ -1240,31 +1240,31 @@
               ],
               "src": "1298:47:68"
             },
-            "scope": 12001,
+            "scope": 12047,
             "src": "1119:227:68",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 12002,
+        "scope": 12048,
         "src": "755:593:68"
       }
     ],
     "src": "580:769:68"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MWrapperFunctions.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MWrapperFunctions.sol",
     "exportedSymbols": {
       "MWrapperFunctions": [
-        12001
+        12047
       ]
     },
-    "id": 12002,
+    "id": 12048,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 11983,
+        "id": 12029,
         "literals": [
           "solidity",
           "0.4",
@@ -1274,7 +1274,7 @@
         "src": "580:23:68"
       },
       {
-        "id": 11984,
+        "id": 12030,
         "literals": [
           "experimental",
           "ABIEncoderV2"
@@ -1283,34 +1283,34 @@
         "src": "604:33:68"
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
         "file": "../libs/LibOrder.sol",
-        "id": 11985,
+        "id": 12031,
         "nodeType": "ImportDirective",
-        "scope": 12002,
-        "sourceUnit": 11718,
+        "scope": 12048,
+        "sourceUnit": 11764,
         "src": "639:30:68",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibFillResults.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibFillResults.sol",
         "file": "../libs/LibFillResults.sol",
-        "id": 11986,
+        "id": 12032,
         "nodeType": "ImportDirective",
-        "scope": 12002,
-        "sourceUnit": 11329,
+        "scope": 12048,
+        "sourceUnit": 11375,
         "src": "670:36:68",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IWrapperFunctions.sol",
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IWrapperFunctions.sol",
         "file": "../interfaces/IWrapperFunctions.sol",
-        "id": 11987,
+        "id": 12033,
         "nodeType": "ImportDirective",
-        "scope": 12002,
-        "sourceUnit": 11076,
+        "scope": 12048,
+        "sourceUnit": 11122,
         "src": "707:45:68",
         "symbolAliases": [],
         "unitAlias": ""
@@ -1321,31 +1321,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 11988,
+              "id": 12034,
               "name": "IWrapperFunctions",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11075,
+              "referencedDeclaration": 11121,
               "src": "790:17:68",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IWrapperFunctions_$11075",
+                "typeIdentifier": "t_contract$_IWrapperFunctions_$11121",
                 "typeString": "contract IWrapperFunctions"
               }
             },
-            "id": 11989,
+            "id": 12035,
             "nodeType": "InheritanceSpecifier",
             "src": "790:17:68"
           }
         ],
         "contractDependencies": [
-          11075
+          11121
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 12001,
+        "id": 12047,
         "linearizedBaseContracts": [
-          12001,
-          11075
+          12047,
+          11121
         ],
         "name": "MWrapperFunctions",
         "nodeType": "ContractDefinition",
@@ -1353,7 +1353,7 @@
           {
             "body": null,
             "documentation": "@dev Fills the input order. Reverts if exact takerAssetFillAmount not filled.\n @param order LibOrder.Order struct containing order specifications.\n @param takerAssetFillAmount Desired amount of takerAsset to sell.\n @param signature Proof that order has been created by maker.",
-            "id": 12000,
+            "id": 12046,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -1361,31 +1361,31 @@
             "name": "fillOrKillOrderInternal",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 11996,
+              "id": 12042,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11991,
+                  "id": 12037,
                   "name": "order",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1161:27:68",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_Order_$11662_memory_ptr",
+                    "typeIdentifier": "t_struct$_Order_$11708_memory_ptr",
                     "typeString": "struct LibOrder.Order"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 11990,
+                    "id": 12036,
                     "name": "LibOrder.Order",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 11662,
+                    "referencedDeclaration": 11708,
                     "src": "1161:14:68",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_Order_$11662_storage_ptr",
+                      "typeIdentifier": "t_struct$_Order_$11708_storage_ptr",
                       "typeString": "struct LibOrder.Order"
                     }
                   },
@@ -1394,10 +1394,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11993,
+                  "id": 12039,
                   "name": "takerAssetFillAmount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1198:28:68",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1406,7 +1406,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 11992,
+                    "id": 12038,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1198:7:68",
@@ -1420,10 +1420,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 11995,
+                  "id": 12041,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1236:22:68",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -1432,7 +1432,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 11994,
+                    "id": 12040,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1236:5:68",
@@ -1449,31 +1449,31 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 11999,
+              "id": 12045,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 11998,
+                  "id": 12044,
                   "name": "fillResults",
                   "nodeType": "VariableDeclaration",
-                  "scope": 12000,
+                  "scope": 12046,
                   "src": "1299:45:68",
                   "stateVariable": false,
                   "storageLocation": "memory",
                   "typeDescriptions": {
-                    "typeIdentifier": "t_struct$_FillResults_$11268_memory_ptr",
+                    "typeIdentifier": "t_struct$_FillResults_$11314_memory_ptr",
                     "typeString": "struct LibFillResults.FillResults"
                   },
                   "typeName": {
                     "contractScope": null,
-                    "id": 11997,
+                    "id": 12043,
                     "name": "LibFillResults.FillResults",
                     "nodeType": "UserDefinedTypeName",
-                    "referencedDeclaration": 11268,
+                    "referencedDeclaration": 11314,
                     "src": "1299:26:68",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_struct$_FillResults_$11268_storage_ptr",
+                      "typeIdentifier": "t_struct$_FillResults_$11314_storage_ptr",
                       "typeString": "struct LibFillResults.FillResults"
                     }
                   },
@@ -1483,14 +1483,14 @@
               ],
               "src": "1298:47:68"
             },
-            "scope": 12001,
+            "scope": 12047,
             "src": "1119:227:68",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 12002,
+        "scope": 12048,
         "src": "755:593:68"
       }
     ],
@@ -1502,5 +1502,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.782Z"
+  "updatedAt": "2019-08-06T23:43:52.005Z"
 }

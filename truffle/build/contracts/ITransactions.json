@@ -33,19 +33,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\npragma solidity 0.4.24;\n\n\ncontract ITransactions {\n\n    /// @dev Executes an exchange method call in the context of signer.\n    /// @param salt Arbitrary number to ensure uniqueness of transaction hash.\n    /// @param signerAddress Address of transaction signer.\n    /// @param data AbiV2 encoded calldata.\n    /// @param signature Proof of signer transaction by signer.\n    function executeTransaction(\n        uint256 salt,\n        address signerAddress,\n        bytes data,\n        bytes signature\n    )\n        external;\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
     "exportedSymbols": {
       "ITransactions": [
-        10912
+        10958
       ]
     },
-    "id": 10913,
+    "id": 10959,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10900,
+        "id": 10946,
         "literals": [
           "solidity",
           "0.4",
@@ -60,9 +60,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 10912,
+        "id": 10958,
         "linearizedBaseContracts": [
-          10912
+          10958
         ],
         "name": "ITransactions",
         "nodeType": "ContractDefinition",
@@ -70,7 +70,7 @@
           {
             "body": null,
             "documentation": "@dev Executes an exchange method call in the context of signer.\n @param salt Arbitrary number to ensure uniqueness of transaction hash.\n @param signerAddress Address of transaction signer.\n @param data AbiV2 encoded calldata.\n @param signature Proof of signer transaction by signer.",
-            "id": 10911,
+            "id": 10957,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -78,15 +78,15 @@
             "name": "executeTransaction",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10909,
+              "id": 10955,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10902,
+                  "id": 10948,
                   "name": "salt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "991:12:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -95,7 +95,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10901,
+                    "id": 10947,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "991:7:52",
@@ -109,10 +109,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10904,
+                  "id": 10950,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "1013:21:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -121,7 +121,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10903,
+                    "id": 10949,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1013:7:52",
@@ -135,10 +135,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10906,
+                  "id": 10952,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "1044:10:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -147,7 +147,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10905,
+                    "id": 10951,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1044:5:52",
@@ -161,10 +161,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10908,
+                  "id": 10954,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "1064:15:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -173,7 +173,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10907,
+                    "id": 10953,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1064:5:52",
@@ -190,36 +190,36 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10910,
+              "id": 10956,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1102:0:52"
             },
-            "scope": 10912,
+            "scope": 10958,
             "src": "954:149:52",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 10913,
+        "scope": 10959,
         "src": "605:500:52"
       }
     ],
     "src": "579:527:52"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/ITransactions.sol",
     "exportedSymbols": {
       "ITransactions": [
-        10912
+        10958
       ]
     },
-    "id": 10913,
+    "id": 10959,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 10900,
+        "id": 10946,
         "literals": [
           "solidity",
           "0.4",
@@ -234,9 +234,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 10912,
+        "id": 10958,
         "linearizedBaseContracts": [
-          10912
+          10958
         ],
         "name": "ITransactions",
         "nodeType": "ContractDefinition",
@@ -244,7 +244,7 @@
           {
             "body": null,
             "documentation": "@dev Executes an exchange method call in the context of signer.\n @param salt Arbitrary number to ensure uniqueness of transaction hash.\n @param signerAddress Address of transaction signer.\n @param data AbiV2 encoded calldata.\n @param signature Proof of signer transaction by signer.",
-            "id": 10911,
+            "id": 10957,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -252,15 +252,15 @@
             "name": "executeTransaction",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 10909,
+              "id": 10955,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 10902,
+                  "id": 10948,
                   "name": "salt",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "991:12:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -269,7 +269,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 10901,
+                    "id": 10947,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "991:7:52",
@@ -283,10 +283,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10904,
+                  "id": 10950,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "1013:21:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -295,7 +295,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 10903,
+                    "id": 10949,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1013:7:52",
@@ -309,10 +309,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10906,
+                  "id": 10952,
                   "name": "data",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "1044:10:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -321,7 +321,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10905,
+                    "id": 10951,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1044:5:52",
@@ -335,10 +335,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 10908,
+                  "id": 10954,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 10911,
+                  "scope": 10957,
                   "src": "1064:15:52",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -347,7 +347,7 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 10907,
+                    "id": 10953,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
                     "src": "1064:5:52",
@@ -364,19 +364,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 10910,
+              "id": 10956,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1102:0:52"
             },
-            "scope": 10912,
+            "scope": 10958,
             "src": "954:149:52",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 10913,
+        "scope": 10959,
         "src": "605:500:52"
       }
     ],
@@ -388,5 +388,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.743Z"
+  "updatedAt": "2019-08-06T23:43:51.986Z"
 }

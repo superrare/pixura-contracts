@@ -321,6 +321,54 @@ contract SuperRareMarketAuction is Ownable {
   }
 
   /////////////////////////////////////////////////////////////////////////
+  // setMarketplaceFee
+  /////////////////////////////////////////////////////////////////////////
+  /**
+  * @dev Function to set the marketplace fee percentage.
+  * @param _percentage uint256 fee to take from purchases.
+  */
+  function setMarketplaceFee(
+    uint256 _percentage
+  )
+    public
+    onlyOwner
+  {
+    marketplaceFee = _percentage;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  // setRoyaltyFee
+  /////////////////////////////////////////////////////////////////////////
+  /**
+  * @dev Function to set the royalty fee percentage.
+  * @param _percentage uint256 royalty fee to take split between seller and creator.
+  */
+  function setRoyaltyFee(
+    uint256 _percentage
+  )
+    public
+    onlyOwner
+  {
+    royaltyFee = _percentage;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  // setPrimarySaleFee
+  /////////////////////////////////////////////////////////////////////////
+  /**
+  * @dev Function to set the primary sale fee percentage.
+  * @param _percentage uint256 fee to take from purchases.
+  */
+  function setPrimarySaleFee(
+    uint256 _percentage
+  )
+    public
+    onlyOwner
+  {
+    primarySaleFee = _percentage;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
   // _priceSetterStillOwnsTheToken
   /////////////////////////////////////////////////////////////////////////
   /**
@@ -333,6 +381,7 @@ contract SuperRareMarketAuction is Ownable {
     uint256 _tokenId
   )
     internal view
+    returns (bool)
   {
     IERC721 erc721 = IERC721(_originContract);
     address owner = erc721.ownerOf(_tokenId);

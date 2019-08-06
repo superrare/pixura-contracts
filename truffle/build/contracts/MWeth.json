@@ -6,19 +6,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\n\ncontract MWeth {\n\n    /// @dev Converts message call's ETH value into WETH.\n    function convertEthToWeth()\n        internal;\n\n    /// @dev Transfers feePercentage of WETH spent on primary orders to feeRecipient.\n    ///      Refunds any excess ETH to msg.sender.\n    /// @param wethSoldExcludingFeeOrders Amount of WETH sold when filling primary orders.\n    /// @param wethSoldForZrx Amount of WETH sold when purchasing ZRX required for primary order fees.\n    /// @param feePercentage Percentage of WETH sold that will payed as fee to forwarding contract feeRecipient.\n    /// @param feeRecipient Address that will receive ETH when orders are filled.\n    function transferEthFeeAndRefund(\n        uint256 wethSoldExcludingFeeOrders,\n        uint256 wethSoldForZrx,\n        uint256 feePercentage,\n        address feeRecipient\n    )\n        internal;\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/extensions/Forwarder/mixins/MWeth.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/extensions/Forwarder/mixins/MWeth.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/extensions/Forwarder/mixins/MWeth.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/extensions/Forwarder/mixins/MWeth.sol",
     "exportedSymbols": {
       "MWeth": [
-        7296
+        7342
       ]
     },
-    "id": 7297,
+    "id": 7343,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7281,
+        "id": 7327,
         "literals": [
           "solidity",
           "0.4",
@@ -33,9 +33,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 7296,
+        "id": 7342,
         "linearizedBaseContracts": [
-          7296
+          7342
         ],
         "name": "MWeth",
         "nodeType": "ContractDefinition",
@@ -43,7 +43,7 @@
           {
             "body": null,
             "documentation": "@dev Converts message call's ETH value into WETH.",
-            "id": 7284,
+            "id": 7330,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -51,19 +51,19 @@
             "name": "convertEthToWeth",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7282,
+              "id": 7328,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "711:2:32"
             },
             "payable": false,
             "returnParameters": {
-              "id": 7283,
+              "id": 7329,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "730:0:32"
             },
-            "scope": 7296,
+            "scope": 7342,
             "src": "686:45:32",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -72,7 +72,7 @@
           {
             "body": null,
             "documentation": "@dev Transfers feePercentage of WETH spent on primary orders to feeRecipient.\n      Refunds any excess ETH to msg.sender.\n @param wethSoldExcludingFeeOrders Amount of WETH sold when filling primary orders.\n @param wethSoldForZrx Amount of WETH sold when purchasing ZRX required for primary order fees.\n @param feePercentage Percentage of WETH sold that will payed as fee to forwarding contract feeRecipient.\n @param feeRecipient Address that will receive ETH when orders are filled.",
-            "id": 7295,
+            "id": 7341,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -80,15 +80,15 @@
             "name": "transferEthFeeAndRefund",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7293,
+              "id": 7339,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7286,
+                  "id": 7332,
                   "name": "wethSoldExcludingFeeOrders",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1305:34:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -97,7 +97,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7285,
+                    "id": 7331,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1305:7:32",
@@ -111,10 +111,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 7288,
+                  "id": 7334,
                   "name": "wethSoldForZrx",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1349:22:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -123,7 +123,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7287,
+                    "id": 7333,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1349:7:32",
@@ -137,10 +137,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 7290,
+                  "id": 7336,
                   "name": "feePercentage",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1381:21:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -149,7 +149,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7289,
+                    "id": 7335,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1381:7:32",
@@ -163,10 +163,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 7292,
+                  "id": 7338,
                   "name": "feeRecipient",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1412:20:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -175,7 +175,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7291,
+                    "id": 7337,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1412:7:32",
@@ -192,36 +192,36 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 7294,
+              "id": 7340,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1455:0:32"
             },
-            "scope": 7296,
+            "scope": 7342,
             "src": "1263:193:32",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 7297,
+        "scope": 7343,
         "src": "606:852:32"
       }
     ],
     "src": "580:879:32"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/extensions/Forwarder/mixins/MWeth.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/extensions/Forwarder/mixins/MWeth.sol",
     "exportedSymbols": {
       "MWeth": [
-        7296
+        7342
       ]
     },
-    "id": 7297,
+    "id": 7343,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7281,
+        "id": 7327,
         "literals": [
           "solidity",
           "0.4",
@@ -236,9 +236,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 7296,
+        "id": 7342,
         "linearizedBaseContracts": [
-          7296
+          7342
         ],
         "name": "MWeth",
         "nodeType": "ContractDefinition",
@@ -246,7 +246,7 @@
           {
             "body": null,
             "documentation": "@dev Converts message call's ETH value into WETH.",
-            "id": 7284,
+            "id": 7330,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -254,19 +254,19 @@
             "name": "convertEthToWeth",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7282,
+              "id": 7328,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "711:2:32"
             },
             "payable": false,
             "returnParameters": {
-              "id": 7283,
+              "id": 7329,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "730:0:32"
             },
-            "scope": 7296,
+            "scope": 7342,
             "src": "686:45:32",
             "stateMutability": "nonpayable",
             "superFunction": null,
@@ -275,7 +275,7 @@
           {
             "body": null,
             "documentation": "@dev Transfers feePercentage of WETH spent on primary orders to feeRecipient.\n      Refunds any excess ETH to msg.sender.\n @param wethSoldExcludingFeeOrders Amount of WETH sold when filling primary orders.\n @param wethSoldForZrx Amount of WETH sold when purchasing ZRX required for primary order fees.\n @param feePercentage Percentage of WETH sold that will payed as fee to forwarding contract feeRecipient.\n @param feeRecipient Address that will receive ETH when orders are filled.",
-            "id": 7295,
+            "id": 7341,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": false,
@@ -283,15 +283,15 @@
             "name": "transferEthFeeAndRefund",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7293,
+              "id": 7339,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7286,
+                  "id": 7332,
                   "name": "wethSoldExcludingFeeOrders",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1305:34:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -300,7 +300,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7285,
+                    "id": 7331,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1305:7:32",
@@ -314,10 +314,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 7288,
+                  "id": 7334,
                   "name": "wethSoldForZrx",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1349:22:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -326,7 +326,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7287,
+                    "id": 7333,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1349:7:32",
@@ -340,10 +340,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 7290,
+                  "id": 7336,
                   "name": "feePercentage",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1381:21:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -352,7 +352,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7289,
+                    "id": 7335,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
                     "src": "1381:7:32",
@@ -366,10 +366,10 @@
                 },
                 {
                   "constant": false,
-                  "id": 7292,
+                  "id": 7338,
                   "name": "feeRecipient",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7295,
+                  "scope": 7341,
                   "src": "1412:20:32",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -378,7 +378,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7291,
+                    "id": 7337,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "1412:7:32",
@@ -395,19 +395,19 @@
             },
             "payable": false,
             "returnParameters": {
-              "id": 7294,
+              "id": 7340,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1455:0:32"
             },
-            "scope": 7296,
+            "scope": 7342,
             "src": "1263:193:32",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 7297,
+        "scope": 7343,
         "src": "606:852:32"
       }
     ],
@@ -419,5 +419,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.694Z"
+  "updatedAt": "2019-08-06T23:43:51.925Z"
 }

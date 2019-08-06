@@ -106,9 +106,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.4.18;\n\n\ninterface ISuperRare {\n  /**\n   * @notice A descriptive name for a collection of NFTs in this contract\n   */\n  function name() external pure returns (string _name);\n\n  /**\n   * @notice An abbreviated name for NFTs in this contract\n   */\n  function symbol() external pure returns (string _symbol);\n\n  /** \n   * @dev Returns whether the creator is whitelisted\n   * @param _creator address to check\n   * @return bool \n   */\n  function isWhitelisted(address _creator) external view returns (bool);\n\n  /** \n   * @notice A distinct Uniform Resource Identifier (URI) for a given asset.\n   * @dev Throws if `_tokenId` is not a valid NFT. URIs are defined in RFC\n   * 3986. The URI may point to a JSON file that conforms to the \"ERC721\n   * Metadata JSON Schema\".\n   */\n  function tokenURI(uint256 _tokenId) external view returns (string);\n\n  /**\n  * @dev Gets the creator of the token\n  * @param _tokenId uint256 ID of the token\n  * @return address of the creator\n  */\n  function creatorOfToken(uint256 _tokenId) public view returns (address);\n\n  /**\n  * @dev Gets the total amount of tokens stored by the contract\n  * @return uint256 representing the total amount of tokens\n  */\n  function totalSupply() public view returns (uint256);\n}\n",
-  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/contracts/ISuperRare.sol",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/ISuperRare.sol",
   "ast": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/contracts/ISuperRare.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/ISuperRare.sol",
     "exportedSymbols": {
       "ISuperRare": [
         3130
@@ -566,7 +566,7 @@
     "src": "0:1257:12"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/contracts/ISuperRare.sol",
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/ISuperRare.sol",
     "exportedSymbols": {
       "ISuperRare": [
         3130
@@ -1029,5 +1029,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T18:19:35.556Z"
+  "updatedAt": "2019-08-06T23:43:51.875Z"
 }
