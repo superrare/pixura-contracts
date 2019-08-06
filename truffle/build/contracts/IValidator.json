@@ -34,26 +34,26 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\n\ncontract IValidator {\n\n    /// @dev Verifies that a signature is valid.\n    /// @param hash Message hash that is signed.\n    /// @param signerAddress Address that should have signed the given hash.\n    /// @param signature Proof of signing.\n    /// @return Validity of order signature.\n    function isValidSignature(\n        bytes32 hash,\n        address signerAddress,\n        bytes signature\n    )\n        external\n        view\n        returns (bool isValid);\n}\n",
-  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
+  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
   "ast": {
-    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
+    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
     "exportedSymbols": {
       "IValidator": [
-        7064
+        10926
       ]
     },
-    "id": 7065,
+    "id": 10927,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7052,
+        "id": 10914,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:42"
+        "src": "580:23:53"
       },
       {
         "baseContracts": [],
@@ -61,9 +61,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 7064,
+        "id": 10926,
         "linearizedBaseContracts": [
-          7064
+          10926
         ],
         "name": "IValidator",
         "nodeType": "ContractDefinition",
@@ -71,7 +71,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies that a signature is valid.\n @param hash Message hash that is signed.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof of signing.\n @return Validity of order signature.",
-            "id": 7063,
+            "id": 10925,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -79,16 +79,16 @@
             "name": "isValidSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7059,
+              "id": 10921,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7054,
+                  "id": 10916,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "931:12:42",
+                  "scope": 10925,
+                  "src": "931:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -96,10 +96,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 7053,
+                    "id": 10915,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "931:7:42",
+                    "src": "931:7:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -110,11 +110,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 7056,
+                  "id": 10918,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "953:21:42",
+                  "scope": 10925,
+                  "src": "953:21:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -122,10 +122,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7055,
+                    "id": 10917,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "953:7:42",
+                    "src": "953:7:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -136,11 +136,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 7058,
+                  "id": 10920,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "984:15:42",
+                  "scope": 10925,
+                  "src": "984:15:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -148,10 +148,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 7057,
+                    "id": 10919,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "984:5:42",
+                    "src": "984:5:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -161,20 +161,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "921:84:42"
+              "src": "921:84:53"
             },
             "payable": false,
             "returnParameters": {
-              "id": 7062,
+              "id": 10924,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7061,
+                  "id": 10923,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "1053:12:42",
+                  "scope": 10925,
+                  "src": "1053:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -182,10 +182,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 7060,
+                    "id": 10922,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1053:4:42",
+                    "src": "1053:4:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -195,40 +195,40 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1052:14:42"
+              "src": "1052:14:53"
             },
-            "scope": 7064,
-            "src": "896:171:42",
+            "scope": 10926,
+            "src": "896:171:53",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 7065,
-        "src": "606:463:42"
+        "scope": 10927,
+        "src": "606:463:53"
       }
     ],
-    "src": "580:490:42"
+    "src": "580:490:53"
   },
   "legacyAST": {
-    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
+    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IValidator.sol",
     "exportedSymbols": {
       "IValidator": [
-        7064
+        10926
       ]
     },
-    "id": 7065,
+    "id": 10927,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7052,
+        "id": 10914,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:42"
+        "src": "580:23:53"
       },
       {
         "baseContracts": [],
@@ -236,9 +236,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 7064,
+        "id": 10926,
         "linearizedBaseContracts": [
-          7064
+          10926
         ],
         "name": "IValidator",
         "nodeType": "ContractDefinition",
@@ -246,7 +246,7 @@
           {
             "body": null,
             "documentation": "@dev Verifies that a signature is valid.\n @param hash Message hash that is signed.\n @param signerAddress Address that should have signed the given hash.\n @param signature Proof of signing.\n @return Validity of order signature.",
-            "id": 7063,
+            "id": 10925,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -254,16 +254,16 @@
             "name": "isValidSignature",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 7059,
+              "id": 10921,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7054,
+                  "id": 10916,
                   "name": "hash",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "931:12:42",
+                  "scope": 10925,
+                  "src": "931:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -271,10 +271,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 7053,
+                    "id": 10915,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "931:7:42",
+                    "src": "931:7:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -285,11 +285,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 7056,
+                  "id": 10918,
                   "name": "signerAddress",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "953:21:42",
+                  "scope": 10925,
+                  "src": "953:21:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -297,10 +297,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7055,
+                    "id": 10917,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "953:7:42",
+                    "src": "953:7:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -311,11 +311,11 @@
                 },
                 {
                   "constant": false,
-                  "id": 7058,
+                  "id": 10920,
                   "name": "signature",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "984:15:42",
+                  "scope": 10925,
+                  "src": "984:15:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -323,10 +323,10 @@
                     "typeString": "bytes"
                   },
                   "typeName": {
-                    "id": 7057,
+                    "id": 10919,
                     "name": "bytes",
                     "nodeType": "ElementaryTypeName",
-                    "src": "984:5:42",
+                    "src": "984:5:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes_storage_ptr",
                       "typeString": "bytes"
@@ -336,20 +336,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "921:84:42"
+              "src": "921:84:53"
             },
             "payable": false,
             "returnParameters": {
-              "id": 7062,
+              "id": 10924,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7061,
+                  "id": 10923,
                   "name": "isValid",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7063,
-                  "src": "1053:12:42",
+                  "scope": 10925,
+                  "src": "1053:12:53",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -357,10 +357,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 7060,
+                    "id": 10922,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1053:4:42",
+                    "src": "1053:4:53",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -370,20 +370,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1052:14:42"
+              "src": "1052:14:53"
             },
-            "scope": 7064,
-            "src": "896:171:42",
+            "scope": 10926,
+            "src": "896:171:53",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "external"
           }
         ],
-        "scope": 7065,
-        "src": "606:463:42"
+        "scope": 10927,
+        "src": "606:463:53"
       }
     ],
-    "src": "580:490:42"
+    "src": "580:490:53"
   },
   "compiler": {
     "name": "solc",
@@ -391,5 +391,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T01:36:34.455Z"
+  "updatedAt": "2019-08-06T18:19:35.744Z"
 }

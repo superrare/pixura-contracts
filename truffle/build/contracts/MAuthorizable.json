@@ -115,35 +115,35 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "/*\n\n  Copyright 2018 ZeroEx Intl.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");\n  you may not use this file except in compliance with the License.\n  You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an \"AS IS\" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n\n*/\n\npragma solidity 0.4.24;\n\nimport \"../interfaces/IAuthorizable.sol\";\n\n\ncontract MAuthorizable is\n    IAuthorizable\n{\n    // Event logged when a new address is authorized.\n    event AuthorizedAddressAdded(\n        address indexed target,\n        address indexed caller\n    );\n\n    // Event logged when a currently authorized address is unauthorized.\n    event AuthorizedAddressRemoved(\n        address indexed target,\n        address indexed caller\n    );\n\n    /// @dev Only authorized addresses can invoke functions with this modifier.\n    modifier onlyAuthorized { revert(); _; }\n}\n",
-  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/mixins/MAuthorizable.sol",
+  "sourcePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/mixins/MAuthorizable.sol",
   "ast": {
-    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/mixins/MAuthorizable.sol",
+    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/mixins/MAuthorizable.sol",
     "exportedSymbols": {
       "MAuthorizable": [
-        4206
+        8068
       ]
     },
-    "id": 4207,
+    "id": 8069,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4183,
+        "id": 8045,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:28"
+        "src": "580:23:39"
       },
       {
-        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
+        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
         "file": "../interfaces/IAuthorizable.sol",
-        "id": 4184,
+        "id": 8046,
         "nodeType": "ImportDirective",
-        "scope": 4207,
-        "sourceUnit": 4182,
-        "src": "605:41:28",
+        "scope": 8069,
+        "sourceUnit": 8044,
+        "src": "605:41:39",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -153,33 +153,33 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 4185,
+              "id": 8047,
               "name": "IAuthorizable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4181,
-              "src": "679:13:28",
+              "referencedDeclaration": 8043,
+              "src": "679:13:39",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IAuthorizable_$4181",
+                "typeIdentifier": "t_contract$_IAuthorizable_$8043",
                 "typeString": "contract IAuthorizable"
               }
             },
-            "id": 4186,
+            "id": 8048,
             "nodeType": "InheritanceSpecifier",
-            "src": "679:13:28"
+            "src": "679:13:39"
           }
         ],
         "contractDependencies": [
-          4181,
-          9068
+          8043,
+          12930
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 4206,
+        "id": 8068,
         "linearizedBaseContracts": [
-          4206,
-          4181,
-          9068
+          8068,
+          8043,
+          12930
         ],
         "name": "MAuthorizable",
         "nodeType": "ContractDefinition",
@@ -187,21 +187,21 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 4192,
+            "id": 8054,
             "name": "AuthorizedAddressAdded",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 4191,
+              "id": 8053,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4188,
+                  "id": 8050,
                   "indexed": true,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4192,
-                  "src": "791:22:28",
+                  "scope": 8054,
+                  "src": "791:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -209,10 +209,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4187,
+                    "id": 8049,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "791:7:28",
+                    "src": "791:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -223,12 +223,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 4190,
+                  "id": 8052,
                   "indexed": true,
                   "name": "caller",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4192,
-                  "src": "823:22:28",
+                  "scope": 8054,
+                  "src": "823:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -236,10 +236,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4189,
+                    "id": 8051,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "823:7:28",
+                    "src": "823:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -249,28 +249,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "781:70:28"
+              "src": "781:70:39"
             },
-            "src": "753:99:28"
+            "src": "753:99:39"
           },
           {
             "anonymous": false,
             "documentation": null,
-            "id": 4198,
+            "id": 8060,
             "name": "AuthorizedAddressRemoved",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 4197,
+              "id": 8059,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4194,
+                  "id": 8056,
                   "indexed": true,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4198,
-                  "src": "971:22:28",
+                  "scope": 8060,
+                  "src": "971:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -278,10 +278,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4193,
+                    "id": 8055,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "971:7:28",
+                    "src": "971:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -292,12 +292,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 4196,
+                  "id": 8058,
                   "indexed": true,
                   "name": "caller",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4198,
-                  "src": "1003:22:28",
+                  "scope": 8060,
+                  "src": "1003:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -305,10 +305,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4195,
+                    "id": 8057,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1003:7:28",
+                    "src": "1003:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -318,15 +318,15 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "961:70:28"
+              "src": "961:70:39"
             },
-            "src": "931:101:28"
+            "src": "931:101:39"
           },
           {
             "body": {
-              "id": 4204,
+              "id": 8066,
               "nodeType": "Block",
-              "src": "1142:16:28",
+              "src": "1142:16:39",
               "statements": [
                 {
                   "expression": {
@@ -334,21 +334,21 @@
                     "arguments": [],
                     "expression": {
                       "argumentTypes": [],
-                      "id": 4200,
+                      "id": 8062,
                       "name": "revert",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        11236,
-                        11237
+                        16213,
+                        16214
                       ],
-                      "referencedDeclaration": 11236,
-                      "src": "1144:6:28",
+                      "referencedDeclaration": 16213,
+                      "src": "1144:6:39",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_revert_pure$__$returns$__$",
                         "typeString": "function () pure"
                       }
                     },
-                    "id": 4201,
+                    "id": 8063,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -356,71 +356,71 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "1144:8:28",
+                    "src": "1144:8:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 4202,
+                  "id": 8064,
                   "nodeType": "ExpressionStatement",
-                  "src": "1144:8:28"
+                  "src": "1144:8:39"
                 },
                 {
-                  "id": 4203,
+                  "id": 8065,
                   "nodeType": "PlaceholderStatement",
-                  "src": "1154:1:28"
+                  "src": "1154:1:39"
                 }
               ]
             },
             "documentation": "@dev Only authorized addresses can invoke functions with this modifier.",
-            "id": 4205,
+            "id": 8067,
             "name": "onlyAuthorized",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 4199,
+              "id": 8061,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1142:0:28"
+              "src": "1142:0:39"
             },
-            "src": "1118:40:28",
+            "src": "1118:40:39",
             "visibility": "internal"
           }
         ],
-        "scope": 4207,
-        "src": "649:511:28"
+        "scope": 8069,
+        "src": "649:511:39"
       }
     ],
-    "src": "580:581:28"
+    "src": "580:581:39"
   },
   "legacyAST": {
-    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/mixins/MAuthorizable.sol",
+    "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/mixins/MAuthorizable.sol",
     "exportedSymbols": {
       "MAuthorizable": [
-        4206
+        8068
       ]
     },
-    "id": 4207,
+    "id": 8069,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 4183,
+        "id": 8045,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:28"
+        "src": "580:23:39"
       },
       {
-        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
+        "absolutePath": "/Users/jcrain/Dev/Pixura/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/AssetProxy/interfaces/IAuthorizable.sol",
         "file": "../interfaces/IAuthorizable.sol",
-        "id": 4184,
+        "id": 8046,
         "nodeType": "ImportDirective",
-        "scope": 4207,
-        "sourceUnit": 4182,
-        "src": "605:41:28",
+        "scope": 8069,
+        "sourceUnit": 8044,
+        "src": "605:41:39",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -430,33 +430,33 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 4185,
+              "id": 8047,
               "name": "IAuthorizable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 4181,
-              "src": "679:13:28",
+              "referencedDeclaration": 8043,
+              "src": "679:13:39",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IAuthorizable_$4181",
+                "typeIdentifier": "t_contract$_IAuthorizable_$8043",
                 "typeString": "contract IAuthorizable"
               }
             },
-            "id": 4186,
+            "id": 8048,
             "nodeType": "InheritanceSpecifier",
-            "src": "679:13:28"
+            "src": "679:13:39"
           }
         ],
         "contractDependencies": [
-          4181,
-          9068
+          8043,
+          12930
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 4206,
+        "id": 8068,
         "linearizedBaseContracts": [
-          4206,
-          4181,
-          9068
+          8068,
+          8043,
+          12930
         ],
         "name": "MAuthorizable",
         "nodeType": "ContractDefinition",
@@ -464,21 +464,21 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 4192,
+            "id": 8054,
             "name": "AuthorizedAddressAdded",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 4191,
+              "id": 8053,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4188,
+                  "id": 8050,
                   "indexed": true,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4192,
-                  "src": "791:22:28",
+                  "scope": 8054,
+                  "src": "791:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -486,10 +486,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4187,
+                    "id": 8049,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "791:7:28",
+                    "src": "791:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -500,12 +500,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 4190,
+                  "id": 8052,
                   "indexed": true,
                   "name": "caller",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4192,
-                  "src": "823:22:28",
+                  "scope": 8054,
+                  "src": "823:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -513,10 +513,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4189,
+                    "id": 8051,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "823:7:28",
+                    "src": "823:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -526,28 +526,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "781:70:28"
+              "src": "781:70:39"
             },
-            "src": "753:99:28"
+            "src": "753:99:39"
           },
           {
             "anonymous": false,
             "documentation": null,
-            "id": 4198,
+            "id": 8060,
             "name": "AuthorizedAddressRemoved",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 4197,
+              "id": 8059,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 4194,
+                  "id": 8056,
                   "indexed": true,
                   "name": "target",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4198,
-                  "src": "971:22:28",
+                  "scope": 8060,
+                  "src": "971:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -555,10 +555,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4193,
+                    "id": 8055,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "971:7:28",
+                    "src": "971:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -569,12 +569,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 4196,
+                  "id": 8058,
                   "indexed": true,
                   "name": "caller",
                   "nodeType": "VariableDeclaration",
-                  "scope": 4198,
-                  "src": "1003:22:28",
+                  "scope": 8060,
+                  "src": "1003:22:39",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -582,10 +582,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 4195,
+                    "id": 8057,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1003:7:28",
+                    "src": "1003:7:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -595,15 +595,15 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "961:70:28"
+              "src": "961:70:39"
             },
-            "src": "931:101:28"
+            "src": "931:101:39"
           },
           {
             "body": {
-              "id": 4204,
+              "id": 8066,
               "nodeType": "Block",
-              "src": "1142:16:28",
+              "src": "1142:16:39",
               "statements": [
                 {
                   "expression": {
@@ -611,21 +611,21 @@
                     "arguments": [],
                     "expression": {
                       "argumentTypes": [],
-                      "id": 4200,
+                      "id": 8062,
                       "name": "revert",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        11236,
-                        11237
+                        16213,
+                        16214
                       ],
-                      "referencedDeclaration": 11236,
-                      "src": "1144:6:28",
+                      "referencedDeclaration": 16213,
+                      "src": "1144:6:39",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_revert_pure$__$returns$__$",
                         "typeString": "function () pure"
                       }
                     },
-                    "id": 4201,
+                    "id": 8063,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -633,42 +633,42 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "1144:8:28",
+                    "src": "1144:8:39",
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 4202,
+                  "id": 8064,
                   "nodeType": "ExpressionStatement",
-                  "src": "1144:8:28"
+                  "src": "1144:8:39"
                 },
                 {
-                  "id": 4203,
+                  "id": 8065,
                   "nodeType": "PlaceholderStatement",
-                  "src": "1154:1:28"
+                  "src": "1154:1:39"
                 }
               ]
             },
             "documentation": "@dev Only authorized addresses can invoke functions with this modifier.",
-            "id": 4205,
+            "id": 8067,
             "name": "onlyAuthorized",
             "nodeType": "ModifierDefinition",
             "parameters": {
-              "id": 4199,
+              "id": 8061,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1142:0:28"
+              "src": "1142:0:39"
             },
-            "src": "1118:40:28",
+            "src": "1118:40:39",
             "visibility": "internal"
           }
         ],
-        "scope": 4207,
-        "src": "649:511:28"
+        "scope": 8069,
+        "src": "649:511:39"
       }
     ],
-    "src": "580:581:28"
+    "src": "580:581:39"
   },
   "compiler": {
     "name": "solc",
@@ -676,5 +676,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-08-06T01:36:34.372Z"
+  "updatedAt": "2019-08-06T18:19:35.703Z"
 }
