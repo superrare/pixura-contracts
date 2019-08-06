@@ -62,30 +62,30 @@
     "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MAssetProxyDispatcher.sol",
     "exportedSymbols": {
       "MAssetProxyDispatcher": [
-        7872
+        7878
       ]
     },
-    "id": 7873,
+    "id": 7879,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7851,
+        "id": 7857,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:49"
+        "src": "580:23:52"
       },
       {
         "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IAssetProxyDispatcher.sol",
         "file": "../interfaces/IAssetProxyDispatcher.sol",
-        "id": 7852,
+        "id": 7858,
         "nodeType": "ImportDirective",
-        "scope": 7873,
-        "sourceUnit": 6926,
-        "src": "605:49:49",
+        "scope": 7879,
+        "sourceUnit": 6932,
+        "src": "605:49:52",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -95,31 +95,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 7853,
+              "id": 7859,
               "name": "IAssetProxyDispatcher",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6925,
-              "src": "695:21:49",
+              "referencedDeclaration": 6931,
+              "src": "695:21:52",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IAssetProxyDispatcher_$6925",
+                "typeIdentifier": "t_contract$_IAssetProxyDispatcher_$6931",
                 "typeString": "contract IAssetProxyDispatcher"
               }
             },
-            "id": 7854,
+            "id": 7860,
             "nodeType": "InheritanceSpecifier",
-            "src": "695:21:49"
+            "src": "695:21:52"
           }
         ],
         "contractDependencies": [
-          6925
+          6931
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 7872,
+        "id": 7878,
         "linearizedBaseContracts": [
-          7872,
-          6925
+          7878,
+          6931
         ],
         "name": "MAssetProxyDispatcher",
         "nodeType": "ContractDefinition",
@@ -127,21 +127,21 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 7860,
+            "id": 7866,
             "name": "AssetProxyRegistered",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 7859,
+              "id": 7865,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7856,
+                  "id": 7862,
                   "indexed": false,
                   "name": "id",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7860,
-                  "src": "803:9:49",
+                  "scope": 7866,
+                  "src": "803:9:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -149,10 +149,10 @@
                     "typeString": "bytes4"
                   },
                   "typeName": {
-                    "id": 7855,
+                    "id": 7861,
                     "name": "bytes4",
                     "nodeType": "ElementaryTypeName",
-                    "src": "803:6:49",
+                    "src": "803:6:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes4",
                       "typeString": "bytes4"
@@ -163,83 +163,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 7858,
+                  "id": 7864,
                   "indexed": false,
                   "name": "assetProxy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7860,
-                  "src": "871:18:49",
-                  "stateVariable": false,
-                  "storageLocation": "default",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
-                  },
-                  "typeName": {
-                    "id": 7857,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "871:7:49",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                }
-              ],
-              "src": "793:148:49"
-            },
-            "src": "767:175:49"
-          },
-          {
-            "body": null,
-            "documentation": "@dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n @param assetData Byte array encoded for the asset.\n @param from Address to transfer token from.\n @param to Address to transfer token to.\n @param amount Amount of token to transfer.",
-            "id": 7871,
-            "implemented": false,
-            "isConstructor": false,
-            "isDeclaredConst": false,
-            "modifiers": [],
-            "name": "dispatchTransferFrom",
-            "nodeType": "FunctionDefinition",
-            "parameters": {
-              "id": 7869,
-              "nodeType": "ParameterList",
-              "parameters": [
-                {
-                  "constant": false,
-                  "id": 7862,
-                  "name": "assetData",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1296:22:49",
-                  "stateVariable": false,
-                  "storageLocation": "memory",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_bytes_memory_ptr",
-                    "typeString": "bytes"
-                  },
-                  "typeName": {
-                    "id": 7861,
-                    "name": "bytes",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "1296:5:49",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_bytes_storage_ptr",
-                      "typeString": "bytes"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                },
-                {
-                  "constant": false,
-                  "id": 7864,
-                  "name": "from",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1328:12:49",
+                  "scope": 7866,
+                  "src": "871:18:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -250,7 +179,7 @@
                     "id": 7863,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1328:7:49",
+                    "src": "871:7:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -258,14 +187,59 @@
                   },
                   "value": null,
                   "visibility": "internal"
+                }
+              ],
+              "src": "793:148:52"
+            },
+            "src": "767:175:52"
+          },
+          {
+            "body": null,
+            "documentation": "@dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n @param assetData Byte array encoded for the asset.\n @param from Address to transfer token from.\n @param to Address to transfer token to.\n @param amount Amount of token to transfer.",
+            "id": 7877,
+            "implemented": false,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "dispatchTransferFrom",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 7875,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7868,
+                  "name": "assetData",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7877,
+                  "src": "1296:22:52",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 7867,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1296:5:52",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
                 },
                 {
                   "constant": false,
-                  "id": 7866,
-                  "name": "to",
+                  "id": 7870,
+                  "name": "from",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1350:10:49",
+                  "scope": 7877,
+                  "src": "1328:12:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -273,10 +247,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7865,
+                    "id": 7869,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1350:7:49",
+                    "src": "1328:7:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -287,11 +261,37 @@
                 },
                 {
                   "constant": false,
-                  "id": 7868,
+                  "id": 7872,
+                  "name": "to",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7877,
+                  "src": "1350:10:52",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7871,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1350:7:52",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7874,
                   "name": "amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1370:14:49",
+                  "scope": 7877,
+                  "src": "1370:14:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -299,10 +299,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7867,
+                    "id": 7873,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1370:7:49",
+                    "src": "1370:7:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -312,56 +312,56 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1286:104:49"
+              "src": "1286:104:52"
             },
             "payable": false,
             "returnParameters": {
-              "id": 7870,
+              "id": 7876,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1407:0:49"
+              "src": "1407:0:52"
             },
-            "scope": 7872,
-            "src": "1257:151:49",
+            "scope": 7878,
+            "src": "1257:151:52",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 7873,
-        "src": "657:753:49"
+        "scope": 7879,
+        "src": "657:753:52"
       }
     ],
-    "src": "580:831:49"
+    "src": "580:831:52"
   },
   "legacyAST": {
     "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/mixins/MAssetProxyDispatcher.sol",
     "exportedSymbols": {
       "MAssetProxyDispatcher": [
-        7872
+        7878
       ]
     },
-    "id": 7873,
+    "id": 7879,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 7851,
+        "id": 7857,
         "literals": [
           "solidity",
           "0.4",
           ".24"
         ],
         "nodeType": "PragmaDirective",
-        "src": "580:23:49"
+        "src": "580:23:52"
       },
       {
         "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/interfaces/IAssetProxyDispatcher.sol",
         "file": "../interfaces/IAssetProxyDispatcher.sol",
-        "id": 7852,
+        "id": 7858,
         "nodeType": "ImportDirective",
-        "scope": 7873,
-        "sourceUnit": 6926,
-        "src": "605:49:49",
+        "scope": 7879,
+        "sourceUnit": 6932,
+        "src": "605:49:52",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -371,31 +371,31 @@
             "arguments": null,
             "baseName": {
               "contractScope": null,
-              "id": 7853,
+              "id": 7859,
               "name": "IAssetProxyDispatcher",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6925,
-              "src": "695:21:49",
+              "referencedDeclaration": 6931,
+              "src": "695:21:52",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IAssetProxyDispatcher_$6925",
+                "typeIdentifier": "t_contract$_IAssetProxyDispatcher_$6931",
                 "typeString": "contract IAssetProxyDispatcher"
               }
             },
-            "id": 7854,
+            "id": 7860,
             "nodeType": "InheritanceSpecifier",
-            "src": "695:21:49"
+            "src": "695:21:52"
           }
         ],
         "contractDependencies": [
-          6925
+          6931
         ],
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 7872,
+        "id": 7878,
         "linearizedBaseContracts": [
-          7872,
-          6925
+          7878,
+          6931
         ],
         "name": "MAssetProxyDispatcher",
         "nodeType": "ContractDefinition",
@@ -403,21 +403,21 @@
           {
             "anonymous": false,
             "documentation": null,
-            "id": 7860,
+            "id": 7866,
             "name": "AssetProxyRegistered",
             "nodeType": "EventDefinition",
             "parameters": {
-              "id": 7859,
+              "id": 7865,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 7856,
+                  "id": 7862,
                   "indexed": false,
                   "name": "id",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7860,
-                  "src": "803:9:49",
+                  "scope": 7866,
+                  "src": "803:9:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -425,10 +425,10 @@
                     "typeString": "bytes4"
                   },
                   "typeName": {
-                    "id": 7855,
+                    "id": 7861,
                     "name": "bytes4",
                     "nodeType": "ElementaryTypeName",
-                    "src": "803:6:49",
+                    "src": "803:6:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes4",
                       "typeString": "bytes4"
@@ -439,83 +439,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 7858,
+                  "id": 7864,
                   "indexed": false,
                   "name": "assetProxy",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7860,
-                  "src": "871:18:49",
-                  "stateVariable": false,
-                  "storageLocation": "default",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_address",
-                    "typeString": "address"
-                  },
-                  "typeName": {
-                    "id": 7857,
-                    "name": "address",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "871:7:49",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_address",
-                      "typeString": "address"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                }
-              ],
-              "src": "793:148:49"
-            },
-            "src": "767:175:49"
-          },
-          {
-            "body": null,
-            "documentation": "@dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n @param assetData Byte array encoded for the asset.\n @param from Address to transfer token from.\n @param to Address to transfer token to.\n @param amount Amount of token to transfer.",
-            "id": 7871,
-            "implemented": false,
-            "isConstructor": false,
-            "isDeclaredConst": false,
-            "modifiers": [],
-            "name": "dispatchTransferFrom",
-            "nodeType": "FunctionDefinition",
-            "parameters": {
-              "id": 7869,
-              "nodeType": "ParameterList",
-              "parameters": [
-                {
-                  "constant": false,
-                  "id": 7862,
-                  "name": "assetData",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1296:22:49",
-                  "stateVariable": false,
-                  "storageLocation": "memory",
-                  "typeDescriptions": {
-                    "typeIdentifier": "t_bytes_memory_ptr",
-                    "typeString": "bytes"
-                  },
-                  "typeName": {
-                    "id": 7861,
-                    "name": "bytes",
-                    "nodeType": "ElementaryTypeName",
-                    "src": "1296:5:49",
-                    "typeDescriptions": {
-                      "typeIdentifier": "t_bytes_storage_ptr",
-                      "typeString": "bytes"
-                    }
-                  },
-                  "value": null,
-                  "visibility": "internal"
-                },
-                {
-                  "constant": false,
-                  "id": 7864,
-                  "name": "from",
-                  "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1328:12:49",
+                  "scope": 7866,
+                  "src": "871:18:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -526,7 +455,7 @@
                     "id": 7863,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1328:7:49",
+                    "src": "871:7:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -534,14 +463,59 @@
                   },
                   "value": null,
                   "visibility": "internal"
+                }
+              ],
+              "src": "793:148:52"
+            },
+            "src": "767:175:52"
+          },
+          {
+            "body": null,
+            "documentation": "@dev Forwards arguments to assetProxy and calls `transferFrom`. Either succeeds or throws.\n @param assetData Byte array encoded for the asset.\n @param from Address to transfer token from.\n @param to Address to transfer token to.\n @param amount Amount of token to transfer.",
+            "id": 7877,
+            "implemented": false,
+            "isConstructor": false,
+            "isDeclaredConst": false,
+            "modifiers": [],
+            "name": "dispatchTransferFrom",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 7875,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 7868,
+                  "name": "assetData",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7877,
+                  "src": "1296:22:52",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 7867,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1296:5:52",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
                 },
                 {
                   "constant": false,
-                  "id": 7866,
-                  "name": "to",
+                  "id": 7870,
+                  "name": "from",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1350:10:49",
+                  "scope": 7877,
+                  "src": "1328:12:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -549,10 +523,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 7865,
+                    "id": 7869,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1350:7:49",
+                    "src": "1328:7:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
@@ -563,11 +537,37 @@
                 },
                 {
                   "constant": false,
-                  "id": 7868,
+                  "id": 7872,
+                  "name": "to",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 7877,
+                  "src": "1350:10:52",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 7871,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1350:7:52",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 7874,
                   "name": "amount",
                   "nodeType": "VariableDeclaration",
-                  "scope": 7871,
-                  "src": "1370:14:49",
+                  "scope": 7877,
+                  "src": "1370:14:52",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -575,10 +575,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 7867,
+                    "id": 7873,
                     "name": "uint256",
                     "nodeType": "ElementaryTypeName",
-                    "src": "1370:7:49",
+                    "src": "1370:7:52",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -588,27 +588,27 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "1286:104:49"
+              "src": "1286:104:52"
             },
             "payable": false,
             "returnParameters": {
-              "id": 7870,
+              "id": 7876,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "1407:0:49"
+              "src": "1407:0:52"
             },
-            "scope": 7872,
-            "src": "1257:151:49",
+            "scope": 7878,
+            "src": "1257:151:52",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "internal"
           }
         ],
-        "scope": 7873,
-        "src": "657:753:49"
+        "scope": 7879,
+        "src": "657:753:52"
       }
     ],
-    "src": "580:831:49"
+    "src": "580:831:52"
   },
   "compiler": {
     "name": "solc",
@@ -616,5 +616,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.1",
-  "updatedAt": "2019-07-10T00:40:52.921Z"
+  "updatedAt": "2019-08-06T01:36:34.465Z"
 }

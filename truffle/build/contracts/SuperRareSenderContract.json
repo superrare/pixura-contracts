@@ -1,0 +1,1426 @@
+{
+  "contractName": "SuperRareSenderContract",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "isOwner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "_originContract",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "_buyer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "_seller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "_tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "Sold",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "_originContract",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "_bidder",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "_seller",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "_tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "AcceptBid",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    }
+  ],
+  "bytecode": "0x60806040819052600360018190556002819055600f905560008054600160a060020a0319163317808255600160a060020a0316917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a361024a806100676000396000f3006080604052600436106100615763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663715018a681146100665780638da5cb5b1461007d5780638f32d59b146100ae578063f2fde38b146100d7575b600080fd5b34801561007257600080fd5b5061007b6100f8565b005b34801561008957600080fd5b50610092610162565b60408051600160a060020a039092168252519081900360200190f35b3480156100ba57600080fd5b506100c3610171565b604080519115158252519081900360200190f35b3480156100e357600080fd5b5061007b600160a060020a0360043516610182565b610100610171565b151561010b57600080fd5b60008054604051600160a060020a03909116907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908390a36000805473ffffffffffffffffffffffffffffffffffffffff19169055565b600054600160a060020a031690565b600054600160a060020a0316331490565b61018a610171565b151561019557600080fd5b61019e816101a1565b50565b600160a060020a03811615156101b657600080fd5b60008054604051600160a060020a03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a36000805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a03929092169190911790555600a165627a7a72305820ac8647b857e644e30b17caf24175f738d1489f00829e55355389d722c349164f0029",
+  "deployedBytecode": "0x6080604052600436106100615763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663715018a681146100665780638da5cb5b1461007d5780638f32d59b146100ae578063f2fde38b146100d7575b600080fd5b34801561007257600080fd5b5061007b6100f8565b005b34801561008957600080fd5b50610092610162565b60408051600160a060020a039092168252519081900360200190f35b3480156100ba57600080fd5b506100c3610171565b604080519115158252519081900360200190f35b3480156100e357600080fd5b5061007b600160a060020a0360043516610182565b610100610171565b151561010b57600080fd5b60008054604051600160a060020a03909116907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908390a36000805473ffffffffffffffffffffffffffffffffffffffff19169055565b600054600160a060020a031690565b600054600160a060020a0316331490565b61018a610171565b151561019557600080fd5b61019e816101a1565b50565b600160a060020a03811615156101b657600080fd5b60008054604051600160a060020a03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a36000805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a03929092169190911790555600a165627a7a72305820ac8647b857e644e30b17caf24175f738d1489f00829e55355389d722c349164f0029",
+  "sourceMap": "401:927:10:-;;;;;575:1;542:34;;;;664:30;;;;776:2;743:35;;-1:-1:-1;509:19:71;;-1:-1:-1;;;;;;509:19:71;518:10;509:19;;;;-1:-1:-1;;;;;572:6:71;;539:40;;-1:-1:-1;;539:40:71;401:927:10;;;;;;",
+  "deployedSourceMap": "401:927:10:-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;1273:127:71;;8:9:-1;5:2;;;30:1;27;20:12;5:2;1273:127:71;;;;;;639:70;;8:9:-1;5:2;;;30:1;27;20:12;5:2;639:70:71;;;;;;;;-1:-1:-1;;;;;639:70:71;;;;;;;;;;;;;;926:83;;8:9:-1;5:2;;;30:1;27;20:12;5:2;926:83:71;;;;;;;;;;;;;;;;;;;;;;1561:101;;8:9:-1;5:2;;;30:1;27;20:12;5:2;-1:-1;1561:101:71;-1:-1:-1;;;;;1561:101:71;;;;;1273:127;824:9;:7;:9::i;:::-;816:18;;;;;;;;1367:1;1351:6;;1330:40;;-1:-1:-1;;;;;1351:6:71;;;;1330:40;;1367:1;;1330:40;1393:1;1376:19;;-1:-1:-1;;1376:19:71;;;1273:127::o;639:70::-;676:7;698:6;-1:-1:-1;;;;;698:6:71;639:70;:::o;926:83::-;965:4;998:6;-1:-1:-1;;;;;998:6:71;984:10;:20;;926:83::o;1561:101::-;824:9;:7;:9::i;:::-;816:18;;;;;;;;1629:28;1648:8;1629:18;:28::i;:::-;1561:101;:::o;1796:169::-;-1:-1:-1;;;;;1865:22:71;;;;1857:31;;;;;;1920:6;;;1899:38;;-1:-1:-1;;;;;1899:38:71;;;;1920:6;;;1899:38;;;1943:6;:17;;-1:-1:-1;;1943:17:71;-1:-1:-1;;;;;1943:17:71;;;;;;;;;;1796:169::o",
+  "source": "pragma solidity ^0.4.24;\n\n\nimport \"../node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol\";\nimport \"./IERC721Creator.sol\";\nimport \"../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol\";\nimport \"../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol\";\nimport \"../node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol\";\n\ncontract SuperRareSenderContract is Ownable {\n    using SafeMath for uint256;\n\n    // Marketplace fee paid to the owner of the contract.\n    uint256 private marketplaceFee = 3; // 3 %\n    \n    // Royalty fee paid to the creator of a token on secondary sales.\n    uint256 private royaltyFee = 3; // 3 %\n    \n    // Primary sale fee split.\n    uint256 private primarySaleFee = 15; // 15 %\n\n    // Mapping of ERC721 contract to mapping of token ID to whether the token has been sold before via this contract.\n    mapping (address => mapping (uint256 => bool)) private tokenSold;\n\n    event Sold (\n      address indexed _originContract,\n      address indexed _buyer,\n      address indexed _seller,\n      uint256 _amount,\n      uint256 _tokenId\n    );\n\n    event AcceptBid (\n      address indexed _originContract,\n      address indexed _bidder,\n      address indexed _seller,\n      uint256 _amount,\n      uint256 _tokenId\n    );\n\n\n}\n",
+  "sourcePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/SuperRareSender.sol",
+  "ast": {
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/SuperRareSender.sol",
+    "exportedSymbols": {
+      "SuperRareSenderContract": [
+        2135
+      ]
+    },
+    "id": 2136,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2085,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".24"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:10"
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol",
+        "file": "../node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol",
+        "id": 2086,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 10513,
+        "src": "27:82:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/IERC721Creator.sol",
+        "file": "./IERC721Creator.sol",
+        "id": 2087,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 179,
+        "src": "110:30:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol",
+        "file": "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol",
+        "id": 2088,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 9645,
+        "src": "141:75:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "file": "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "id": 2089,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 9754,
+        "src": "217:79:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
+        "file": "../node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
+        "id": 2090,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 7856,
+        "src": "297:102:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 2091,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 9753,
+              "src": "437:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$9753",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 2092,
+            "nodeType": "InheritanceSpecifier",
+            "src": "437:7:10"
+          }
+        ],
+        "contractDependencies": [
+          9753
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 2135,
+        "linearizedBaseContracts": [
+          2135,
+          9753
+        ],
+        "name": "SuperRareSenderContract",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "id": 2095,
+            "libraryName": {
+              "contractScope": null,
+              "id": 2093,
+              "name": "SafeMath",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 9644,
+              "src": "457:8:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_SafeMath_$9644",
+                "typeString": "library SafeMath"
+              }
+            },
+            "nodeType": "UsingForDirective",
+            "src": "451:27:10",
+            "typeName": {
+              "id": 2094,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "470:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            }
+          },
+          {
+            "constant": false,
+            "id": 2098,
+            "name": "marketplaceFee",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "542:34:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2096,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "542:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "33",
+              "id": 2097,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "575:1:10",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_3_by_1",
+                "typeString": "int_const 3"
+              },
+              "value": "3"
+            },
+            "visibility": "private"
+          },
+          {
+            "constant": false,
+            "id": 2101,
+            "name": "royaltyFee",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "664:30:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2099,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "664:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "33",
+              "id": 2100,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "693:1:10",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_3_by_1",
+                "typeString": "int_const 3"
+              },
+              "value": "3"
+            },
+            "visibility": "private"
+          },
+          {
+            "constant": false,
+            "id": 2104,
+            "name": "primarySaleFee",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "743:35:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2102,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "743:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "3135",
+              "id": 2103,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "776:2:10",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_15_by_1",
+                "typeString": "int_const 15"
+              },
+              "value": "15"
+            },
+            "visibility": "private"
+          },
+          {
+            "constant": false,
+            "id": 2110,
+            "name": "tokenSold",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "911:64:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_uint256_$_t_bool_$_$",
+              "typeString": "mapping(address => mapping(uint256 => bool))"
+            },
+            "typeName": {
+              "id": 2109,
+              "keyType": {
+                "id": 2105,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "920:7:10",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "911:46:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_uint256_$_t_bool_$_$",
+                "typeString": "mapping(address => mapping(uint256 => bool))"
+              },
+              "valueType": {
+                "id": 2108,
+                "keyType": {
+                  "id": 2106,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "940:7:10",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "nodeType": "Mapping",
+                "src": "931:25:10",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                  "typeString": "mapping(uint256 => bool)"
+                },
+                "valueType": {
+                  "id": 2107,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "951:4:10",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                }
+              }
+            },
+            "value": null,
+            "visibility": "private"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 2122,
+            "name": "Sold",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 2121,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2112,
+                  "indexed": true,
+                  "name": "_originContract",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1001:31:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2111,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1001:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2114,
+                  "indexed": true,
+                  "name": "_buyer",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1040:22:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2113,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1040:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2116,
+                  "indexed": true,
+                  "name": "_seller",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1070:23:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2115,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1070:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2118,
+                  "indexed": false,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1101:15:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2117,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1101:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2120,
+                  "indexed": false,
+                  "name": "_tokenId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1124:16:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2119,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1124:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "993:153:10"
+            },
+            "src": "982:165:10"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 2134,
+            "name": "AcceptBid",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 2133,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2124,
+                  "indexed": true,
+                  "name": "_originContract",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1177:31:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2123,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1177:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2126,
+                  "indexed": true,
+                  "name": "_bidder",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1216:23:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2125,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1216:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2128,
+                  "indexed": true,
+                  "name": "_seller",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1247:23:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2127,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1247:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2130,
+                  "indexed": false,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1278:15:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2129,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1278:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2132,
+                  "indexed": false,
+                  "name": "_tokenId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1301:16:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2131,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1301:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1169:154:10"
+            },
+            "src": "1153:171:10"
+          }
+        ],
+        "scope": 2136,
+        "src": "401:927:10"
+      }
+    ],
+    "src": "0:1329:10"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/SuperRareSender.sol",
+    "exportedSymbols": {
+      "SuperRareSenderContract": [
+        2135
+      ]
+    },
+    "id": 2136,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2085,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".24"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:10"
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol",
+        "file": "../node_modules/openzeppelin-solidity/contracts/token/ERC721/IERC721.sol",
+        "id": 2086,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 10513,
+        "src": "27:82:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/contracts/IERC721Creator.sol",
+        "file": "./IERC721Creator.sol",
+        "id": 2087,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 179,
+        "src": "110:30:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol",
+        "file": "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol",
+        "id": 2088,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 9645,
+        "src": "141:75:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "file": "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol",
+        "id": 2089,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 9754,
+        "src": "217:79:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/Users/charlescrain/dev/pixura-contracts/truffle/node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
+        "file": "../node_modules/0x-monorepo/packages/contracts/contracts/protocol/Exchange/libs/LibOrder.sol",
+        "id": 2090,
+        "nodeType": "ImportDirective",
+        "scope": 2136,
+        "sourceUnit": 7856,
+        "src": "297:102:10",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "baseContracts": [
+          {
+            "arguments": null,
+            "baseName": {
+              "contractScope": null,
+              "id": 2091,
+              "name": "Ownable",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 9753,
+              "src": "437:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_Ownable_$9753",
+                "typeString": "contract Ownable"
+              }
+            },
+            "id": 2092,
+            "nodeType": "InheritanceSpecifier",
+            "src": "437:7:10"
+          }
+        ],
+        "contractDependencies": [
+          9753
+        ],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 2135,
+        "linearizedBaseContracts": [
+          2135,
+          9753
+        ],
+        "name": "SuperRareSenderContract",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "id": 2095,
+            "libraryName": {
+              "contractScope": null,
+              "id": 2093,
+              "name": "SafeMath",
+              "nodeType": "UserDefinedTypeName",
+              "referencedDeclaration": 9644,
+              "src": "457:8:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_contract$_SafeMath_$9644",
+                "typeString": "library SafeMath"
+              }
+            },
+            "nodeType": "UsingForDirective",
+            "src": "451:27:10",
+            "typeName": {
+              "id": 2094,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "470:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            }
+          },
+          {
+            "constant": false,
+            "id": 2098,
+            "name": "marketplaceFee",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "542:34:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2096,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "542:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "33",
+              "id": 2097,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "575:1:10",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_3_by_1",
+                "typeString": "int_const 3"
+              },
+              "value": "3"
+            },
+            "visibility": "private"
+          },
+          {
+            "constant": false,
+            "id": 2101,
+            "name": "royaltyFee",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "664:30:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2099,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "664:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "33",
+              "id": 2100,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "693:1:10",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_3_by_1",
+                "typeString": "int_const 3"
+              },
+              "value": "3"
+            },
+            "visibility": "private"
+          },
+          {
+            "constant": false,
+            "id": 2104,
+            "name": "primarySaleFee",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "743:35:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_uint256",
+              "typeString": "uint256"
+            },
+            "typeName": {
+              "id": 2102,
+              "name": "uint256",
+              "nodeType": "ElementaryTypeName",
+              "src": "743:7:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_uint256",
+                "typeString": "uint256"
+              }
+            },
+            "value": {
+              "argumentTypes": null,
+              "hexValue": "3135",
+              "id": 2103,
+              "isConstant": false,
+              "isLValue": false,
+              "isPure": true,
+              "kind": "number",
+              "lValueRequested": false,
+              "nodeType": "Literal",
+              "src": "776:2:10",
+              "subdenomination": null,
+              "typeDescriptions": {
+                "typeIdentifier": "t_rational_15_by_1",
+                "typeString": "int_const 15"
+              },
+              "value": "15"
+            },
+            "visibility": "private"
+          },
+          {
+            "constant": false,
+            "id": 2110,
+            "name": "tokenSold",
+            "nodeType": "VariableDeclaration",
+            "scope": 2135,
+            "src": "911:64:10",
+            "stateVariable": true,
+            "storageLocation": "default",
+            "typeDescriptions": {
+              "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_uint256_$_t_bool_$_$",
+              "typeString": "mapping(address => mapping(uint256 => bool))"
+            },
+            "typeName": {
+              "id": 2109,
+              "keyType": {
+                "id": 2105,
+                "name": "address",
+                "nodeType": "ElementaryTypeName",
+                "src": "920:7:10",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_address",
+                  "typeString": "address"
+                }
+              },
+              "nodeType": "Mapping",
+              "src": "911:46:10",
+              "typeDescriptions": {
+                "typeIdentifier": "t_mapping$_t_address_$_t_mapping$_t_uint256_$_t_bool_$_$",
+                "typeString": "mapping(address => mapping(uint256 => bool))"
+              },
+              "valueType": {
+                "id": 2108,
+                "keyType": {
+                  "id": 2106,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "940:7:10",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "nodeType": "Mapping",
+                "src": "931:25:10",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_mapping$_t_uint256_$_t_bool_$",
+                  "typeString": "mapping(uint256 => bool)"
+                },
+                "valueType": {
+                  "id": 2107,
+                  "name": "bool",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "951:4:10",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  }
+                }
+              }
+            },
+            "value": null,
+            "visibility": "private"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 2122,
+            "name": "Sold",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 2121,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2112,
+                  "indexed": true,
+                  "name": "_originContract",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1001:31:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2111,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1001:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2114,
+                  "indexed": true,
+                  "name": "_buyer",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1040:22:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2113,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1040:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2116,
+                  "indexed": true,
+                  "name": "_seller",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1070:23:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2115,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1070:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2118,
+                  "indexed": false,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1101:15:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2117,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1101:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2120,
+                  "indexed": false,
+                  "name": "_tokenId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2122,
+                  "src": "1124:16:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2119,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1124:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "993:153:10"
+            },
+            "src": "982:165:10"
+          },
+          {
+            "anonymous": false,
+            "documentation": null,
+            "id": 2134,
+            "name": "AcceptBid",
+            "nodeType": "EventDefinition",
+            "parameters": {
+              "id": 2133,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2124,
+                  "indexed": true,
+                  "name": "_originContract",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1177:31:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2123,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1177:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2126,
+                  "indexed": true,
+                  "name": "_bidder",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1216:23:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2125,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1216:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2128,
+                  "indexed": true,
+                  "name": "_seller",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1247:23:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2127,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1247:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2130,
+                  "indexed": false,
+                  "name": "_amount",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1278:15:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2129,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1278:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 2132,
+                  "indexed": false,
+                  "name": "_tokenId",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2134,
+                  "src": "1301:16:10",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 2131,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "1301:7:10",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "1169:154:10"
+            },
+            "src": "1153:171:10"
+          }
+        ],
+        "scope": 2136,
+        "src": "401:927:10"
+      }
+    ],
+    "src": "0:1329:10"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.4.24+commit.e67f0147.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.1",
+  "updatedAt": "2019-08-06T01:36:34.198Z"
+}

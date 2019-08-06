@@ -27,11 +27,11 @@ contract PixuraNFT is ERC721Full, IERC721Creator, Ownable, Whitelist, Operated {
     );
 
     constructor(
-      string _name, 
-      string _symbol, 
-      address _operator, 
+      string _name,
+      string _symbol,
+      address _operator,
       uint256 _operationCost
-    ) 
+    )
     ERC721Full(_name, _symbol)
     Operated(_operator, _operationCost)
     { }
