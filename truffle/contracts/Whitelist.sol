@@ -5,14 +5,13 @@ import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 contract Whitelist is Ownable {
 
   // Mapping of address to boolean indicating whether the address is whitelisted
-  mapping(address => bool) private whitelist;
+  mapping(address => bool) private whitelistMap;
 
   // flag controlling whether whitelist is enabled.
   bool private whitelistEnabled = true;
 
   event AddToWhitelist(address indexed _newAddress);
-  event RemoveFromWhitelist(address indexed _newAddress);
-
+  event RemoveFromWhitelist(address indexed _removedAddress);
 
   /**
    * @dev Enable or disable the whitelist
@@ -27,7 +26,7 @@ contract Whitelist is Ownable {
    * @param _newAddress address to be added to the whitelist
    */
   function addToWhitelist(address _newAddress) public onlyOwner {
-    whitelist[_newAddress] = true;
+    _whitelist(_newAddress);
     emit AddToWhitelist(_newAddress);
   }
 
@@ -36,7 +35,7 @@ contract Whitelist is Ownable {
    * @param _removedAddress address to be removed from the whitelist
    */
   function removeFromWhitelist(address _removedAddress) public onlyOwner {
-    whitelist[_removedAddress] = false;
+    _unWhitelist(_removedAddress);
     emit RemoveFromWhitelist(_removedAddress);
   }
 
@@ -47,9 +46,25 @@ contract Whitelist is Ownable {
    */
   function isWhitelisted(address _address) public view returns (bool) {
     if (whitelistEnabled) {
-      return whitelist[_address];
+      return whitelistMap[_address];
     } else {
       return true;
     }
+  }
+
+  /**
+   * @dev Internal function for removing an address from the whitelist
+   * @param _removedAddress address to unwhitelisted
+   */
+  function _unWhitelist(address _removedAddress) internal {
+    whitelistMap[_removedAddress] = false;
+  }
+
+  /**
+   * @dev Internal function for adding the provided address to the whitelist
+   * @param _newAddress address to be added to the whitelist
+   */
+  function _whitelist(address _newAddress) internal {
+    whitelistMap[_newAddress] = true;
   }
 }
