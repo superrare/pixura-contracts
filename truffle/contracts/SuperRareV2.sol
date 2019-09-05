@@ -36,10 +36,16 @@ contract SuperRareV2 is ERC721Full, IERC721Creator, Ownable, Whitelist {
       uint256 oldSupply = oldSuperRare.totalSupply();
       // Set id counter to be continuous with SuperRare.
       idCounter = oldSupply + 1;
-      
-      // Copy over whitelisting permissions.
-      for (uint256 i = 1; i <= oldSupply; i++) {
-        address creator = oldSuperRare.creatorOfToken(i);
+    }
+
+    /**
+     * @dev Whitelists a bunch of addresses.
+     * @param _whitelistees address[] of addresses to whitelist.
+     */
+    function initWhitelist(address[] _whitelistees) public onlyOwner {
+      // Add all whitelistees.
+      for (uint256 i = 0; i < _whitelistees.length; i++) {
+        address creator = _whitelistees[i];
         if (!isWhitelisted(creator)) {
           _whitelist(creator);
         }
