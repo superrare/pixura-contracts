@@ -12,16 +12,18 @@ hlint: ## hlint all
 	find ./libs -name "*.hs" | xargs hlint "--ignore=Parse error" ;
 
 stylish: ## stylish all
-	find ./libs -name "*.hs" | xargs stylish-haskell -c ./.stylish_haskell.yaml -i;
+	find hs-contracts -name "*.hs" | xargs stylish-haskell -c ./.stylish_haskell.yaml -i;
 
+init: ## install node files
+	yarn && \
+	npx spago install
 
 ######################################################
 #### Smart Contract / Solidity related commands
 ######################################################
 
-compile-contracts: ## compiles contracts and updates abi data in the data folder
-	cd truffle; \
-	truffle compile;
+compile-contracts: ## compiles contracts 
+	npx chanterelle compile
 
 ######################################################
 #### Build
