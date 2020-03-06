@@ -9,4 +9,4 @@ module Pixura.Contracts.ERC20 where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|../contracts/build/ERC20.json|]
+[abiFrom|../contracts/build/contracts/ERC20Metadata.json|]

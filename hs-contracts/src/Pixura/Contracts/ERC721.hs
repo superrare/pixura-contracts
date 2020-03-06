@@ -9,4 +9,4 @@ module Pixura.Contracts.ERC721 where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|../contracts/build/ERC721Full.json|]
+[abiFrom|../contracts/abis/ERC721Full.json|]

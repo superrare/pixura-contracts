@@ -9,4 +9,4 @@ module Pixura.Contracts.Medianizer where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|truffle/abis/Medianizer.json|]
+[abiFrom|../contracts/abis/Medianizer.json|]

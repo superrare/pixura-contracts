@@ -9,4 +9,4 @@ module Pixura.Contracts.PixuraNFTContractGenerator where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|../contracts/build/PixuraNFTContractGenerator.json|]
+[abiFrom|../contracts/build/contracts/PixuraNFTContractGenerator.json|]
