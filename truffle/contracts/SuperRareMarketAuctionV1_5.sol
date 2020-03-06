@@ -382,6 +382,26 @@ contract SuperRareMarketAuctionV1_5 is Ownable, SendValueOrEscrow {
     }
 
     /////////////////////////////////////////////////////////////////////////
+    // markTokensAsSold
+    /////////////////////////////////////////////////////////////////////////
+    /**
+  * @dev Function to set an array of tokens for a contract as sold.
+  * @param _originContract address of ERC721 contract.
+  * @param _tokenIds uin256[] array of token ids.
+  */
+    function markTokensAsSold(address _originContract, uint256[] _tokenIds)
+        external
+        onlyOwner
+    {
+        // Add all whitelistees.
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            if (!tokenSolds[_originContract][_tokenIds[i]]) {
+                tokenSolds[_originContract][_tokenIds[i]] = true;
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // _priceSetterStillOwnsTheToken
     /////////////////////////////////////////////////////////////////////////
     /**
