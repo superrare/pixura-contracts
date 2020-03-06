@@ -6,7 +6,7 @@ import "./SendValueOrEscrow.sol";
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract SuperRareMarketAuctionV1_5 is Ownable, SendValueOrEscrow {
+contract SuperRareMarketAuctionV1_1 is Ownable, SendValueOrEscrow {
     using SafeMath for uint256;
 
     /////////////////////////////////////////////////////////////////////////
