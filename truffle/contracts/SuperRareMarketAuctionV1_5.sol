@@ -437,13 +437,13 @@ contract SuperRareMarketAuctionV1_5 is Ownable, SendValueOrEscrow {
         );
 
         if (marketplacePayment > 0) {
-            maintainer.transfer(marketplacePayment);
+            sendValueOrEscrow(maintainer, marketplacePayment);
         }
         if (sellerPayment > 0) {
-            _seller.transfer(sellerPayment);
+            sendValueOrEscrow(_seller, sellerPayment);
         }
         if (royaltyPayment > 0) {
-            creator.transfer(royaltyPayment);
+            sendValueOrEscrow(creator, royaltyPayment);
         }
     }
 
@@ -622,7 +622,7 @@ contract SuperRareMarketAuctionV1_5 is Ownable, SendValueOrEscrow {
             return;
         }
         _resetBid(_originContract, _tokenId);
-        currentBidder.transfer(valueToReturn);
+        sendValueOrEscrow(currentBidder, valueToReturn);
     }
 
     /////////////////////////////////////////////////////////////////////////
