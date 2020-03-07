@@ -238,6 +238,19 @@ currentBidDetailsOfToken x0 cm r = uncurryFields  r $ currentBidDetailsOfToken' 
     currentBidDetailsOfToken' y0 cm' y2 y3 = call y0 cm' ((tagged $ Tuple2 y2 y3) :: CurrentBidDetailsOfTokenFn)
 
 --------------------------------------------------------------------------------
+-- | HasTokenBeenSoldFn
+--------------------------------------------------------------------------------
+
+
+type HasTokenBeenSoldFn = Tagged (SProxy "hasTokenBeenSold(address,uint256)") (Tuple2 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))))
+
+hasTokenBeenSold :: TransactionOptions NoPay -> ChainCursor -> { _originContract :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 (Either CallError Boolean)
+hasTokenBeenSold x0 cm r = uncurryFields  r $ hasTokenBeenSold' x0 cm
+   where
+    hasTokenBeenSold' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 (Either CallError Boolean)
+    hasTokenBeenSold' y0 cm' y2 y3 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple2 y2 y3) :: HasTokenBeenSoldFn)
+
+--------------------------------------------------------------------------------
 -- | IsOwnerFn
 --------------------------------------------------------------------------------
 

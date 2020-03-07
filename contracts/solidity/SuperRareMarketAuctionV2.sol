@@ -349,6 +349,22 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     }
 
     /////////////////////////////////////////////////////////////////////////
+    // hasTokenBeenSold
+    /////////////////////////////////////////////////////////////////////////
+    /**
+  * @dev Function to find whether the token has had a primary sale
+  * @param _originContract address of ERC721 contract.
+  * @param _tokenId uint256 id of the token.
+  */
+    function hasTokenBeenSold(address _originContract, uint256 _tokenId)
+        public
+        view
+        returns (bool)
+    {
+        return !tokenSolds[_originContract][_tokenId];
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // setMarketplaceFee
     /////////////////////////////////////////////////////////////////////////
     /**
