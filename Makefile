@@ -1,3 +1,6 @@
+.PHONY: help clean hlint stylish init compile-contracts purs-contract-gen hs-build purs-build purs-build-all deploy-test-chain takedown-test-chain run-contract-tests contract-tests
+.DEFAULT_GOAL := help
+
 ######################################################
 #### Utils
 ######################################################
@@ -25,10 +28,40 @@ init: ## install node files
 compile-contracts: ## compiles contracts 
 	npx chanterelle compile
 
+purs-contract-gen: ## Generate purscript libraries for smart contracts
+	npx chanterelle codegen
+
 ######################################################
 #### Build
 ######################################################
 
-build: ## build the library
+hs-build: ## Build haskell bindings
 	make compile-contracts && \
 	stack build;
+
+purs-build: ## Build purescript library
+	npx spago build;
+
+purs-build-all: ## Compiles contracts, codegens purescript bindings, and builds purescript
+	make compile-contracts && \
+	make purs-contract-gen && \
+	make purs-build
+
+
+######################################################
+#### Test
+######################################################
+
+deploy-test-chain: ## Deploys the test chain
+	docker-compose -p pixura-contracts up -d
+
+takedown-test-chain: ## Removes chain containers and wipes volumes
+	docker-compose -p pixura-contracts down -v
+
+run-contract-tests: ## Run contract tests
+	npx spago test
+
+contract-tests: ## Deploy test environment and run contract tests
+	make deploy-test-chain && \
+	make run-contract-tests; \
+	make takedown-test-chain
