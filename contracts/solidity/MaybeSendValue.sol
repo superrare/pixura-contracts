@@ -1,14 +1,12 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./ISendValueProxy.sol";
 import "./SendValueProxy.sol";
 
 /**
  * @dev Contract with a ISendValueProxy that will catch reverts when attempting to transfer funds.
  */
-contract MaybeSendValue is Ownable {
-    ISendValueProxy proxy;
+contract MaybeSendValue {
+    SendValueProxy proxy;
 
     constructor() internal {
         proxy = new SendValueProxy();
@@ -32,13 +30,5 @@ contract MaybeSendValue is Ownable {
             return true;
         }
         return false;
-    }
-
-    /**
-   * @dev Update the ISendValueProxy contract.
-   * @param _proxy address to update to.
-   */
-    function updateProxy(address _proxy) external onlyOwner {
-        proxy = ISendValueProxy(_proxy);
     }
 }
