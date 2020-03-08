@@ -11,6 +11,7 @@ import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafePartial)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2
+import Test.Spec.Contracts.Utils (init)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpecT, defaultConfig)
 
@@ -33,7 +34,8 @@ main =
     $ do
         let
           specConfig = defaultConfig { timeout = Just (Milliseconds $ 120.0 * 1000.0) }
+        tenv <- init
         join
           $ runSpecT specConfig [ consoleReporter ] do
-              SupeRare.spec
-              SuperRareV2.spec
+              SupeRare.spec tenv
+              SuperRareV2.spec tenv
