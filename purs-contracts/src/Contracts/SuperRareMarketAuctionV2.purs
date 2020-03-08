@@ -415,19 +415,6 @@ transferOwnership x0 r = uncurryFields  r $ transferOwnership' x0
     transferOwnership' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: TransferOwnershipFn)
 
 --------------------------------------------------------------------------------
--- | UpdateProxyFn
---------------------------------------------------------------------------------
-
-
-type UpdateProxyFn = Tagged (SProxy "updateProxy(address)") (Tuple1 (Tagged (SProxy "_proxy") Address))
-
-updateProxy :: TransactionOptions NoPay -> { _proxy :: Address } -> Web3 HexString
-updateProxy x0 r = uncurryFields  r $ updateProxy' x0
-   where
-    updateProxy' :: TransactionOptions NoPay -> (Tagged (SProxy "_proxy") Address) -> Web3 HexString
-    updateProxy' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: UpdateProxyFn)
-
---------------------------------------------------------------------------------
 -- | WithdrawPaymentsFn
 --------------------------------------------------------------------------------
 

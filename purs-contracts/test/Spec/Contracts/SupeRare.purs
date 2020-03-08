@@ -116,39 +116,3 @@ spec testEnv@{ accounts: accsAV, provider: provAV, supeRare: srAV, supeRareToken
                 tokenIds
             uris `shouldEqual` map Right tokenUris
             liftAff $ put tokenIds srtAV
- {-
-    -- set price
-    -- buy
-    -- bid
-    -- out bid
-    -- accept bid
-    -- transfer with bid
-    -- transfer with set price
-    deploy SR New
-    deploy SR AuctionMarket
-    -- appove marketauction 
-    -- whitelist 4 same addresses
-    -- mint 4 more tokens
-    -- set price
-    -- buy
-    -- bid
-    -- out bid
-    -- accept bid
-    -- transfer with bid
-    -- transfer with set price
-    deploy SR AuctionMarketV2
-    -- appove marketauctionv2
-    -- mark previously sold tokens as sold
-    -- set price
-    -- buy
-    -- bid
-    -- accept bid
-    deploy hack
-    -- make hack bid on V2 Marketplace
-    -- outbid hack bid on V2 Marketplace
-    -- 
-    -- 
-    -- 
-        
-        
--}

@@ -56,6 +56,7 @@ deploy-test-chain: ## Deploys the test chain
 	docker-compose -p pixura-contracts up -d
 
 takedown-test-chain: ## Removes chain containers and wipes volumes
+	docker-compose -p pixura-contracts kill && \
 	docker-compose -p pixura-contracts down -v
 
 run-contract-tests: ## Run contract tests

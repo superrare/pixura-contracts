@@ -3,14 +3,17 @@ module Test.Spec.Contracts.Utils where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
+import Data.Lens ((?~))
 import Data.Maybe (fromJust)
 import Deploy.Contracts.SuperRareV2 as SuperRareV2
 import Effect.Aff (Aff)
 import Effect.Aff.AVar (AVar, empty, tryRead)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Network.Ethereum.Web3 (Address, Provider, UIntN)
-import Network.Ethereum.Web3.Solidity.Sizes (S256)
+import Network.Ethereum.Core.BigNumber (decimal, embed, parseBigNumber)
+import Network.Ethereum.Web3 (Address, Provider, TransactionOptions, UIntN, _from, _gas, _gasPrice, defaultTransactionOptions, uIntNFromBigNumber)
+import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
+import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafePartial)
 import Test.QuickCheck (arbitrary)
 import Test.QuickCheck.Gen (Gen, randomSample')
@@ -53,3 +56,19 @@ readOrFail x = do
 
 mkTokenUris :: forall m. MonadEffect m => Int -> m (Array String)
 mkTokenUris n = map (map show) $ liftEffect $ randomSample' n (arbitrary :: Gen Int)
+
+defaultTxOpts :: Address -> TransactionOptions NoPay
+defaultTxOpts primaryAccount =
+  let
+    limit = unsafePartial fromJust $ parseBigNumber decimal "6712388"
+
+    price = unsafePartial fromJust $ parseBigNumber decimal "10000000000"
+  in
+    defaultTransactionOptions # _from ?~ primaryAccount
+      # _gas
+      ?~ limit
+      # _gasPrice
+      ?~ price
+
+intToUInt256 :: Int -> UIntN S256
+intToUInt256 = unsafePartial fromJust <<< uIntNFromBigNumber s256 <<< embed

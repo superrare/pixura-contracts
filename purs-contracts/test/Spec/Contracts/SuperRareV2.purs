@@ -2,19 +2,20 @@ module Test.Spec.Contracts.SuperRareV2 where
 
 import Prelude
 import Chanterelle.Test (buildTestConfig)
-import Contracts.SuperRareV2 (addNewToken, addToWhitelist, isWhitelisted, ownerOf, tokenURI) as SuperRareV2
-import Data.Array (replicate, zip, (..))
+import Contracts.SuperRareV2 (addNewToken, addToWhitelist, isWhitelisted, ownerOf, tokenURI, transferFrom) as SuperRareV2
+import Data.Array (elem, filter, replicate, take, zip, (..))
 import Data.Array.Partial (head, last)
-import Data.Either (Either(..))
+import Data.Either (Either(..), fromRight)
 import Data.Lens ((?~))
 import Data.Maybe (fromJust)
-import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..))
+import Data.Traversable (for, traverse)
+import Data.Tuple (Tuple(..), fst)
 import Deploy.Contracts.SuperRareV2 (deployScript) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.AVar (put)
 import Effect.Aff.Class (liftAff)
+import Effect.Class.Console (log)
 import Network.Ethereum.Core.BigNumber (decimal, embed, parseBigNumber, unsafeToInt)
 import Network.Ethereum.Web3 (Address, ChainCursor(..), TransactionOptions, _from, _gas, _gasPrice, _to, defaultTransactionOptions, runWeb3, uIntNFromBigNumber, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (s256)
@@ -38,12 +39,12 @@ defaultTxOpts primaryAccount =
       ?~ price
 
 spec :: TestEnv -> SpecT Aff Unit Aff Unit
-spec { superRareV2: sr2AV
+spec { superRareV2: v2SuperRareAV
 , accounts: accsAV
 , provider: provAV
 , supeRare: srAV
-, supeRareTokens: srtAV
-, superRareV2Tokens: srV2TAV
+, supeRareTokens: srTokensAV
+, superRareV2Tokens: v2TokensAV
 } = do
   describe "SuperRareV2" do
     it "can deploy the contract" do
@@ -55,11 +56,11 @@ spec { superRareV2: sr2AV
               , _symbol: "SUPR"
               , _oldSuperRare: supeRare.deployAddress
               }
-      put sr.superRareV2 sr2AV
+      put sr.superRareV2 v2SuperRareAV
     it "can whitelist accounts" do
       provider <- readOrFail provAV
       accounts <- readOrFail accsAV
-      superRareV2@{ deployAddress } <- readOrFail sr2AV
+      superRareV2@{ deployAddress } <- readOrFail v2SuperRareAV
       let
         runWeb3' = liftAff <<< runWeb3 provider
 
@@ -88,8 +89,8 @@ spec { superRareV2: sr2AV
     it "can mint tokens" do
       provider <- readOrFail provAV
       accounts <- readOrFail accsAV
-      srTokens <- readOrFail srtAV
-      superRareV2@{ deployAddress } <- readOrFail sr2AV
+      srTokens <- readOrFail srTokensAV
+      superRareV2@{ deployAddress } <- readOrFail v2SuperRareAV
       let
         runWeb3' = liftAff <<< runWeb3 provider
 
@@ -129,40 +130,45 @@ spec { superRareV2: sr2AV
                 )
                 tokenIds
             uris `shouldEqual` map Right tokenUris
-            liftAff $ put tokenIds srV2TAV
- {-
-    -- set price
-    -- buy
-    -- bid
-    -- out bid
-    -- accept bid
-    -- transfer with bid
-    -- transfer with set price
-    deploy SR New
-    deploy SR AuctionMarket
-    -- appove marketauction 
-    -- whitelist 4 same addresses
-    -- mint 4 more tokens
-    -- set price
-    -- buy
-    -- bid
-    -- out bid
-    -- accept bid
-    -- transfer with bid
-    -- transfer with set price
-    deploy SR AuctionMarketV2
-    -- appove marketauctionv2
-    -- mark previously sold tokens as sold
-    -- set price
-    -- buy
-    -- bid
-    -- accept bid
-    deploy hack
-    -- make hack bid on V2 Marketplace
-    -- outbid hack bid on V2 Marketplace
-    -- 
-    -- 
-    -- 
-        
-        
--}
+            liftAff $ put tokenIds v2TokensAV
+    it "can transfer tokens" do
+      provider <- readOrFail provAV
+      accounts <- readOrFail accsAV
+      v2SuperRare <- readOrFail v2SuperRareAV
+      v2Tokens <- readOrFail v2TokensAV
+      let
+        runWeb3' = liftAff <<< runWeb3 provider
+
+        acc1 = unsafePartial $ head accounts
+
+        transferV2Tokens = (take 2 v2Tokens)
+      void
+        $ runWeb3' do
+            ownerAndTokens <-
+              for transferV2Tokens
+                $ \tokenId -> do
+                    owner <-
+                      map (unsafePartial fromRight)
+                        $ SuperRareV2.ownerOf
+                            (defaultTxOpts acc1 # _to ?~ v2SuperRare.deployAddress)
+                            Latest
+                            { tokenId }
+                    pure (Tuple owner tokenId)
+            let
+              transferToAddrs = filter (\acc -> not $ elem acc (map fst ownerAndTokens)) accounts
+
+              transferPayloads = zip ownerAndTokens transferToAddrs
+            void $ for transferPayloads
+              $ \(Tuple (Tuple from tokenId) to) -> do
+                  SuperRareV2.transferFrom
+                    (defaultTxOpts from # _to ?~ v2SuperRare.deployAddress)
+                    { from, to, tokenId }
+                    >>= awaitTxSuccessWeb3
+            owners <-
+              for transferV2Tokens
+                $ \tokenId ->
+                    SuperRareV2.ownerOf
+                      (defaultTxOpts acc1 # _to ?~ v2SuperRare.deployAddress)
+                      Latest
+                      { tokenId }
+            owners `shouldEqual` map Right transferToAddrs

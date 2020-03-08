@@ -1,32 +1,15 @@
 module Test.Main where
 
 import Prelude
-import Data.Lens ((?~))
-import Data.Maybe (Maybe(..), fromJust)
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (Milliseconds(..), launchAff_)
-import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
-import Network.Ethereum.Web3 (Address, TransactionOptions, _from, _gas, _gasPrice, defaultTransactionOptions)
-import Network.Ethereum.Web3.Types (NoPay)
-import Partial.Unsafe (unsafePartial)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2
+import Test.Spec.Contracts.SuperRareMarketAuctionV2 as SuperRareMarketAuctionV2
 import Test.Spec.Contracts.Utils (init)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpecT, defaultConfig)
-
-defaultTxOpts :: Address -> TransactionOptions NoPay
-defaultTxOpts primaryAccount =
-  let
-    limit = unsafePartial fromJust $ parseBigNumber decimal "6712388"
-
-    price = unsafePartial fromJust $ parseBigNumber decimal "10000000000"
-  in
-    defaultTransactionOptions # _from ?~ primaryAccount
-      # _gas
-      ?~ limit
-      # _gasPrice
-      ?~ price
 
 main :: Effect Unit
 main =
@@ -39,3 +22,4 @@ main =
           $ runSpecT specConfig [ consoleReporter ] do
               SupeRare.spec tenv
               SuperRareV2.spec tenv
+              SuperRareMarketAuctionV2.spec tenv

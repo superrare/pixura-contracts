@@ -361,7 +361,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         view
         returns (bool)
     {
-        return !tokenSolds[_originContract][_tokenId];
+        return tokenSolds[_originContract][_tokenId];
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -409,11 +409,9 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         external
         onlyOwner
     {
-        // Add all whitelistees.
+        // Mark provided tokens as sold.
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            if (!tokenSolds[_originContract][_tokenIds[i]]) {
-                tokenSolds[_originContract][_tokenIds[i]] = true;
-            }
+            tokenSolds[_originContract][_tokenIds[i]] = true;
         }
     }
 
