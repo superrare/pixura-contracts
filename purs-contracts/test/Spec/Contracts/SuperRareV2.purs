@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.SuperRareV2 (addNewToken, addToWhitelist, isWhitelisted, ownerOf, tokenURI, transferFrom) as SuperRareV2
+import Contracts.SuperRareV2 (addNewToken, tokenByIndex, addToWhitelist, isWhitelisted, ownerOf, tokenURI, totalSupply, transferFrom) as SuperRareV2
 import Data.Array (elem, filter, length, replicate, take, zip, zipWith, (..))
 import Data.Array.Partial (head, last)
 import Data.Either (Either(..), fromRight)
@@ -38,48 +38,49 @@ spec =
             web3Test provider do
               void $ for accounts $ whitelistAddress tenv
               isWhitelistRess <- for accounts $ isWhitelisted tenv
-              isWhitelistRess `shouldEqual` replicate 4 (Right true)
+              isWhitelistRess `shouldEqual` replicate 4 true
           it "can mint tokens" \tenv@{ provider, accounts } -> do
             web3Test provider do
               lastId <- (unsafeToInt <<< unUIntN) <$> SupeRare.totalSupply tenv
-              tokenDetails <- createTokensWithFunction tenv lastId addNewToken
+              tokenDetails <- createTokensWithFunction tenv (lastId + 1) 1 (addNewToken tenv)
               let
                 tokenIds = tokenDetails <#> \{ tokenId } -> tokenId
-              owners <- for tokenIds ownerOf
+              owners <- for tokenIds (ownerOf tenv)
               owners `shouldEqual` (tokenDetails <#> \{ owner } -> owner)
-              uris <- for tokenIds tokenURI
+              uris <- for tokenIds (tokenURI tenv)
               uris `shouldEqual` (tokenDetails <#> \{ uri } -> uri)
-          it "can transfer tokens" do
-            web3Test provider do
-              let
-                transferV2Tokens = (take 2 v2Tokens)
-              ownerAndTokens <-
-                for transferV2Tokens \tokenId -> do
-                  owner <-
-                    map (unsafePartial fromRight $ SuperRareV2.ownerOf)
-                      (defaultTxOpts primaryAccount # _to ?~ v2SuperRare.deployAddress)
-                      Latest
-                      { tokenId }
-                  pure (Tuple owner tokenId)
-              let
-                transferToAddrs = filter (\acc -> not $ elem acc (map fst ownerAndTokens)) accounts
 
-                transferPayloads = zip ownerAndTokens transferToAddrs
-              void $ for transferPayloads
-                $ \(Tuple (Tuple from tokenId) to) -> do
-                    SuperRareV2.transferFrom
-                      (defaultTxOpts from # _to ?~ v2SuperRare.deployAddress)
-                      { from, to, tokenId }
-                      >>= awaitTxSuccessWeb3
-              owners <-
-                for transferV2Tokens
-                  $ \tokenId ->
-                      SuperRareV2.ownerOf
-                        (defaultTxOpts primaryAccount # _to ?~ v2SuperRare.deployAddress)
-                        Latest
-                        { tokenId }
-              owners `shouldEqual` map Right transferToAddrs
-
+-- it "can transfer tokens" \tenv { provider } -> do
+--   web3Test provider do
+--     finalIndex <- (unsafeToInt <<< unUIntN) <$> totalSupply tenv
+--     latestTokenId <- tokenByIndex tenv (intToUInt256 (finalIndex - 1))
+--     let
+--       transferV2Tokens = (take 2 v2Tokens)
+--     ownerAndTokens <-
+--       for transferV2Tokens \tokenId -> do
+--         owner <-
+--           map (unsafePartial fromRight $ SuperRareV2.ownerOf)
+--             (defaultTxOpts primaryAccount # _to ?~ v2SuperRare.deployAddress)
+--             Latest
+--             { tokenId }
+--         pure (Tuple owner tokenId)
+--     let
+--       transferToAddrs = filter (\acc -> not $ elem acc (map fst ownerAndTokens)) accounts
+--       transferPayloads = zip ownerAndTokens transferToAddrs
+--     void $ for transferPayloads
+--       $ \(Tuple (Tuple from tokenId) to) -> do
+--           SuperRareV2.transferFrom
+--             (defaultTxOpts from # _to ?~ v2SuperRare.deployAddress)
+--             { from, to, tokenId }
+--             >>= awaitTxSuccessWeb3
+--     owners <-
+--       for transferV2Tokens
+--         $ \tokenId ->
+--             SuperRareV2.ownerOf
+--               (defaultTxOpts primaryAccount # _to ?~ v2SuperRare.deployAddress)
+--               Latest
+--               { tokenId }
+--     owners `shouldEqual` map Right transferToAddrs
 -----------------------------------------------------------------------------
 -- | TestEnv
 -----------------------------------------------------------------------------
@@ -94,14 +95,20 @@ type TestEnv r
 
 init :: Aff (TestEnv ())
 init = do
-  tenv <- SupeRare.init
-  { provider, superRareV2, accounts } <- liftAff $ buildTestConfig "http://localhost:8545" 60 SuperRareV2.deployScript
-  pure $ Record.insert (SProxy :: _ "v2SuperRare") superRareV2
+  tenv <- initSupeRareOld
+  { provider, superRareV2, accounts } <-
+    buildTestConfig "http://localhost:8545" 60
+      $ SuperRareV2.deployScript
+          { _name: "SuperRare"
+          , _symbol: "SUPR"
+          , _oldSuperRare: tenv.supeRare.deployAddress
+          }
+  pure $ Record.insert (SProxy :: _ "v2SuperRare") superRareV2 tenv
 
 -----------------------------------------------------------------------------
 -- | Utils
 -----------------------------------------------------------------------------
-initSupeRareOld :: forall r. Aff (SupeRare.TestEnv r)
+initSupeRareOld :: Aff (SupeRare.TestEnv ())
 initSupeRareOld = do
   tenv@{ accounts, provider } <- SupeRare.init
   web3Test provider do
@@ -111,17 +118,22 @@ initSupeRareOld = do
   where
   whitelistAddresses tenv@{ accounts } = void $ for accounts (SupeRare.whitelistAddress tenv)
 
-  createOldSupeRareTokens tenv = void $ createTokensWithFunction tenv 1 (SupeRare.addNewToken tenv)
+  createOldSupeRareTokens tenv = void $ createTokensWithFunction tenv 1 2 (SupeRare.addNewToken tenv)
 
 createTokensWithFunction ::
-  forall r. TestEnv r -> Int -> (Address -> String -> Web3 Unit) -> Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
-createTokensWithFunction { accounts } idOffset f = do
+  forall r.
+  { accounts :: Array Address | r } ->
+  Int ->
+  Int ->
+  (Address -> String -> Web3 Unit) ->
+  Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
+createTokensWithFunction { accounts } idOffset amount f = do
   let
-    tokenIds = map intToUInt256 (idOffset .. (length accounts))
+    tokenIds = map intToUInt256 (idOffset .. (idOffset + amount))
   tokenUris <- mkTokenUris $ length tokenIds
   tokenDetails <-
     for (zipWith ({ acc: _, _uri: _ }) accounts tokenUris)
-      (\{ acc, _uri } -> f acc _uri >>= { owner: acc, uri: _uri })
+      (\{ acc, _uri } -> f acc _uri >>= const (pure { owner: acc, uri: _uri }))
   pure $ zipWith (Record.insert (SProxy :: _ "tokenId")) tokenIds tokenDetails
 
 addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 Unit
@@ -138,28 +150,28 @@ whitelistAddress { v2SuperRare: { deployAddress }, primaryAccount } _newAddress 
     >>= awaitTxSuccessWeb3
 
 tokenURI :: forall r. TestEnv r -> UIntN S256 -> Web3 String
-tokenURI { v2SuperRare: { deployAddress }, primaryAccount } _tokenId =
+tokenURI { v2SuperRare: { deployAddress }, primaryAccount } tokenId =
   throwOnCallError
     $ SuperRareV2.tokenURI
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
-        { _tokenId }
+        { tokenId }
 
 isWhitelisted :: forall r. TestEnv r -> Address -> Web3 Boolean
-isWhitelisted { v2SuperRare: { deployAddress }, primaryAccount } _creator =
+isWhitelisted { v2SuperRare: { deployAddress }, primaryAccount } _address =
   throwOnCallError
     $ SuperRareV2.isWhitelisted
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
-        { _creator }
+        { _address }
 
 ownerOf :: forall r. TestEnv r -> UIntN S256 -> Web3 Address
-ownerOf { v2SuperRare: { deployAddress }, primaryAccount } _tokenId =
+ownerOf { v2SuperRare: { deployAddress }, primaryAccount } tokenId =
   throwOnCallError
     $ SuperRareV2.ownerOf
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
-        { _tokenId }
+        { tokenId }
 
 totalSupply :: forall r. TestEnv r -> Web3 (UIntN S256)
 totalSupply { v2SuperRare: { deployAddress }, primaryAccount } =
@@ -167,3 +179,11 @@ totalSupply { v2SuperRare: { deployAddress }, primaryAccount } =
     $ SuperRareV2.totalSupply
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
+
+tokenByIndex :: forall r. TestEnv r -> UIntN S256 -> Web3 (UIntN S256)
+tokenByIndex { v2SuperRare: { deployAddress }, primaryAccount } index =
+  throwOnCallError
+    $ SuperRareV2.tokenByIndex
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { index }
