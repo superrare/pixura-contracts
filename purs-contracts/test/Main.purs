@@ -17,9 +17,7 @@ main =
     $ do
         let
           specConfig = defaultConfig { timeout = Just (Milliseconds $ 120.0 * 1000.0) }
-        tenv <- init
         join
           $ runSpecT specConfig [ consoleReporter ] do
-              _ <- SupeRare.spec tenv
-              _ <- SuperRareV2.spec tenv
-              void $ SuperRareMarketAuctionV2.spec tenv
+              SupeRare.spec
+ -- _ <- SuperRareV2.spec tenv -- void $ SuperRareMarketAuctionV2.spec tenv

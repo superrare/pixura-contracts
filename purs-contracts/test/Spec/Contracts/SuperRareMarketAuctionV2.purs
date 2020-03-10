@@ -194,7 +194,7 @@ spec { superRareMarketAuctionV2: v2MarketplaceAV
                   , price: unUIntN price
                   , owner
                   , originContract: v2SuperRare.deployAddress
-                  , v2Marketplace: v2Marketplace.deployAddress
+                  , marketContract: v2Marketplace.deployAddress
                   }
         let
           noOwners acc =
@@ -221,82 +221,47 @@ spec { superRareMarketAuctionV2: v2MarketplaceAV
       v2Marketplace <- readOrFail v2MarketplaceAV
       primAcc <- readOrFail primAccAv
       web3Test provider do
-        secondarySaleTokensAndOwner <- do
-          secondarySaleTokens <-
-            map catMaybes $ for v2Tokens
-              $ \_tokenId -> do
-                  sold <-
-                    throwOnCallError
-                      $ SuperRareMarketAuctionV2.hasTokenBeenSold
-                          (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                          Latest
-                          { _originContract: v2SuperRare.deployAddress, _tokenId }
-                  pure if sold then Just _tokenId else Nothing
-          for secondarySaleTokens
-            $ \tokenId ->
-                { tokenId, owner: _ }
-                  <$> getV2TokenOwner v2SuperRare.deployAddress tokenId
-        pricesWithTokenIdsRes <- do
-          fee <-
-            throwOnCallError
-              $ SuperRareMarketAuctionV2.marketplaceFee
-                  (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                  Latest
-          royaltyFee <-
-            throwOnCallError
-              $ SuperRareMarketAuctionV2.royaltyFee
-                  (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                  Latest
-          for secondarySaleTokensAndOwner
-            $ \{ tokenId, owner } -> do
-                price <-
-                  throwOnCallError
-                    $ SuperRareMarketAuctionV2.tokenPrice
-                        (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                        Latest
-                        { _originContract: v2SuperRare.deployAddress
-                        , _tokenId: tokenId
-                        }
-                pure
-                  { tokenId
-                  , buyerFee: (unUIntN fee) * (unUIntN price) `divide` embed 100
-                  , sellerFee: (unUIntN royaltyFee) * (unUIntN price) `divide` embed 100
-                  , price: unUIntN price
-                  , owner
-                  , originContract: v2SuperRare.deployAddress
-                  , v2Marketplace: v2Marketplace.deployAddress
-                  }
+        purchasePayloads <-
+          map catMaybes
+            $ for v2Tokens
+                ( mkPurchasePayload
+                    false
+                    v2Marketplace.deployAddress
+                    v2SuperRare.deployAddress
+                )
         let
           noOwners acc =
             not
-              (acc `elem` map (\{ owner } -> owner) pricesWithTokenIdsRes)
+              (acc `elem` map (\{ owner } -> owner) purchasePayloads)
 
           buyers = filter noOwners accounts
 
-          buyersWithToken =
+          completePayloads =
             zipWith (Record.insert (SProxy :: _ "buyer"))
               buyers
-              pricesWithTokenIdsRes
-        purchaseDetails <- for buyersWithToken buyTokenMarketV2
+              purchasePayloads
+        log Info $ show { accounts, purchasePayloads, buyers }
+        purchaseDetails <- for completePayloads buyTokenMarketV2
         void $ for purchaseDetails checkNewOwnerStatus
         void $ for purchaseDetails checkPayout
 
 mkPurchasePayload ::
   Boolean ->
+  Address ->
+  Address ->
   UIntN S256 ->
-  Address ->
-  Address ->
   Web3
     ( Maybe
         { buyerFee :: BigNumber
         , owner :: Address
+        , price :: BigNumber
         , sellerFee :: BigNumber
         , tokenId :: UIntN S256
         , originContract :: Address
         , marketContract :: Address
         }
     )
-mkPurchasePayload primarySale tokenId marketAddr originAddr = do
+mkPurchasePayload primarySale marketAddr originAddr tokenId = do
   fee <-
     unUIntN
       <$> ( throwOnCallError
@@ -310,17 +275,19 @@ mkPurchasePayload primarySale tokenId marketAddr originAddr = do
           (defaultTxOpts originAddr # _to ?~ marketAddr)
           Latest
           { _originContract: originAddr, _tokenId: tokenId }
-  if sold && primarySale then
+  price <-
+    unUIntN
+      <$> ( throwOnCallError
+            $ SuperRareMarketAuctionV2.tokenPrice
+                (defaultTxOpts originAddr # _to ?~ marketAddr)
+                Latest
+                { _originContract: originAddr
+                , _tokenId: tokenId
+                }
+        )
+  if (not sold == primarySale) || (price == embed 0) then
     pure Nothing
   else do
-    price <-
-      throwOnCallError
-        $ SuperRareMarketAuctionV2.tokenPrice
-            (defaultTxOpts originAddr # _to ?~ marketAddr)
-            Latest
-            { _originContract: originAddr
-            , _tokenId: tokenId
-            }
     let
       getSellerFee =
         if primarySale then
@@ -335,17 +302,19 @@ mkPurchasePayload primarySale tokenId marketAddr originAddr = do
                     (defaultTxOpts originAddr # _to ?~ marketAddr)
                     Latest
             )
-    Just
-      <$> ( { tokenId
-          , marketContract: marketAddr
-          , originContract: originAddr
-          , buyerFee: fee
-          , owner: _
-          , sellerFee: _
-          }
-            <$> getV2TokenOwner originAddr tokenId
-            <*> getSellerFee'
-        )
+    pp <-
+      { tokenId
+      , marketContract: marketAddr
+      , originContract: originAddr
+      , buyerFee: fee
+      , price
+      , owner: _
+      , sellerFee: _
+      }
+        <$> getV2TokenOwner originAddr tokenId
+        <*> getSellerFee'
+    log Info $ show pp
+    pure $ Just pp
 
 checkNewOwnerStatus ::
   forall r.

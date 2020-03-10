@@ -1,111 +1,102 @@
 module Test.Spec.Contracts.SupeRare where
 
 import Prelude
+import Chanterelle.Internal.Deploy (DeployReceipt)
+import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
 import Contracts.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, whitelistCreator) as SupeRare
-import Data.Array (drop, replicate, take, zip, (..))
+import Data.Array (drop, length, replicate, take, zipWith, (..))
 import Data.Array.Partial (head)
-import Data.Either (Either(..))
 import Data.Lens ((?~))
-import Data.Maybe (fromJust)
-import Data.Traversable (traverse)
-import Data.Tuple (Tuple(..))
+import Data.Traversable (for, traverse)
 import Deploy.Contracts.SupeRare (deployScript) as SupeRare
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
-import Effect.Aff.AVar (put)
 import Effect.Aff.Class (liftAff)
-import Network.Ethereum.Core.BigNumber (decimal, embed, parseBigNumber)
-import Network.Ethereum.Web3 (Address, ChainCursor(..), TransactionOptions, _from, _gas, _gasPrice, _to, defaultTransactionOptions, uIntNFromBigNumber)
-import Network.Ethereum.Web3.Solidity.Sizes (s256)
-import Network.Ethereum.Web3.Types (NoPay)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), Provider, UIntN, Web3, _to)
+import Network.Ethereum.Web3.Solidity.Sizes (S256)
 import Partial.Unsafe (unsafePartial)
-import Test.Spec (SpecT, describe, it)
+import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Contracts.Utils (TestEnv, mkTokenUris, readOrFail, web3Test)
+import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, mkTokenUris, throwOnCallError, web3Test)
 
-defaultTxOpts :: Address -> TransactionOptions NoPay
-defaultTxOpts primaryAccount =
-  let
-    limit = unsafePartial fromJust $ parseBigNumber decimal "6712388"
+-----------------------------------------------------------------------------
+-- | spec
+-----------------------------------------------------------------------------
+spec :: SpecT Aff Unit Aff Unit
+spec =
+  beforeAll init
+    $ describe "SupeRare" do
+        it "can whitelist accounts" \tenv@{ provider, supeRare, accounts, primaryAccount } ->
+          web3Test provider do
+            void $ for accounts (whitelistAddress tenv)
+            isWhitelistRess <- for accounts (isWhitelisted tenv)
+            isWhitelistRess `shouldEqual` replicate 4 true
+        it "can mint tokens" \tenv@{ provider, supeRare, accounts, primaryAccount } ->
+          web3Test provider do
+            let
+              tokenIds = map intToUInt256 (1 .. (length accounts))
+            tokenUris <- mkTokenUris $ length tokenIds
+            void
+              $ for (zipWith ({ acc: _, _uri: _ }) accounts tokenUris)
+                  (\{ acc, _uri } -> addNewToken tenv acc _uri)
+            owners <- for tokenIds (ownerOf tenv)
+            owners `shouldEqual` accounts
+            uris <- for tokenIds (tokenURI tenv)
+            uris `shouldEqual` tokenUris
 
-    price = unsafePartial fromJust $ parseBigNumber decimal "10000000000"
-  in
-    defaultTransactionOptions # _from ?~ primaryAccount
-      # _gas
-      ?~ limit
-      # _gasPrice
-      ?~ price
+-----------------------------------------------------------------------------
+-- | TestEnv
+-----------------------------------------------------------------------------
+type TestEnv r
+  = { supeRare :: DeployReceipt NoArgs
+    , provider :: Provider
+    , accounts :: Array Address
+    , primaryAccount :: Address
+    | r
+    }
 
-spec :: TestEnv -> SpecT Aff Unit Aff Unit
-spec testEnv@{ primaryAccount: primAccAv, accounts: accsAV, provider: provAV, supeRare: srAV, supeRareTokens: srtAV } = do
-  describe "SupeRare" do
-    it "can deploy the contract" do
-      sr <- liftAff $ buildTestConfig "http://localhost:8545" 60 SupeRare.deployScript
-      put sr.supeRare srAV
-      put (take 4 $ drop 1 sr.accounts) accsAV
-      put sr.provider provAV
-      put (unsafePartial head sr.accounts) primAccAv
-    it "can whitelist accounts" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      supeRare <- readOrFail srAV
-      primAcc <- readOrFail primAccAv
-      web3Test provider do
-        void
-          $ traverse
-              ( \acc ->
-                  SupeRare.whitelistCreator
-                    (defaultTxOpts primAcc # _to ?~ supeRare.deployAddress)
-                    { _creator: acc }
-                    >>= awaitTxSuccessWeb3
-              )
-              accounts
-        isWhitelistRess <-
-          traverse
-            ( \acc ->
-                SupeRare.isWhitelisted
-                  (defaultTxOpts primAcc # _to ?~ supeRare.deployAddress)
-                  Latest
-                  { _creator: acc }
-            )
-            accounts
-        isWhitelistRess `shouldEqual` replicate 4 (Right true)
-    it "can mint tokens" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      supeRare <- readOrFail srAV
-      primAcc <- readOrFail primAccAv
-      let
-        tokenIds = map (\tid -> unsafePartial fromJust $ uIntNFromBigNumber s256 $ embed tid) (1 .. 4)
-      web3Test provider do
-        tokenUris <- mkTokenUris 4
-        void
-          $ traverse
-              ( \(Tuple acc _uri) ->
-                  SupeRare.addNewToken (defaultTxOpts acc # _to ?~ supeRare.deployAddress)
-                    { _uri }
-                    >>= awaitTxSuccessWeb3
-              )
-              (zip accounts tokenUris)
-        owners <-
-          traverse
-            ( \tid ->
-                SupeRare.ownerOf
-                  (defaultTxOpts primAcc # _to ?~ supeRare.deployAddress)
-                  Latest
-                  { _tokenId: unsafePartial fromJust $ uIntNFromBigNumber s256 $ embed tid }
-            )
-            (1 .. 4)
-        owners `shouldEqual` map Right accounts
-        uris <-
-          traverse
-            ( \tid ->
-                SupeRare.tokenURI
-                  (defaultTxOpts primAcc # _to ?~ supeRare.deployAddress)
-                  Latest
-                  { _tokenId: tid }
-            )
-            tokenIds
-        uris `shouldEqual` map Right tokenUris
-        liftAff $ put tokenIds srtAV
+init :: Aff (TestEnv ())
+init = do
+  { provider, supeRare, accounts } <- liftAff $ buildTestConfig "http://localhost:8545" 60 SupeRare.deployScript
+  pure { provider, supeRare, accounts: take 4 $ drop 1 accounts, primaryAccount: unsafePartial head accounts }
+
+-----------------------------------------------------------------------------
+-- | Utils
+-----------------------------------------------------------------------------
+addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 Unit
+addNewToken { supeRare: { deployAddress }, primaryAccount } from _uri =
+  SupeRare.addNewToken (defaultTxOpts from # _to ?~ deployAddress)
+    { _uri }
+    >>= awaitTxSuccessWeb3
+
+whitelistAddress :: forall r. TestEnv r -> Address -> Web3 Unit
+whitelistAddress { supeRare: { deployAddress }, primaryAccount } _creator =
+  SupeRare.whitelistCreator
+    (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+    { _creator }
+    >>= awaitTxSuccessWeb3
+
+tokenURI :: forall r. TestEnv r -> UIntN S256 -> Web3 String
+tokenURI { supeRare: { deployAddress }, primaryAccount } _tokenId =
+  throwOnCallError
+    $ SupeRare.tokenURI
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { _tokenId }
+
+isWhitelisted :: forall r. TestEnv r -> Address -> Web3 Boolean
+isWhitelisted { supeRare: { deployAddress }, primaryAccount } _creator =
+  throwOnCallError
+    $ SupeRare.isWhitelisted
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { _creator }
+
+ownerOf :: forall r. TestEnv r -> UIntN S256 -> Web3 Address
+ownerOf { supeRare: { deployAddress }, primaryAccount } _tokenId =
+  throwOnCallError
+    $ SupeRare.ownerOf
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { _tokenId }
