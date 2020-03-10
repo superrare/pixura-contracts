@@ -37,12 +37,12 @@ spec =
           it "can whitelist accounts" \tenv@{ provider, accounts } -> do
             web3Test provider do
               void $ for accounts $ whitelistAddress tenv
-              isWhitelistRess <- for accounts $ isWhitelisted tenv
-              isWhitelistRess `shouldEqual` replicate 4 true
+              allIsWhitelistedRes <- for accounts $ isWhitelisted tenv
+              allIsWhitelistedRes `shouldEqual` replicate (length accounts) true
           it "can mint tokens" \tenv@{ provider, accounts } -> do
             web3Test provider do
               lastId <- (unsafeToInt <<< unUIntN) <$> SupeRare.totalSupply tenv
-              tokenDetails <- createTokensWithFunction tenv (lastId + 1) 1 (addNewToken tenv)
+              tokenDetails <- createTokensWithFunction tenv 1 (addNewToken tenv)
               let
                 tokenIds = tokenDetails <#> \{ tokenId } -> tokenId
               owners <- for tokenIds (ownerOf tenv)
@@ -118,29 +118,27 @@ initSupeRareOld = do
   where
   whitelistAddresses tenv@{ accounts } = void $ for accounts (SupeRare.whitelistAddress tenv)
 
-  createOldSupeRareTokens tenv = void $ createTokensWithFunction tenv 1 2 (SupeRare.addNewToken tenv)
+  createOldSupeRareTokens tenv = void $ createTokensWithFunction tenv 2 (SupeRare.addNewToken tenv)
 
 createTokensWithFunction ::
   forall r.
   { accounts :: Array Address | r } ->
   Int ->
-  Int ->
-  (Address -> String -> Web3 Unit) ->
+  (Address -> String -> Web3 (UIntN S256)) ->
   Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
-createTokensWithFunction { accounts } idOffset amount f = do
-  let
-    tokenIds = map intToUInt256 (idOffset .. (idOffset + amount))
-  tokenUris <- mkTokenUris $ length tokenIds
-  tokenDetails <-
-    for (zipWith ({ acc: _, _uri: _ }) accounts tokenUris)
-      (\{ acc, _uri } -> f acc _uri >>= const (pure { owner: acc, uri: _uri }))
-  pure $ zipWith (Record.insert (SProxy :: _ "tokenId")) tokenIds tokenDetails
+createTokensWithFunction { accounts } amount f = do
+  tokenUris <- mkTokenUris (length accounts)
+  for (zipWith { acc: _, _uri: _ } accounts tokenUris) \{ acc, _uri } -> do
+    tokenId <- f acc _uri
+    pure { owner: acc, uri: _uri, tokenId }
 
-addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 Unit
-addNewToken { v2SuperRare: { deployAddress }, primaryAccount } from _uri =
+addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 (UIntN S256)
+addNewToken tenv@{ v2SuperRare: { deployAddress }, primaryAccount } from _uri = do
   SuperRareV2.addNewToken (defaultTxOpts from # _to ?~ deployAddress)
     { _uri }
     >>= awaitTxSuccessWeb3
+  supply <- (unsafeToInt <<< unUIntN) <$> totalSupply tenv
+  tokenByIndex tenv (intToUInt256 (supply - 1))
 
 whitelistAddress :: forall r. TestEnv r -> Address -> Web3 Unit
 whitelistAddress { v2SuperRare: { deployAddress }, primaryAccount } _newAddress =

@@ -13,7 +13,8 @@ import Deploy.Contracts.SupeRare (deployScript) as SupeRare
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Network.Ethereum.Web3 (Address, ChainCursor(..), Provider, UIntN, Web3, _to)
+import Network.Ethereum.Core.BigNumber (unsafeToInt)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), Provider, UIntN, Web3, _to, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
 import Partial.Unsafe (unsafePartial)
 import Test.Spec (SpecT, beforeAll, describe, it)
@@ -64,11 +65,13 @@ init = do
 -----------------------------------------------------------------------------
 -- | Utils
 -----------------------------------------------------------------------------
-addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 Unit
-addNewToken { supeRare: { deployAddress }, primaryAccount } from _uri =
+addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 (UIntN S256)
+addNewToken testEnv@{ supeRare: { deployAddress }, primaryAccount } from _uri = do
+  lastTokenId <- (unsafeToInt <<< unUIntN) <$> totalSupply testEnv
   SupeRare.addNewToken (defaultTxOpts from # _to ?~ deployAddress)
     { _uri }
     >>= awaitTxSuccessWeb3
+  pure (intToUInt256 (lastTokenId + 1))
 
 whitelistAddress :: forall r. TestEnv r -> Address -> Web3 Unit
 whitelistAddress { supeRare: { deployAddress }, primaryAccount } _creator =
