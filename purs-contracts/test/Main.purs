@@ -21,4 +21,4 @@ main =
           $ runSpecT specConfig [ consoleReporter ] do
               SupeRare.spec
               SuperRareV2.spec
- -- void $ SuperRareMarketAuctionV2.spec tenv
+              SuperRareMarketAuctionV2.spec

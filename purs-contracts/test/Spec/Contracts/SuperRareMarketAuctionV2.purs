@@ -1,7 +1,9 @@
 module Test.Spec.Contracts.SuperRareMarketAuctionV2 where
 
 import Prelude
+import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Logging (LogLevel(..), log)
+import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
 import Contracts.SuperRareMarketAuctionV2 (buy, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
 import Contracts.SuperRareV2 as SuperRareV2
@@ -14,236 +16,257 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Data.Tuple (Tuple(..))
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
+import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.AVar (put)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
+import Effect.Class (class MonadEffect, liftEffect)
 import Network.Ethereum.Core.BigNumber (divide)
-import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unIntN, unUIntN)
+import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unIntN, unUIntN)
 import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
+import Network.Ethereum.Web3.Types (class TokenUnit)
+import Network.Ethereum.Web3.Types.TokenUnit (ProxyTU(..))
 import Partial.Unsafe (unsafePartial)
 import Prim.Row (class Lacks)
 import Record as Record
 import Test.QuickCheck (arbitrary)
 import Test.QuickCheck.Gen (randomSample')
-import Test.Spec (SpecT, describe, it)
+import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Contracts.Utils (TestEnv, defaultTxOpts, readOrFail, throwOnCallError, uInt256FromBigNumber, web3Test)
+import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
+import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, readOrFail, throwOnCallError, uInt256FromBigNumber, web3Test)
+import Type.Proxy (Proxy(..))
 
-spec :: TestEnv -> SpecT Aff Unit Aff Unit
-spec { superRareMarketAuctionV2: v2MarketplaceAV
-, accounts: accsAV
-, provider: provAV
-, superRareV2: v2SuperRareAV
-, superRareV2Tokens: v2TokensAV
-, primaryAccount: primAccAv
-} = do
-  describe "SuperRareMarketAuctionV2" do
-    it "can deploy the contract" do
-      v2Marketplace <-
-        liftAff
-          $ buildTestConfig
-              "http://localhost:8545"
-              60
-              SuperRareMarketAuctionV2.deployScript
-      put v2Marketplace.superRareMarketAuctionV2 v2MarketplaceAV
-    it "can mark tokens as sold" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      v2SuperRare <- readOrFail v2SuperRareAV
-      v2Tokens <- readOrFail v2TokensAV
-      superRareMarketAuctionV2@{ deployAddress } <- readOrFail v2MarketplaceAV
-      primAcc <- readOrFail primAccAv
-      let
-        soldTokens = take 2 v2Tokens
-      web3Test provider do
-        SuperRareMarketAuctionV2.markTokensAsSold
-          (defaultTxOpts primAcc # _to ?~ deployAddress)
-          { _tokenIds: soldTokens
-          , _originContract: v2SuperRare.deployAddress
-          }
-          >>= awaitTxSuccessWeb3
-        isMarkedSolds <-
-          traverse
-            ( \_tokenId ->
-                SuperRareMarketAuctionV2.hasTokenBeenSold
-                  (defaultTxOpts primAcc # _to ?~ deployAddress)
-                  Latest
-                  { _originContract: v2SuperRare.deployAddress, _tokenId }
-            )
-            soldTokens
-        isMarkedSolds `shouldEqual` replicate (length soldTokens) (Right true)
-    it "can approve the marketplace for new tokens" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      v2SuperRare <- readOrFail v2SuperRareAV
-      v2Tokens <- readOrFail v2TokensAV
-      v2Marketplace <- readOrFail v2MarketplaceAV
-      superRareMarketAuctionV2 <- readOrFail v2MarketplaceAV
-      primAcc <- readOrFail primAccAv
-      let
-        soldTokens = take 2 v2Tokens
-      web3Test provider do
-        void $ for accounts
-          $ \acc ->
-              SuperRareV2.setApprovalForAll
-                (defaultTxOpts acc # _to ?~ v2SuperRare.deployAddress)
-                { approved: true, to: v2Marketplace.deployAddress }
-                >>= awaitTxSuccessWeb3
-        isApprovedForAlls <-
-          for accounts
-            $ \owner ->
-                SuperRareV2.isApprovedForAll
-                  (defaultTxOpts primAcc # _to ?~ v2SuperRare.deployAddress)
-                  Latest
-                  { operator: v2Marketplace.deployAddress, owner }
-        isApprovedForAlls `shouldEqual` replicate (length accounts) (Right true)
-    it "can set the price of tokens" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      v2SuperRare <- readOrFail v2SuperRareAV
-      v2Tokens <- readOrFail v2TokensAV
-      v2Marketplace <- readOrFail v2MarketplaceAV
-      primAcc <- readOrFail primAccAv
-      prices <-
-        liftEffect (randomSample' (length v2Tokens) arbitrary)
-          <#> \(intPrices :: Array Int) ->
-              intPrices
-                <#> \intPrice ->
-                    let
-                      (unitPrice :: Value Szabo) = mkValue $ embed $ abs intPrice
-                    in
-                      uInt256FromBigNumber $ toMinorUnit unitPrice
-      let
-        pricesWithTokenIds = zip v2Tokens prices
-      web3Test provider do
-        void $ for pricesWithTokenIds
-          $ \(Tuple _tokenId _amount) ->
-              do
-                owner <-
-                  map (unsafePartial fromRight)
-                    $ SuperRareV2.ownerOf
-                        (defaultTxOpts primAcc # _to ?~ v2SuperRare.deployAddress)
-                        Latest
-                        { tokenId: _tokenId }
-                SuperRareMarketAuctionV2.setSalePrice
-                  (defaultTxOpts owner # _to ?~ v2Marketplace.deployAddress)
-                  { _amount, _originContract: v2SuperRare.deployAddress, _tokenId }
-                >>= awaitTxSuccessWeb3
-        pricesWithTokenIdsRes <-
-          for v2Tokens
-            $ \_tokenId -> do
-                amount <-
-                  map (unsafePartial fromRight)
-                    $ SuperRareMarketAuctionV2.tokenPrice
-                        (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                        Latest
-                        { _originContract: v2SuperRare.deployAddress, _tokenId }
-                pure (Tuple _tokenId amount)
-        pricesWithTokenIdsRes `shouldEqual` pricesWithTokenIds
-    it "can make primary sales" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      v2SuperRare <- readOrFail v2SuperRareAV
-      v2Tokens <- readOrFail v2TokensAV
-      v2Marketplace <- readOrFail v2MarketplaceAV
-      primAcc <- readOrFail primAccAv
-      web3Test provider do
-        primarySaleTokensAndOwner <- do
-          primarySaleTokens <-
-            map catMaybes $ for v2Tokens
-              $ \_tokenId -> do
-                  sold <-
-                    throwOnCallError
-                      $ SuperRareMarketAuctionV2.hasTokenBeenSold
-                          (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                          Latest
-                          { _originContract: v2SuperRare.deployAddress, _tokenId }
-                  pure if not sold then Just _tokenId else Nothing
-          for primarySaleTokens
-            $ \tokenId ->
-                { tokenId, owner: _ }
-                  <$> getV2TokenOwner v2SuperRare.deployAddress tokenId
-        pricesWithTokenIdsRes <- do
-          fee <-
-            throwOnCallError
-              $ SuperRareMarketAuctionV2.marketplaceFee
-                  (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                  Latest
-          primarySaleFee <-
-            throwOnCallError
-              $ SuperRareMarketAuctionV2.primarySaleFee
-                  (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                  Latest
-          for primarySaleTokensAndOwner
-            $ \{ tokenId, owner } -> do
-                price <-
-                  throwOnCallError
-                    $ SuperRareMarketAuctionV2.tokenPrice
-                        (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
-                        Latest
-                        { _originContract: v2SuperRare.deployAddress
-                        , _tokenId: tokenId
-                        }
-                pure
-                  { tokenId
-                  , buyerFee: (unUIntN fee) * (unUIntN price) `divide` embed 100
-                  , sellerFee: (unUIntN primarySaleFee) * (unUIntN price) `divide` embed 100
-                  , price: unUIntN price
-                  , owner
-                  , originContract: v2SuperRare.deployAddress
-                  , marketContract: v2Marketplace.deployAddress
-                  }
+spec :: SpecT Aff Unit Aff Unit
+spec =
+  beforeAll init do
+    describe "SuperRareMarketAuctionV2" do
+      it "can mark tokens as sold" \tenv@{ provider } ->
+        web3Test provider do
+          newTokens <- mkSuperRareTokens tenv 4
+          markTokensAsSold tenv (newTokens <#> \{ tokenId } -> tokenId)
+          isMarkedSolds <-
+            for (newTokens <#> \{ tokenId } -> tokenId) (hasTokenBeenSold tenv)
+          isMarkedSolds `shouldEqual` replicate (length newTokens) true
+      it "can set the price of tokens" \tenv@{ provider } ->
+        web3Test provider do
+          newTokens <- mkSuperRareTokens tenv 4
+          prices <- genTokenPrices $ length newTokens
+          let
+            tokenDetails = zipWith (Record.insert (SProxy :: _ "price")) prices newTokens
+          void
+            $ for tokenDetails \td@{ tokenId, price, owner } -> do
+                setSalePrice tenv owner tokenId price
+          onChainPrices <-
+            for tokenDetails \{ tokenId } -> tokenPrice tenv tokenId
+          onChainPrices `shouldEqual` (tokenDetails <#> \{ price } -> price)
+
+-- it "can make primary sales" do
+--   provider <- readOrFail provAV
+--   accounts <- readOrFail accsAV
+--   v2SuperRare <- readOrFail v2SuperRareAV
+--   v2Tokens <- readOrFail v2TokensAV
+--   v2Marketplace <- readOrFail v2MarketplaceAV
+--   primAcc <- readOrFail primAccAv
+--   web3Test provider do
+--     primarySaleTokensAndOwner <- do
+--       primarySaleTokens <-
+--         map catMaybes $ for v2Tokens
+--           $ \_tokenId -> do
+--               sold <-
+--                 throwOnCallError
+--                   $ SuperRareMarketAuctionV2.hasTokenBeenSold
+--                       (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
+--                       Latest
+--                       { _originContract: v2SuperRare.deployAddress, _tokenId }
+--               pure if not sold then Just _tokenId else Nothing
+--       for primarySaleTokens
+--         $ \tokenId ->
+--             { tokenId, owner: _ }
+--               <$> getV2TokenOwner v2SuperRare.deployAddress tokenId
+--     pricesWithTokenIdsRes <- do
+--       fee <-
+--         throwOnCallError
+--           $ SuperRareMarketAuctionV2.marketplaceFee
+--               (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
+--               Latest
+--       primarySaleFee <-
+--         throwOnCallError
+--           $ SuperRareMarketAuctionV2.primarySaleFee
+--               (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
+--               Latest
+--       for primarySaleTokensAndOwner
+--         $ \{ tokenId, owner } -> do
+--             price <-
+--               throwOnCallError
+--                 $ SuperRareMarketAuctionV2.tokenPrice
+--                     (defaultTxOpts primAcc # _to ?~ v2Marketplace.deployAddress)
+--                     Latest
+--                     { _originContract: v2SuperRare.deployAddress
+--                     , _tokenId: tokenId
+--                     }
+--             pure
+--               { tokenId
+--               , buyerFee: (unUIntN fee) * (unUIntN price) `divide` embed 100
+--               , sellerFee: (unUIntN primarySaleFee) * (unUIntN price) `divide` embed 100
+--               , price: unUIntN price
+--               , owner
+--               , originContract: v2SuperRare.deployAddress
+--               , marketContract: v2Marketplace.deployAddress
+--               }
+--     let
+--       noOwners acc =
+--         not
+--           (acc `elem` map (\{ owner } -> owner) pricesWithTokenIdsRes)
+--       buyers = filter noOwners accounts
+--       buyersWithToken =
+--         zipWith
+--           ( \buyer priceDetails ->
+--               Record.insert (SProxy :: _ "buyer") buyer priceDetails
+--           )
+--           buyers
+--           pricesWithTokenIdsRes
+--     purchaseDetails <- for buyersWithToken buyTokenMarketV2
+--     void $ for purchaseDetails checkNewOwnerStatus
+--     void $ for purchaseDetails checkPayout
+-- it "can make secondary sales" do
+--   provider <- readOrFail provAV
+--   accounts <- readOrFail accsAV
+--   v2SuperRare <- readOrFail v2SuperRareAV
+--   v2Tokens <- readOrFail v2TokensAV
+--   v2Marketplace <- readOrFail v2MarketplaceAV
+--   primAcc <- readOrFail primAccAv
+--   web3Test provider do
+--     purchasePayloads <-
+--       map catMaybes
+--         $ for v2Tokens
+--             ( mkPurchasePayload
+--                 false
+--                 v2Marketplace.deployAddress
+--                 v2SuperRare.deployAddress
+--             )
+--     let
+--       noOwners acc =
+--         not
+--           (acc `elem` map (\{ owner } -> owner) purchasePayloads)
+--       buyers = filter noOwners accounts
+--       completePayloads =
+--         zipWith (Record.insert (SProxy :: _ "buyer"))
+--           buyers
+--           purchasePayloads
+--     log Info $ show { accounts, purchasePayloads, buyers }
+--     purchaseDetails <- for completePayloads buyTokenMarketV2
+--     void $ for purchaseDetails checkNewOwnerStatus
+--     void $ for purchaseDetails checkPayout
+-----------------------------------------------------------------------------
+-- | TestEnv
+-----------------------------------------------------------------------------
+type TestEnv r
+  = { supeRare :: DeployReceipt NoArgs
+    , provider :: Provider
+    , accounts :: Array Address
+    , primaryAccount :: Address
+    , v2SuperRare :: DeployReceipt SuperRareV2.SuperRareV2
+    , v2Marketplace :: DeployReceipt NoArgs
+    | r
+    }
+
+init :: Aff (TestEnv ())
+init = do
+  tenv@{ provider } <- initSupeRareV2
+  { superRareMarketAuctionV2 } <-
+    buildTestConfig "http://localhost:8545" 60
+      SuperRareMarketAuctionV2.deployScript
+  web3Test provider
+    $ approveMarketplace tenv superRareMarketAuctionV2.deployAddress
+  pure $ Record.insert (SProxy :: _ "v2Marketplace") superRareMarketAuctionV2 tenv
+  where
+  initSupeRareV2 = do
+    tenv@{ accounts, provider } <- SuperRareV2Spec.init
+    web3Test provider $ whitelistAddresses tenv
+    pure tenv
+
+  whitelistAddresses tenv@{ accounts } = void $ for accounts (SuperRareV2Spec.whitelistAddress tenv)
+
+  approveMarketplace tenv@{ accounts } marketplace =
+    void
+      $ for accounts (\acc -> SuperRareV2Spec.setApprovalForAll tenv acc marketplace true)
+
+setSalePrice ::
+  forall r. TestEnv r -> Address -> UIntN S256 -> UIntN S256 -> Web3 Unit
+setSalePrice tenv owner _tokenId _amount =
+  let
+    { v2SuperRare: { deployAddress: _originContract }
+    , v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    SuperRareMarketAuctionV2.setSalePrice
+      (defaultTxOpts owner # _to ?~ deployAddress)
+      { _originContract, _tokenId, _amount }
+      >>= awaitTxSuccessWeb3
+
+markTokensAsSold ::
+  forall r. TestEnv r -> Array (UIntN S256) -> Web3 Unit
+markTokensAsSold tenv _tokenIds =
+  let
+    { v2SuperRare: { deployAddress: _originContract }
+    , v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    SuperRareMarketAuctionV2.markTokensAsSold
+      (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+      { _originContract, _tokenIds }
+      >>= awaitTxSuccessWeb3
+
+hasTokenBeenSold ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 Boolean
+hasTokenBeenSold tenv _tokenId =
+  let
+    { v2SuperRare: { deployAddress: _originContract }
+    , v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.hasTokenBeenSold
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _originContract, _tokenId }
+
+tokenPrice ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 (UIntN S256)
+tokenPrice tenv _tokenId =
+  let
+    { v2SuperRare: { deployAddress: _originContract }
+    , v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.tokenPrice
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _originContract, _tokenId }
+
+mkSuperRareTokens :: forall r. TestEnv r -> Int -> Web3 (Array { owner ∷ Address, tokenId ∷ UIntN S256, uri ∷ String })
+mkSuperRareTokens tenv n =
+  SuperRareV2Spec.createTokensWithFunction
+    tenv
+    n
+    (SuperRareV2Spec.addNewToken tenv)
+
+genTokenPrices :: forall m. MonadEffect m => Int -> m (Array (UIntN S256))
+genTokenPrices n =
+  liftEffect (randomSample' n arbitrary)
+    >>= traverse \(intPrice :: Int) ->
         let
-          noOwners acc =
-            not
-              (acc `elem` map (\{ owner } -> owner) pricesWithTokenIdsRes)
-
-          buyers = filter noOwners accounts
-
-          buyersWithToken =
-            zipWith
-              ( \buyer priceDetails ->
-                  Record.insert (SProxy :: _ "buyer") buyer priceDetails
-              )
-              buyers
-              pricesWithTokenIdsRes
-        purchaseDetails <- for buyersWithToken buyTokenMarketV2
-        void $ for purchaseDetails checkNewOwnerStatus
-        void $ for purchaseDetails checkPayout
-    it "can make secondary sales" do
-      provider <- readOrFail provAV
-      accounts <- readOrFail accsAV
-      v2SuperRare <- readOrFail v2SuperRareAV
-      v2Tokens <- readOrFail v2TokensAV
-      v2Marketplace <- readOrFail v2MarketplaceAV
-      primAcc <- readOrFail primAccAv
-      web3Test provider do
-        purchasePayloads <-
-          map catMaybes
-            $ for v2Tokens
-                ( mkPurchasePayload
-                    false
-                    v2Marketplace.deployAddress
-                    v2SuperRare.deployAddress
-                )
-        let
-          noOwners acc =
-            not
-              (acc `elem` map (\{ owner } -> owner) purchasePayloads)
-
-          buyers = filter noOwners accounts
-
-          completePayloads =
-            zipWith (Record.insert (SProxy :: _ "buyer"))
-              buyers
-              purchasePayloads
-        log Info $ show { accounts, purchasePayloads, buyers }
-        purchaseDetails <- for completePayloads buyTokenMarketV2
-        void $ for purchaseDetails checkNewOwnerStatus
-        void $ for purchaseDetails checkPayout
+          (unitPrice :: Value Szabo) = mkValue $ embed $ abs intPrice
+        in
+          pure $ uInt256FromBigNumber $ toMinorUnit unitPrice
 
 mkPurchasePayload ::
   Boolean ->
