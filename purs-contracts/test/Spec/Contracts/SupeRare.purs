@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, whitelistCreator) as SupeRare
+import Contracts.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, totalSupply, whitelistCreator) as SupeRare
 import Data.Array (drop, length, replicate, take, zipWith, (..))
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
@@ -100,3 +100,10 @@ ownerOf { supeRare: { deployAddress }, primaryAccount } _tokenId =
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
         { _tokenId }
+
+totalSupply :: forall r. TestEnv r -> Web3 (UIntN S256)
+totalSupply { supeRare: { deployAddress }, primaryAccount } =
+  throwOnCallError
+    $ SupeRare.totalSupply
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
