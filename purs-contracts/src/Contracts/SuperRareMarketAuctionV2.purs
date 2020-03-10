@@ -402,6 +402,19 @@ tokenPrice x0 cm r = uncurryFields  r $ tokenPrice' x0 cm
     tokenPrice' y0 cm' y2 y3 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple2 y2 y3) :: TokenPriceFn)
 
 --------------------------------------------------------------------------------
+-- | TokenPriceFeeIncludedFn
+--------------------------------------------------------------------------------
+
+
+type TokenPriceFeeIncludedFn = Tagged (SProxy "tokenPriceFeeIncluded(address,uint256)") (Tuple2 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))))
+
+tokenPriceFeeIncluded :: TransactionOptions NoPay -> ChainCursor -> { _originContract :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+tokenPriceFeeIncluded x0 cm r = uncurryFields  r $ tokenPriceFeeIncluded' x0 cm
+   where
+    tokenPriceFeeIncluded' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+    tokenPriceFeeIncluded' y0 cm' y2 y3 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple2 y2 y3) :: TokenPriceFeeIncludedFn)
+
+--------------------------------------------------------------------------------
 -- | TransferOwnershipFn
 --------------------------------------------------------------------------------
 

@@ -20,6 +20,6 @@ main =
         tenv <- init
         join
           $ runSpecT specConfig [ consoleReporter ] do
-              SupeRare.spec tenv
-              SuperRareV2.spec tenv
-              SuperRareMarketAuctionV2.spec tenv
+              _ <- SupeRare.spec tenv
+              _ <- SuperRareV2.spec tenv
+              void $ SuperRareMarketAuctionV2.spec tenv

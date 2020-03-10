@@ -19,17 +19,18 @@ stylish: ## stylish all
 
 init: ## install node files
 	yarn && \
-	npx spago install
+	yarn spago install && \
+	yarn spago build -d
 
 ######################################################
 #### Smart Contract / Solidity related commands
 ######################################################
 
 compile-contracts: ## compiles contracts 
-	npx chanterelle compile
+	yarn chanterelle compile
 
 purs-contract-gen: ## Generate purscript libraries for smart contracts
-	npx chanterelle codegen
+	yarn chanterelle codegen
 
 ######################################################
 #### Build
@@ -40,7 +41,7 @@ hs-build: ## Build haskell bindings
 	stack build;
 
 purs-build: ## Build purescript library
-	npx spago build;
+	yarn spago build;
 
 purs-build-all: ## Compiles contracts, codegens purescript bindings, and builds purescript
 	make compile-contracts && \

@@ -15,15 +15,14 @@ import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.AVar (put)
 import Effect.Aff.Class (liftAff)
-import Effect.Class.Console (log)
 import Network.Ethereum.Core.BigNumber (decimal, embed, parseBigNumber, unsafeToInt)
-import Network.Ethereum.Web3 (Address, ChainCursor(..), TransactionOptions, _from, _gas, _gasPrice, _to, defaultTransactionOptions, runWeb3, uIntNFromBigNumber, unUIntN)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), TransactionOptions, _from, _gas, _gasPrice, _to, defaultTransactionOptions, uIntNFromBigNumber, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (s256)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafePartial)
 import Test.Spec (SpecT, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Contracts.Utils (TestEnv, mkTokenUris, readOrFail)
+import Test.Spec.Contracts.Utils (TestEnv, mkTokenUris, readOrFail, web3Test)
 
 defaultTxOpts :: Address -> TransactionOptions NoPay
 defaultTxOpts primaryAccount =
@@ -45,6 +44,7 @@ spec { superRareV2: v2SuperRareAV
 , supeRare: srAV
 , supeRareTokens: srTokensAV
 , superRareV2Tokens: v2TokensAV
+, primaryAccount: primAccAv
 } = do
   describe "SuperRareV2" do
     it "can deploy the contract" do
@@ -61,114 +61,102 @@ spec { superRareV2: v2SuperRareAV
       provider <- readOrFail provAV
       accounts <- readOrFail accsAV
       superRareV2@{ deployAddress } <- readOrFail v2SuperRareAV
-      let
-        runWeb3' = liftAff <<< runWeb3 provider
-
-        acc1 = unsafePartial $ head accounts
-      void
-        $ runWeb3' do
-            void
-              $ traverse
-                  ( \acc ->
-                      SuperRareV2.addToWhitelist
-                        (defaultTxOpts acc1 # _to ?~ deployAddress)
-                        { _newAddress: acc }
-                        >>= awaitTxSuccessWeb3
-                  )
-                  accounts
-            isWhitelistRess <-
-              traverse
-                ( \acc ->
-                    SuperRareV2.isWhitelisted
-                      (defaultTxOpts acc1 # _to ?~ deployAddress)
-                      Latest
-                      { _address: acc }
-                )
-                accounts
-            isWhitelistRess `shouldEqual` replicate 4 (Right true)
+      primAcc <- readOrFail primAccAv
+      web3Test provider do
+        void
+          $ traverse
+              ( \acc ->
+                  SuperRareV2.addToWhitelist
+                    (defaultTxOpts primAcc # _to ?~ deployAddress)
+                    { _newAddress: acc }
+                    >>= awaitTxSuccessWeb3
+              )
+              accounts
+        isWhitelistRess <-
+          traverse
+            ( \acc ->
+                SuperRareV2.isWhitelisted
+                  (defaultTxOpts primAcc # _to ?~ deployAddress)
+                  Latest
+                  { _address: acc }
+            )
+            accounts
+        isWhitelistRess `shouldEqual` replicate 4 (Right true)
     it "can mint tokens" do
       provider <- readOrFail provAV
       accounts <- readOrFail accsAV
       srTokens <- readOrFail srTokensAV
       superRareV2@{ deployAddress } <- readOrFail v2SuperRareAV
+      primAcc <- readOrFail primAccAv
       let
-        runWeb3' = liftAff <<< runWeb3 provider
-
-        acc1 = unsafePartial $ head accounts
-
         lastId = unsafeToInt $ unUIntN $ unsafePartial $ last srTokens
 
         tokenIds = map (\tid -> unsafePartial fromJust $ uIntNFromBigNumber s256 $ embed tid) ((lastId + 1) .. (lastId + 4))
-      void
-        $ runWeb3' do
-            tokenUris <- mkTokenUris 4
-            void
-              $ traverse
-                  ( \(Tuple acc _uri) ->
-                      SuperRareV2.addNewToken (defaultTxOpts acc # _to ?~ deployAddress)
-                        { _uri }
-                        >>= awaitTxSuccessWeb3
-                  )
-                  (zip accounts tokenUris)
-            owners <-
-              traverse
-                ( \tokenId ->
-                    SuperRareV2.ownerOf
-                      (defaultTxOpts acc1 # _to ?~ deployAddress)
-                      Latest
-                      { tokenId }
-                )
-                tokenIds
-            owners `shouldEqual` map Right accounts
-            uris <-
-              traverse
-                ( \tokenId ->
-                    SuperRareV2.tokenURI
-                      (defaultTxOpts acc1 # _to ?~ deployAddress)
-                      Latest
-                      { tokenId }
-                )
-                tokenIds
-            uris `shouldEqual` map Right tokenUris
-            liftAff $ put tokenIds v2TokensAV
+      web3Test provider do
+        tokenUris <- mkTokenUris 4
+        void
+          $ traverse
+              ( \(Tuple acc _uri) ->
+                  SuperRareV2.addNewToken (defaultTxOpts acc # _to ?~ deployAddress)
+                    { _uri }
+                    >>= awaitTxSuccessWeb3
+              )
+              (zip accounts tokenUris)
+        owners <-
+          traverse
+            ( \tokenId ->
+                SuperRareV2.ownerOf
+                  (defaultTxOpts primAcc # _to ?~ deployAddress)
+                  Latest
+                  { tokenId }
+            )
+            tokenIds
+        owners `shouldEqual` map Right accounts
+        uris <-
+          traverse
+            ( \tokenId ->
+                SuperRareV2.tokenURI
+                  (defaultTxOpts primAcc # _to ?~ deployAddress)
+                  Latest
+                  { tokenId }
+            )
+            tokenIds
+        uris `shouldEqual` map Right tokenUris
+        liftAff $ put tokenIds v2TokensAV
     it "can transfer tokens" do
       provider <- readOrFail provAV
       accounts <- readOrFail accsAV
       v2SuperRare <- readOrFail v2SuperRareAV
       v2Tokens <- readOrFail v2TokensAV
+      primAcc <- readOrFail primAccAv
       let
-        runWeb3' = liftAff <<< runWeb3 provider
-
-        acc1 = unsafePartial $ head accounts
-
         transferV2Tokens = (take 2 v2Tokens)
-      void
-        $ runWeb3' do
-            ownerAndTokens <-
-              for transferV2Tokens
-                $ \tokenId -> do
-                    owner <-
-                      map (unsafePartial fromRight)
-                        $ SuperRareV2.ownerOf
-                            (defaultTxOpts acc1 # _to ?~ v2SuperRare.deployAddress)
-                            Latest
-                            { tokenId }
-                    pure (Tuple owner tokenId)
-            let
-              transferToAddrs = filter (\acc -> not $ elem acc (map fst ownerAndTokens)) accounts
+      web3Test provider do
+        ownerAndTokens <-
+          for transferV2Tokens
+            $ \tokenId -> do
+                owner <-
+                  map (unsafePartial fromRight)
+                    $ SuperRareV2.ownerOf
+                        (defaultTxOpts primAcc # _to ?~ v2SuperRare.deployAddress)
+                        Latest
+                        { tokenId }
+                pure (Tuple owner tokenId)
+        let
+          transferToAddrs = filter (\acc -> not $ elem acc (map fst ownerAndTokens)) accounts
 
-              transferPayloads = zip ownerAndTokens transferToAddrs
-            void $ for transferPayloads
-              $ \(Tuple (Tuple from tokenId) to) -> do
-                  SuperRareV2.transferFrom
-                    (defaultTxOpts from # _to ?~ v2SuperRare.deployAddress)
-                    { from, to, tokenId }
-                    >>= awaitTxSuccessWeb3
-            owners <-
-              for transferV2Tokens
-                $ \tokenId ->
-                    SuperRareV2.ownerOf
-                      (defaultTxOpts acc1 # _to ?~ v2SuperRare.deployAddress)
-                      Latest
-                      { tokenId }
-            owners `shouldEqual` map Right transferToAddrs
+          transferPayloads = zip ownerAndTokens transferToAddrs
+        void $ for transferPayloads
+          $ \(Tuple (Tuple from tokenId) to) -> do
+              SuperRareV2.transferFrom
+                (defaultTxOpts from # _to ?~ v2SuperRare.deployAddress)
+                { from, to, tokenId }
+                >>= awaitTxSuccessWeb3
+        owners <-
+          for transferV2Tokens
+            $ \tokenId ->
+                SuperRareV2.ownerOf
+                  (defaultTxOpts primAcc # _to ?~ v2SuperRare.deployAddress)
+                  Latest
+                  { tokenId }
+        owners `shouldEqual` map Right transferToAddrs

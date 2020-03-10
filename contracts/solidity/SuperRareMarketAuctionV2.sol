@@ -214,6 +214,29 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     }
 
     /////////////////////////////////////////////////////////////////////////
+    // tokenPriceFeeIncluded
+    /////////////////////////////////////////////////////////////////////////
+    /**
+   * @dev Gets the sale price of the token including the fee.
+   * @param _originContract address of the contract storing the token.
+   * @param _tokenId uint256 ID of the token
+   * @return sale price of the token including the fee.
+   */
+    function tokenPriceFeeIncluded(address _originContract, uint256 _tokenId)
+        public
+        view
+        returns (uint256)
+    {
+        if (_priceSetterStillOwnsTheToken(_originContract, _tokenId)) {
+            return
+                tokenPrices[_originContract][_tokenId].add(
+                    _calcMarketplaceFee(tokenPrices[_originContract][_tokenId])
+                );
+        }
+        return 0;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // bid
     /////////////////////////////////////////////////////////////////////////
     /**
