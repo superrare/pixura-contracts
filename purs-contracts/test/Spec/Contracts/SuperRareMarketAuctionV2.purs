@@ -4,11 +4,13 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
+import Data.Maybe (fromJust)
 import Data.Ord (abs)
+import Data.String.CodeUnits (fromCharArray)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
@@ -17,7 +19,8 @@ import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Network.Ethereum.Core.BigNumber (divide)
-import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unUIntN)
+import Network.Ethereum.Core.HexString (fromAscii, fromUtf8, nullWord, takeHex)
+import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkAddress, mkValue, toMinorUnit, unUIntN)
 import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Solidity (Tuple2(..))
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
@@ -29,7 +32,7 @@ import Test.QuickCheck.Gen (randomSample')
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
-import Test.Spec.Contracts.Utils (defaultTxOpts, throwOnCallError, uInt256FromBigNumber, web3Test)
+import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, throwOnCallError, uInt256FromBigNumber, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =
@@ -178,6 +181,25 @@ spec =
             $ for acceptRessSec \pd@{ owner, sellerFee, purchaseTxHash, price } -> do
                 checkNewOwnerStatus tenv pd
                 checkEthDifference owner (price - sellerFee) purchaseTxHash
+      it "can cancel a bid and release funds" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
+        web3Test provider do
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+
+            zeroAddress = unsafePartial fromJust $ mkAddress $ takeHex 40 nullWord
+          bidRess <- for tokensAndBids (placeBid tenv)
+          cancelBidRess <-
+            for bidRess \br -> do
+              txHash <- cancelBid tenv br
+              pure br { purchaseTxHash = txHash }
+          currentBids <- for cancelBidRess (\{ tokenId } -> currentBidDetailsOfToken tenv tokenId)
+          currentBids `shouldEqual` replicate (length cancelBidRess) { price: intToUInt256 0, bidder: zeroAddress }
+          void
+            $ for bidRess \{ buyer, buyerFee, purchaseTxHash, price } -> do
+                checkEthDifference buyer (price + buyerFee) purchaseTxHash
+                checkEthDifference marketAddr (price + buyerFee) purchaseTxHash
 
 -----------------------------------------------------------------------------
 -- | TestEnv
@@ -212,6 +234,31 @@ init = do
   approveMarketplace tenv@{ accounts } marketplace =
     void
       $ for accounts (\acc -> SuperRareV2Spec.setApprovalForAll tenv acc marketplace true)
+
+cancelBid ::
+  forall r r1.
+  TestEnv r ->
+  { buyer :: Address
+  , tokenId :: UIntN S256
+  | r1
+  } ->
+  Web3 HexString
+cancelBid tenv pd = do
+  let
+    { v2Marketplace: { deployAddress: marketContract }
+    , v2SuperRare: { deployAddress: originContract }
+    } = tenv
+
+    { tokenId, buyer } = pd
+  txHash <-
+    SuperRareMarketAuctionV2.cancelBid
+      ( defaultTxOpts buyer
+          # _to
+          ?~ marketContract
+      )
+      { _tokenId: tokenId, _originContract: originContract }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
 
 placeBid ::
   forall r.
