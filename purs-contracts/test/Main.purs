@@ -19,6 +19,6 @@ main =
           specConfig = defaultConfig { timeout = Just (Milliseconds $ 120.0 * 1000.0) }
         join
           $ runSpecT specConfig [ consoleReporter ] do
-              SupeRare.spec
-              SuperRareV2.spec
+              -- SupeRare.spec
+              -- SuperRareV2.spec
               SuperRareMarketAuctionV2.spec

@@ -115,7 +115,7 @@ createTokensWithFunction ::
   (Address -> String -> Web3 (UIntN S256)) ->
   Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
 createTokensWithFunction { accounts } amount f = do
-  tokenUris <- mkTokenUris (length accounts)
+  tokenUris <- mkTokenUris amount
   for (zipWith { acc: _, _uri: _ } accounts tokenUris) \{ acc, _uri } -> do
     tokenId <- f acc _uri
     pure { owner: acc, uri: _uri, tokenId }
