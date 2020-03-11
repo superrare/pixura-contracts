@@ -37,14 +37,14 @@ spec =
     describe "SuperRareMarketAuctionV2" do
       it "can mark tokens as sold" \tenv@{ provider } ->
         web3Test provider do
-          newTokens <- mkSuperRareTokens tenv 4
+          newTokens <- mkSuperRareTokens tenv 1
           markTokensAsSold tenv (newTokens <#> \{ tokenId } -> tokenId)
           isMarkedSolds <-
             for (newTokens <#> \{ tokenId } -> tokenId) (hasTokenBeenSold tenv)
           isMarkedSolds `shouldEqual` replicate (length newTokens) true
       it "can set the price of tokens" \tenv@{ provider } ->
         web3Test provider do
-          newTokens <- mkSuperRareTokens tenv 4
+          newTokens <- mkSuperRareTokens tenv 1
           prices <- genTokenPrices $ length newTokens
           let
             tokenDetails = zipWith (Record.insert (SProxy :: _ "price")) prices newTokens
@@ -54,7 +54,7 @@ spec =
           onChainPrices <-
             for tokenDetails \{ tokenId } -> tokenPrice tenv tokenId
           onChainPrices `shouldEqual` (tokenDetails <#> \{ price } -> price)
-      it "can make sale primary" \tenv@{ provider, accounts } ->
+      it "can make sale - primary" \tenv@{ provider, accounts } ->
         web3Test provider do
           tokenDetails <- mkTokensAndSetForSale tenv 1
           void
@@ -100,6 +100,42 @@ spec =
             $ for bidRess \bidsRes@{ buyer, buyerFee, purchaseTxHash, price } -> do
                 checkEthDifference buyer (price + buyerFee) purchaseTxHash
                 checkEthDifference marketAddr (price + buyerFee) purchaseTxHash
+      it "can place a bid outbidding another" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
+        web3Test provider do
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          bidRess <- for tokensAndBids (placeBid tenv)
+          bidRess2 <-
+            for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+              purch <- mkPurchasePayload tenv { owner, tokenId, price: price * embed 2, uri }
+              let
+                newBuyer = unsafePartial head $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                updatedPayload = (Record.disjointUnion purch { buyer: newBuyer })
+              purchaseTxHash <- bid tenv updatedPayload
+              pure
+                $ Record.disjointUnion updatedPayload
+                    { purchaseTxHash
+                    , oldPrice: price
+                    , oldBidder: buyer
+                    , oldBuyerFee: buyerFee
+                    }
+          void
+            $ for bidRess2 \bidRes -> do
+                let
+                  { buyer
+                  , buyerFee
+                  , purchaseTxHash
+                  , price
+                  , oldBuyerFee
+                  , oldBidder
+                  , oldPrice
+                  } = bidRes
+                checkEthDifference oldBidder (oldPrice + oldBuyerFee) purchaseTxHash
+                checkEthDifference buyer (price + buyerFee) purchaseTxHash
+                checkEthDifference marketAddr (price + buyerFee - (oldPrice + oldBuyerFee)) purchaseTxHash
       it "can accept a bid - primary" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
         web3Test provider do
           tokenDetails <- mkSuperRareTokens tenv 1
