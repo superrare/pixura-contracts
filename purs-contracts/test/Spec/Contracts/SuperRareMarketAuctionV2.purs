@@ -15,9 +15,11 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
+import Deploy.Contracts.TestContracts (deployScript) as TestContracts
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Class.Console (log)
 import Network.Ethereum.Core.BigNumber (divide)
 import Network.Ethereum.Core.HexString (fromAscii, fromUtf8, nullWord, takeHex)
 import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkAddress, mkValue, toMinorUnit, unUIntN)
@@ -200,6 +202,16 @@ spec =
             $ for bidRess \{ buyer, buyerFee, purchaseTxHash, price } -> do
                 checkEthDifference buyer (price + buyerFee) purchaseTxHash
                 checkEthDifference marketAddr (price + buyerFee) purchaseTxHash
+      it "can escrow an out bid bid if returning the funds fails on assertion" \tenv@{ provider } ->
+        web3Test provider do
+          let
+            { accounts, v2Marketplace: { deployAddress: marketAddr } } = tenv
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          bidRess <- for tokensAndBids (placeBid tenv)
+          log "hi"
 
 -----------------------------------------------------------------------------
 -- | TestEnv
@@ -211,6 +223,10 @@ type TestEnv r
     , primaryAccount :: Address
     , v2SuperRare :: DeployReceipt SuperRareV2.SuperRareV2
     , v2Marketplace :: DeployReceipt NoArgs
+    , testAssertFailOnPay :: DeployReceipt NoArgs
+    , testExpensiveWallet :: DeployReceipt NoArgs
+    , testRequireFailOnPay :: DeployReceipt NoArgs
+    , testRevertOnPay :: DeployReceipt NoArgs
     | r
     }
 
@@ -220,9 +236,24 @@ init = do
   { superRareMarketAuctionV2 } <-
     buildTestConfig "http://localhost:8545" 60
       SuperRareMarketAuctionV2.deployScript
+  { testAssertFailOnPay
+  , testExpensiveWallet
+  , testRequireFailOnPay
+  , testRevertOnPay
+  } <-
+    buildTestConfig "http://localhost:8545" 60
+      TestContracts.deployScript
   web3Test provider
     $ approveMarketplace tenv superRareMarketAuctionV2.deployAddress
-  pure $ Record.insert (SProxy :: _ "v2Marketplace") superRareMarketAuctionV2 tenv
+  pure
+    $ Record.merge
+        { v2Marketplace: superRareMarketAuctionV2
+        , testAssertFailOnPay
+        , testExpensiveWallet
+        , testRequireFailOnPay
+        , testRevertOnPay
+        }
+        tenv
   where
   initSupeRareV2 = do
     tenv@{ accounts, provider } <- SuperRareV2Spec.init

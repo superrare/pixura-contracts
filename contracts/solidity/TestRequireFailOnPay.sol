@@ -2,12 +2,12 @@ pragma solidity ^0.4.24;
 
 import "SuperRareMarketAuctionV2.sol";
 
-contract TestAssertFailOnPayHack is Ownable {
+contract TestRequireFailOnPay is Ownable {
     /**
-    * @dev A payment method that will fail by an assertion
+    * @dev A payment method that will fail by a failed require
     */
     function() external payable {
-        assert(false);
+        require(false, "ready to fail!!!");
     }
 
     /**
@@ -29,5 +29,4 @@ contract TestAssertFailOnPayHack is Ownable {
             _tokenId
         );
     }
-
 }

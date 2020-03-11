@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../../../SuperRareMarketAuctionV2.sol";
 
-contract TestRevertOnPayHack is Ownable {
+contract TestRevertOnPay is Ownable {
     /**
     * @dev A payment method that will fail by a failed revert
     */
