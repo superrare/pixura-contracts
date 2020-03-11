@@ -2,45 +2,34 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2 where
 
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
-import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
 import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
-import Contracts.SuperRareV2 as SuperRareV2
-import Data.Array (catMaybes, elem, filter, length, replicate, take, zip, zipWith)
+import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
-import Data.Either (Either(..), fromRight)
 import Data.Lens ((?~))
-import Data.Maybe (Maybe(..))
 import Data.Ord (abs)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
-import Data.Tuple (Tuple(..))
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
-import Effect.Aff.AVar (put)
-import Effect.Aff.Class (liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Network.Ethereum.Core.BigNumber (divide)
-import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unIntN, unUIntN)
+import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unUIntN)
 import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Solidity (Tuple2(..))
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
-import Network.Ethereum.Web3.Types (class TokenUnit)
-import Network.Ethereum.Web3.Types.TokenUnit (ProxyTU(..))
 import Partial.Unsafe (unsafePartial)
 import Prim.Row (class Lacks)
-import Prim.Row (class Nub)
 import Record as Record
 import Test.QuickCheck (arbitrary)
 import Test.QuickCheck.Gen (randomSample')
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
-import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, readOrFail, throwOnCallError, uInt256FromBigNumber, web3Test)
-import Type.Proxy (Proxy(..))
+import Test.Spec.Contracts.Utils (defaultTxOpts, throwOnCallError, uInt256FromBigNumber, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =
@@ -65,7 +54,7 @@ spec =
           onChainPrices <-
             for tokenDetails \{ tokenId } -> tokenPrice tenv tokenId
           onChainPrices `shouldEqual` (tokenDetails <#> \{ price } -> price)
-      it "can make primary purchase as sale" \tenv@{ provider, accounts } ->
+      it "can make sale primary" \tenv@{ provider, accounts } ->
         web3Test provider do
           tokenDetails <- mkTokensAndSetForSale tenv 1
           void
@@ -78,7 +67,7 @@ spec =
                 purchaseRes <- buy tenv updatedPayload
                 checkNewOwnerStatus tenv purchaseRes
                 checkPayout purchaseRes
-      it "can make secondary purchase as sale" \tenv@{ provider, accounts } -> do
+      it "can make sale - secondary" \tenv@{ provider, accounts } -> do
         web3Test provider do
           tokenDetails <- mkTokensAndSetForSale tenv 1
           purchaseRess <-
@@ -123,7 +112,8 @@ spec =
               txHash <- acceptBid tenv abPayload
               pure abPayload { purchaseTxHash = txHash }
           void
-            $ for acceptRess \{ owner, sellerFee, purchaseTxHash, price } -> do
+            $ for acceptRess \pd@{ owner, sellerFee, purchaseTxHash, price } -> do
+                checkNewOwnerStatus tenv pd
                 checkEthDifference owner (price - sellerFee) purchaseTxHash
       it "can accept a bid - seconday" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
         web3Test provider do
@@ -136,18 +126,22 @@ spec =
             for bidRess \abPayload -> do
               txHash <- acceptBid tenv abPayload
               pure abPayload { purchaseTxHash = txHash }
-          pricesSec <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          pricesSec <- map unUIntN <$> genTokenPrices (length acceptRess)
           let
-            tokensAndBidsSec = zipWith (\price { buyer, tokenId } -> { price, owner: buyer, tokenId }) pricesSec acceptRess
-          bidRessSec <- for tokensAndBids (placeBid tenv)
+            tokensAndBidsSec =
+              zipWith
+                (\price { buyer, tokenId, uri } -> { price, owner: buyer, tokenId, uri })
+                pricesSec
+                acceptRess
+          bidRessSec <- for tokensAndBidsSec (placeBid tenv)
           acceptRessSec <-
             for bidRessSec \abPayload -> do
               txHash <- acceptBid tenv abPayload
               pure abPayload { purchaseTxHash = txHash }
           void
-            $ for acceptRessSec \{ owner, sellerFee, purchaseTxHash, price } -> do
+            $ for acceptRessSec \pd@{ owner, sellerFee, purchaseTxHash, price } -> do
+                checkNewOwnerStatus tenv pd
                 checkEthDifference owner (price - sellerFee) purchaseTxHash
-                checkEthDifference marketAddr (price - sellerFee) purchaseTxHash
 
 -----------------------------------------------------------------------------
 -- | TestEnv
@@ -485,11 +479,13 @@ checkEthDifference addr diff txHash = do
     (BlockNumber blockNumBN) = blockNumber
 
     weiSpentOnGas = gasPrice * gasUsed
-  buyerBalanceAfter <- getBalance $ BN blockNumber
-  buyerBalanceBefore <- getBalance $ BN $ BlockNumber $ blockNumBN - embed 1
+  balanceAfter <- getBalance $ BN blockNumber
+  balanceBefore <- getBalance $ BN $ BlockNumber $ blockNumBN - embed 1
   let
-    diff' = diff + if from == addr then weiSpentOnGas else embed 0
-  abs (buyerBalanceAfter - buyerBalanceBefore) `shouldEqual` diff'
+    gasCostFactor = if balanceAfter > balanceBefore then embed (-1) else embed 1
+
+    diffWithGas = diff + if from == addr then gasCostFactor * weiSpentOnGas else embed 0
+  abs (balanceAfter - balanceBefore) `shouldEqual` diffWithGas
   where
   getBalance = eth_getBalance addr
 
@@ -513,20 +509,6 @@ checkPayout { buyer, owner, purchaseTxHash, price, buyerFee, sellerFee } = do
   checkEthDifference buyer (buyerFee + price) purchaseTxHash
   checkEthDifference owner (price - sellerFee) purchaseTxHash
 
--- { blockNumber, gasUsed, gasPrice, from, to } <- getTxDetails purchaseTxHash
--- let
---   (BlockNumber blockNumBN) = blockNumber
--- buyerBalanceAfter <- getBalance buyer $ BN blockNumber
--- ownerBalanceAfter <- getBalance owner $ BN blockNumber
--- buyerBalanceBefore <- getBalance buyer $ BN $ BlockNumber $ blockNumBN - embed 1
--- ownerBalanceBefore <- getBalance owner $ BN $ BlockNumber $ blockNumBN - embed 1
--- let
---   ownerBalanceDifference = abs $ ownerBalanceAfter - ownerBalanceBefore
---   buyerBalanceDifference = abs $ buyerBalanceAfter - buyerBalanceBefore
---   ownerEarned = price - sellerFee - if from == owner then weiSpentOnGas else embed 0
---   buyerSpent = price + buyerFee + if from == buyer then weiSpentOnGas else embed 0
--- ownerEarned `shouldEqual` ownerBalanceDifference
--- buyerSpent `shouldEqual` buyerBalanceDifference
 buy ::
   forall r r1.
   Lacks "purchaseTxHash" r1 =>
