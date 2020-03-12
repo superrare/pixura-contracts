@@ -2,15 +2,37 @@
 
 Smart Contracts and various language bindings for the [SuperRare](https://superrare.co/activity) and [Pixura](http://platform.pixura.io/) ecosystem.
 
+We use [chanterelle](https://docs.chntrl.io/en/latest/) for smart contract compilation, deployment, and testing. 
+
 ## Init
 
 ```bash
 make init
 ```
 
+## Build
+
+### Solidity
+
+```bash
+make compile-contracts
+```
+
+### Haskell
+
+```bash
+make hs-build
+```
+
+### PureScript
+
+```bash
+purs-build-all
+```
+
 ## Tests
 
-Tests require `docker` and `docker-compose`. To run:
+Tests require `docker` and `docker-compose` and require the purescript libraries to be built. See [build](#build) for details. To run:
 
 ```bash
 make contract-tests
