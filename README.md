@@ -2,6 +2,14 @@
 
 Smart Contracts and various language bindings for SuperRare and Pixura ecosystem.
 
+## Tests
+
+Tests require `docker` and `docker-compose`. To run:
+
+```bash
+make contract-tests
+``` 
+
 ## SDKs
 
 ### Haskell 
