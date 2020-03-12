@@ -4,13 +4,12 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "SuperRareMarketAuctionV2.sol";
 
 contract TestExpensiveWallet is Ownable {
-    constructor() public Ownable() {}
     /**
     * @dev A costly payment method. Should fail on `<address>.transfer`
     */
     function() external payable {
         uint256 a = 0;
-        while (a < 100000000) {
+        while (a < 1500000) {
             a = a + 1;
         }
         _makePayable(owner()).transfer(msg.value);
@@ -22,7 +21,7 @@ contract TestExpensiveWallet is Ownable {
    */
     function claimMoney(address _escrowAddress) external onlyOwner {
         SuperRareMarketAuctionV2(_escrowAddress).withdrawPaymentsWithGas(
-            _makePayable(owner())
+            _makePayable(address(this))
         );
     }
 

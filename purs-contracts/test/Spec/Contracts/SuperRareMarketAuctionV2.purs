@@ -10,14 +10,13 @@ import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
 import Effect.Aff (Aff)
-import Effect.Class.Console (log)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, it, itOnly)
+import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, placeBid, setSalePrice, tokenPrice)
+import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, setSalePrice, tokenPrice)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (intToUInt256, uInt256FromBigNumber, web3Test)
 
@@ -187,10 +186,10 @@ spec =
             $ for bidRess \{ buyer, buyerFee, purchaseTxHash, price } -> do
                 checkEthDifference buyer (price + buyerFee) purchaseTxHash
                 checkEthDifference marketAddr (price + buyerFee) purchaseTxHash
-      itOnly "can escrow if returning out the funds fails on assertion" \tenv@{ provider } ->
+      it "can escrow if returning funds on bid fails due to gas, funds can be reclaimed " \tenv@{ provider } ->
         web3Test provider do
           let
-            { accounts, v2Marketplace: { deployAddress: marketAddr } } = tenv
+            { accounts, v2Marketplace: { deployAddress: marketAddr }, testExpensiveWallet: { deployAddress: walletAddr } } = tenv
           tokenDetails <- mkSuperRareTokens tenv 1
           prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
           let
@@ -206,7 +205,6 @@ spec =
               pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
           bidRess2 <-
             for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
-              log $ show pb
               purch <-
                 mkPurchasePayload
                   tenv
@@ -218,6 +216,10 @@ spec =
 
                 updatedPayload = (Record.disjointUnion purch { buyer: newBuyer })
               purchaseTxHash <- bid tenv updatedPayload
+              owedPayment <- unUIntN <$> payments tenv walletAddr
+              owedPayment `shouldEqual` (price + buyerFee)
+              checkEthDifference buyer (embed 0) purchaseTxHash
+              checkEthDifference marketAddr owedPayment purchaseTxHash
               pure
                 $ Record.disjointUnion updatedPayload
                     { purchaseTxHash
@@ -225,31 +227,126 @@ spec =
                     , oldBidder: buyer
                     , oldBuyerFee: buyerFee
                     }
-          claimRess <-
-            for bidRess2 \br@{ price, buyer, tokenId, uri, owner, buyerFee, oldBidder } -> do
-              txHash <- claimMoneyFromExpensiveWallet tenv { claimer: oldBidder }
-              pure br { purchaseTxHash = txHash }
           void
-            $ for claimRess \cr -> do
-                let
-                  { buyer
-                  , buyerFee
-                  , purchaseTxHash
-                  , price
-                  , oldBidder
-                  , oldBuyerFee
-                  , oldPrice
-                  } = cr
-                log $ show cr
-                checkEthDifference oldBidder (oldPrice + oldBuyerFee) purchaseTxHash
+            $ for bidRess2 \br@{ price, buyer, tokenId, uri, owner, buyerFee, oldBidder, oldPrice, oldBuyerFee } -> do
+                txHash <- claimMoneyFromExpensiveWallet tenv { claimer: oldBidder }
+                checkEthDifference oldBidder (oldPrice + oldBuyerFee) txHash
+      it "can escrow if returning funds fails on assertion" \tenv@{ provider } ->
+        web3Test provider do
+          let
+            { accounts, v2Marketplace: { deployAddress: marketAddr }, testAssertFailOnPay: { deployAddress: assertfailOnPayAddr } } = tenv
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          bidRess <-
+            for tokensAndBids \tb@{ owner } -> do
+              purch <- mkPurchasePayload tenv tb
+              let
+                buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
 
--- checkEthDifference marketAddr (oldPrice + oldBuyerFee) purchaseTxHash
+                updatedPayload = (Record.disjointUnion purch { buyer })
+              purchaseTxHash <- assertFailBid tenv updatedPayload
+              pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
+          void
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+                purch <-
+                  mkPurchasePayload
+                    tenv
+                    { owner, tokenId, price: price * embed 2, uri }
+                let
+                  newBuyer =
+                    unsafePartial head
+                      $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                  updatedPayload = (Record.disjointUnion purch { buyer: newBuyer })
+                purchaseTxHash <- bid tenv updatedPayload
+                owedPayment <- unUIntN <$> payments tenv assertfailOnPayAddr
+                checkEthDifference buyer (embed 0) purchaseTxHash
+                owedPayment `shouldEqual` (price + buyerFee)
+      it "can escrow if returning funds fails on require" \tenv@{ provider } ->
+        web3Test provider do
+          let
+            { accounts
+            , v2Marketplace:
+                { deployAddress: marketAddr }
+            , testRequireFailOnPay: { deployAddress: requirefailOnPayAddr }
+            } = tenv
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          bidRess <-
+            for tokensAndBids \tb@{ owner } -> do
+              purch <- mkPurchasePayload tenv tb
+              let
+                buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
+
+                updatedPayload = (Record.disjointUnion purch { buyer })
+              purchaseTxHash <- requireFailBid tenv updatedPayload
+              pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
+          void
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+                purch <-
+                  mkPurchasePayload
+                    tenv
+                    { owner, tokenId, price: price * embed 2, uri }
+                let
+                  newBuyer =
+                    unsafePartial head
+                      $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                  updatedPayload = (Record.disjointUnion purch { buyer: newBuyer })
+                purchaseTxHash <- bid tenv updatedPayload
+                owedPayment <- unUIntN <$> payments tenv requirefailOnPayAddr
+                checkEthDifference buyer (embed 0) purchaseTxHash
+      it "can escrow if returning funds fails on revert" \tenv@{ provider } ->
+        web3Test provider do
+          let
+            { accounts
+            , v2Marketplace:
+                { deployAddress: marketAddr }
+            , testRevertOnPay: { deployAddress: revertfailOnPayAddr }
+            } = tenv
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          bidRess <-
+            for tokensAndBids \tb@{ owner } -> do
+              purch <- mkPurchasePayload tenv tb
+              let
+                buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
+
+                updatedPayload = (Record.disjointUnion purch { buyer })
+              purchaseTxHash <- revertFailBid tenv updatedPayload
+              pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
+          void
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+                purch <-
+                  mkPurchasePayload
+                    tenv
+                    { owner, tokenId, price: price * embed 2, uri }
+                let
+                  newBuyer =
+                    unsafePartial head
+                      $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                  updatedPayload = (Record.disjointUnion purch { buyer: newBuyer })
+                purchaseTxHash <- bid tenv updatedPayload
+                owedPayment <- unUIntN <$> payments tenv revertfailOnPayAddr
+                checkEthDifference buyer (embed 0) purchaseTxHash
+                owedPayment `shouldEqual` (price + buyerFee)
+
 -----------------------------------------------------------------------------
 -- | Init
 -----------------------------------------------------------------------------
 init :: Aff (TestEnv ())
 init = do
   tenv@{ provider } <- initSupeRareV2
+  { superRareMarketAuctionV2 } <-
+    buildTestConfig "http://localhost:8545" 60
+      SuperRareMarketAuctionV2.deployScript
   { testAssertFailOnPay
   , testExpensiveWallet
   , testRequireFailOnPay
@@ -257,9 +354,6 @@ init = do
   } <-
     buildTestConfig "http://localhost:8545" 60
       TestContracts.deployScript
-  { superRareMarketAuctionV2 } <-
-    buildTestConfig "http://localhost:8545" 60
-      SuperRareMarketAuctionV2.deployScript
   web3Test provider
     $ approveMarketplace tenv superRareMarketAuctionV2.deployAddress
   pure

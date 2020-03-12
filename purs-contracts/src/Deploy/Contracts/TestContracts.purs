@@ -25,7 +25,7 @@ deployScript :: DeployM (Record DeployResults)
 deployScript = do
   deployCfg@(DeployConfig { primaryAccount, provider }) <- ask
   let
-    bigGasLimit = unsafePartial fromJust $ parseBigNumber decimal "6712388"
+    bigGasLimit = unsafePartial fromJust $ parseBigNumber decimal "67123880"
 
     bigGasPrice = unsafePartial fromJust $ parseBigNumber decimal "10000000000"
 
@@ -35,10 +35,10 @@ deployScript = do
         ?~ bigGasLimit
         # _gasPrice
         ?~ bigGasPrice
+  testExpensiveWallet <- deployContract txOpts makeTestExpensiveWalletConfig
   testAssertFailOnPay <- deployContract txOpts makeTestAssertFailOnPayConfig
   testRequireFailOnPay <- deployContract txOpts makeTestRequireFailOnPayConfig
   testRevertOnPay <- deployContract txOpts makeTestRevertOnPayConfig
-  testExpensiveWallet <- deployContract txOpts makeTestExpensiveWalletConfig
   pure
     { testAssertFailOnPay
     , testExpensiveWallet

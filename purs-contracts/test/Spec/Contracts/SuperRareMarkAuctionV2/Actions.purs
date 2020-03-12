@@ -3,20 +3,23 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.V5.TestAssertFailOnPay as TestAssertFailOnPay
 import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
+import Contracts.V5.TestRequireFailOnPay as TestRequireFailOnPay
+import Contracts.V5.TestRevertOnPay as TestRevertFailOnPay
 import Data.Array (filter, length, zipWith)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
+import Data.Maybe (fromJust)
 import Data.Ord (abs)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Class.Console (log)
-import Network.Ethereum.Core.BigNumber (divide)
-import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unUIntN)
+import Network.Ethereum.Core.BigNumber (decimal, divide, parseBigNumber)
+import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _gas, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unUIntN)
 import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Solidity (Tuple2(..))
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
@@ -365,7 +368,7 @@ genTokenPrices n =
         let
           (unitPrice :: Value Szabo) = mkValue $ embed $ abs intPrice
         in
-          pure $ uInt256FromBigNumber $ toMinorUnit unitPrice
+          pure $ uInt256FromBigNumber $ (*) (embed 10) $ toMinorUnit unitPrice
 
 -----------------------------------------------------------------------------
 -- | mkPurchasePayload
@@ -436,7 +439,6 @@ checkEthDifference addr diff txHash = do
     gasCostFactor = if balanceAfter > balanceBefore then embed (-1) else embed 1
 
     diffWithGas = diff + if from == addr then gasCostFactor * weiSpentOnGas else embed 0
-  log $ show { addr, diff, gasCostFactor: gasCostFactor * weiSpentOnGas }
   abs (balanceAfter - balanceBefore) `shouldEqual` diffWithGas
   where
   getBalance = eth_getBalance addr
@@ -565,12 +567,16 @@ claimMoneyFromExpensiveWallet tenv pd = do
     } = tenv
 
     { claimer } = pd
+
+    superHighLimit = unsafePartial fromJust $ parseBigNumber decimal "97123880"
   asOwnerOfContract tenv claimer walletContract do
     txHash <-
       TestExpensiveWallet.claimMoney
         ( defaultTxOpts claimer
             # _to
             ?~ walletContract
+            # _gas
+            ?~ superHighLimit
         )
         { _escrowAddress: marketContract }
     awaitTxSuccessWeb3 txHash
@@ -598,3 +604,138 @@ asOwnerOfContract { primaryAccount } tmpOwner cAddr f = do
     { newOwner: primaryAccount }
     >>= awaitTxSuccessWeb3
   pure res
+
+-----------------------------------------------------------------------------
+-- | payments
+-----------------------------------------------------------------------------
+payments ::
+  forall r. TestEnv r -> Address -> Web3 (UIntN S256)
+payments tenv dest =
+  let
+    { v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.payments
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { dest }
+
+-----------------------------------------------------------------------------
+-- | assertFailBid
+-----------------------------------------------------------------------------
+assertFailBid ::
+  forall r r1.
+  TestEnv r ->
+  { buyer :: Address
+  , tokenId :: UIntN S256
+  , owner :: Address
+  , price :: BigNumber
+  , buyerFee :: BigNumber
+  | r1
+  } ->
+  Web3 HexString
+assertFailBid tenv pd = do
+  let
+    { v2Marketplace: { deployAddress: marketContract }
+    , v2SuperRare: { deployAddress: originContract }
+    , testAssertFailOnPay: { deployAddress: assertfailOnPayAddr }
+    , primaryAccount
+    } = tenv
+
+    { tokenId, price, buyerFee, buyer, owner } = pd
+  txHash <-
+    TestAssertFailOnPay.bid
+      ( defaultTxOpts buyer
+          # _to
+          ?~ assertfailOnPayAddr
+          # _value
+          ?~ fromMinorUnit (price + buyerFee)
+      )
+      { _tokenId: tokenId
+      , _originContract: originContract
+      , _newBidAmount: uInt256FromBigNumber price
+      , _market: marketContract
+      }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+-----------------------------------------------------------------------------
+-- | requireFailBid
+-----------------------------------------------------------------------------
+requireFailBid ::
+  forall r r1.
+  TestEnv r ->
+  { buyer :: Address
+  , tokenId :: UIntN S256
+  , owner :: Address
+  , price :: BigNumber
+  , buyerFee :: BigNumber
+  | r1
+  } ->
+  Web3 HexString
+requireFailBid tenv pd = do
+  let
+    { v2Marketplace: { deployAddress: marketContract }
+    , v2SuperRare: { deployAddress: originContract }
+    , testRequireFailOnPay: { deployAddress: requirefailOnPayAddr }
+    , primaryAccount
+    } = tenv
+
+    { tokenId, price, buyerFee, buyer, owner } = pd
+  txHash <-
+    TestRequireFailOnPay.bid
+      ( defaultTxOpts buyer
+          # _to
+          ?~ requirefailOnPayAddr
+          # _value
+          ?~ fromMinorUnit (price + buyerFee)
+      )
+      { _tokenId: tokenId
+      , _originContract: originContract
+      , _newBidAmount: uInt256FromBigNumber price
+      , _market: marketContract
+      }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+-----------------------------------------------------------------------------
+-- | revertFailBid
+-----------------------------------------------------------------------------
+revertFailBid ::
+  forall r r1.
+  TestEnv r ->
+  { buyer :: Address
+  , tokenId :: UIntN S256
+  , owner :: Address
+  , price :: BigNumber
+  , buyerFee :: BigNumber
+  | r1
+  } ->
+  Web3 HexString
+revertFailBid tenv pd = do
+  let
+    { v2Marketplace: { deployAddress: marketContract }
+    , v2SuperRare: { deployAddress: originContract }
+    , testRevertOnPay: { deployAddress: revertfailOnPayAddr }
+    , primaryAccount
+    } = tenv
+
+    { tokenId, price, buyerFee, buyer, owner } = pd
+  -- TODO :: for now using asOwnerOfContract since it uses same ownership
+  txHash <-
+    TestRevertFailOnPay.bid
+      ( defaultTxOpts buyer
+          # _to
+          ?~ revertfailOnPayAddr
+          # _value
+          ?~ fromMinorUnit (price + buyerFee)
+      )
+      { _tokenId: tokenId
+      , _originContract: originContract
+      , _newBidAmount: uInt256FromBigNumber price
+      , _market: marketContract
+      }
+  awaitTxSuccessWeb3 txHash
+  pure txHash

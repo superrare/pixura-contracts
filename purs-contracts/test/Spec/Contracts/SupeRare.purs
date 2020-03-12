@@ -8,7 +8,7 @@ import Contracts.V4.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, tot
 import Data.Array (drop, length, replicate, take, zipWith, (..))
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
-import Data.Traversable (for, traverse)
+import Data.Traversable (for)
 import Deploy.Contracts.SupeRare (deployScript) as SupeRare
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
@@ -60,7 +60,7 @@ type TestEnv r
 init :: Aff (TestEnv ())
 init = do
   { provider, supeRare, accounts } <- liftAff $ buildTestConfig "http://localhost:8545" 60 SupeRare.deployScript
-  pure { provider, supeRare, accounts: take 4 $ drop 1 accounts, primaryAccount: unsafePartial head accounts }
+  pure { provider, supeRare, accounts: take 4 $ drop 2 accounts, primaryAccount: unsafePartial head accounts }
 
 -----------------------------------------------------------------------------
 -- | Utils
