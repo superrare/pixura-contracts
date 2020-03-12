@@ -36,9 +36,9 @@ deployScript = do
         # _gasPrice
         ?~ bigGasPrice
   testAssertFailOnPay <- deployContract txOpts makeTestAssertFailOnPayConfig
-  testExpensiveWallet <- deployContract txOpts makeTestExpensiveWalletConfig
   testRequireFailOnPay <- deployContract txOpts makeTestRequireFailOnPayConfig
   testRevertOnPay <- deployContract txOpts makeTestRevertOnPayConfig
+  testExpensiveWallet <- deployContract txOpts makeTestExpensiveWalletConfig
   pure
     { testAssertFailOnPay
     , testExpensiveWallet
@@ -51,7 +51,7 @@ deployScript = do
 -----------------------------------------------------------------------------
 makeTestAssertFailOnPayConfig :: ContractConfig NoArgs
 makeTestAssertFailOnPayConfig =
-  { filepath: "./contracts/build/contracts/TestAssertFailOnPay.json"
+  { filepath: "./contracts/v5/build/TestAssertFailOnPay.json"
   , name: "TestAssertFailOnPay"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -59,7 +59,7 @@ makeTestAssertFailOnPayConfig =
 
 makeTestExpensiveWalletConfig :: ContractConfig NoArgs
 makeTestExpensiveWalletConfig =
-  { filepath: "./contracts/build/contracts/TestExpensiveWallet.json"
+  { filepath: "./contracts/v5/build/TestExpensiveWallet.json"
   , name: "TestExpensiveWallet"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -67,7 +67,7 @@ makeTestExpensiveWalletConfig =
 
 makeTestRequireFailOnPayConfig :: ContractConfig NoArgs
 makeTestRequireFailOnPayConfig =
-  { filepath: "./contracts/build/contracts/TestRequireFailOnPay.json"
+  { filepath: "./contracts/v5/build/TestRequireFailOnPay.json"
   , name: "TestRequireFailOnPay"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -75,7 +75,7 @@ makeTestRequireFailOnPayConfig =
 
 makeTestRevertOnPayConfig :: ContractConfig NoArgs
 makeTestRevertOnPayConfig =
-  { filepath: "./contracts/build/contracts/TestRevertOnPay.json"
+  { filepath: "./contracts/v5/build/TestRevertOnPay.json"
   , name: "TestRevertOnPay"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs

@@ -1,11 +1,10 @@
 module Deploy.Contracts.SuperRareV2 where
 
 import Prelude
-
 import Chanterelle.Deploy (deployContract)
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (ContractConfig, DeployConfig(..), DeployM)
-import Contracts.SuperRareV2 as SuperRareV2
+import Contracts.V4.SuperRareV2 as SuperRareV2
 import Control.Monad.Reader.Class (ask)
 import Data.Lens ((?~))
 import Data.Maybe (fromJust)
@@ -18,7 +17,7 @@ type SuperRareV2
 
 makeSuperRareV2Config :: Record SuperRareV2 -> ContractConfig SuperRareV2
 makeSuperRareV2Config { _name, _symbol, _oldSuperRare } =
-  { filepath: "./contracts/build/contracts/SuperRareV2.json"
+  { filepath: "./contracts/v4/build/SuperRareV2.json"
   , name: "SuperRareV2"
   , constructor: SuperRareV2.constructor
   , unvalidatedArgs: pure { _name, _symbol, _oldSuperRare }

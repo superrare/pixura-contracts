@@ -13,7 +13,7 @@ import Partial.Unsafe (unsafePartial)
 
 makeSupeRareConfig :: ContractConfig NoArgs
 makeSupeRareConfig =
-  { filepath: "./contracts/build/contracts/SupeRare.json"
+  { filepath: "./contracts/v4/build/SupeRare.json"
   , name: "SupeRare"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs

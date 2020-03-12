@@ -2,7 +2,7 @@
 -- | CryptoPunksMarket
 --------------------------------------------------------------------------------
 
-module Contracts.CryptoPunksMarket where
+module Contracts.V4.CryptoPunksMarket where
 
 import Prelude 
 

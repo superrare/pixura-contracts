@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "SuperRareMarketAuctionV2.sol";
 
 contract TestExpensiveWallet is Ownable {
+    constructor() public Ownable() {}
     /**
     * @dev A costly payment method. Should fail on `<address>.transfer`
     */

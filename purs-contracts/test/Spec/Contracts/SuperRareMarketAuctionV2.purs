@@ -250,9 +250,6 @@ spec =
 init :: Aff (TestEnv ())
 init = do
   tenv@{ provider } <- initSupeRareV2
-  { superRareMarketAuctionV2 } <-
-    buildTestConfig "http://localhost:8545" 60
-      SuperRareMarketAuctionV2.deployScript
   { testAssertFailOnPay
   , testExpensiveWallet
   , testRequireFailOnPay
@@ -260,6 +257,9 @@ init = do
   } <-
     buildTestConfig "http://localhost:8545" 60
       TestContracts.deployScript
+  { superRareMarketAuctionV2 } <-
+    buildTestConfig "http://localhost:8545" 60
+      SuperRareMarketAuctionV2.deployScript
   web3Test provider
     $ approveMarketplace tenv superRareMarketAuctionV2.deployAddress
   pure

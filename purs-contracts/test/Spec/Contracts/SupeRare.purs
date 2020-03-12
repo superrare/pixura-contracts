@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, totalSupply, whitelistCreator) as SupeRare
+import Contracts.V4.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, totalSupply, whitelistCreator) as SupeRare
 import Data.Array (drop, length, replicate, take, zipWith, (..))
 import Data.Array.Partial (head)
 import Data.Lens ((?~))

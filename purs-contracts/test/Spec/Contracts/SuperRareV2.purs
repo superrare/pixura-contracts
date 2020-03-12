@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.SuperRareV2 (addNewToken, addToWhitelist, isApprovedForAll, isWhitelisted, ownerOf, setApprovalForAll, tokenByIndex, tokenURI, totalSupply, transferFrom) as SuperRareV2
+import Contracts.V4.SuperRareV2 (addNewToken, addToWhitelist, isApprovedForAll, isWhitelisted, ownerOf, setApprovalForAll, tokenByIndex, tokenURI, totalSupply, transferFrom) as SuperRareV2
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))

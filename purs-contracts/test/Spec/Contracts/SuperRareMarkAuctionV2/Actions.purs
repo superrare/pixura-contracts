@@ -3,8 +3,8 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
-import Contracts.TestExpensiveWallet as TestExpensiveWallet
+import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
 import Data.Array (filter, length, zipWith)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))

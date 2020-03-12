@@ -2,7 +2,8 @@ pragma solidity ^0.5.0;
 
 import "SuperRareMarketAuctionV2.sol";
 
-contract TestRequireFailOnPay is Ownable {
+contract TestRequireFailOnPay {
+    constructor() public {}
     /**
     * @dev A payment method that will fail by a failed require
     */

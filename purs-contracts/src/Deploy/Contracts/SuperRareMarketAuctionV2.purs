@@ -1,7 +1,6 @@
 module Deploy.Contracts.SuperRareMarketAuctionV2 where
 
 import Prelude
-
 import Chanterelle.Deploy (deployContract)
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (DeployM, DeployConfig(..), ContractConfig, NoArgs, noArgs, constructorNoArgs)
@@ -14,7 +13,7 @@ import Partial.Unsafe (unsafePartial)
 
 makeSuperRareMarketAuctionV2Config :: ContractConfig NoArgs
 makeSuperRareMarketAuctionV2Config =
-  { filepath: "./contracts/build/contracts/SuperRareMarketAuctionV2.json"
+  { filepath: "./contracts/v5/build/SuperRareMarketAuctionV2.json"
   , name: "SuperRareMarketAuctionV2"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -28,7 +27,7 @@ deployScript :: DeployM (Record DeployResults)
 deployScript = do
   deployCfg@(DeployConfig { primaryAccount, provider }) <- ask
   let
-    bigGasLimit = unsafePartial fromJust $ parseBigNumber decimal "6712388"
+    bigGasLimit = unsafePartial fromJust $ parseBigNumber decimal "67123880"
 
     bigGasPrice = unsafePartial fromJust $ parseBigNumber decimal "10000000000"
 

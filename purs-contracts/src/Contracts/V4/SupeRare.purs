@@ -2,7 +2,7 @@
 -- | SupeRare
 --------------------------------------------------------------------------------
 
-module Contracts.SupeRare where
+module Contracts.V4.SupeRare where
 
 import Prelude 
 
