@@ -80,6 +80,18 @@ contract SuperRareV2 is ERC721Full, IERC721Creator, Ownable, Whitelist {
     }
 
     /**
+     * @dev Adds a new unique token to the supply.
+     * @param _uri string metadata uri associated with the token.
+     */
+    function addNewToken(string _uri) public {
+        require(
+            isWhitelisted(msg.sender),
+            "must be whitelisted to create tokens"
+        );
+        _createToken(_uri, msg.sender);
+    }
+
+    /**
      * @dev Deletes the token with the provided ID.
      * @param _tokenId uint256 ID of the token.
      */
