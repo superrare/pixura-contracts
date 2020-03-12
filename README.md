@@ -1,6 +1,12 @@
 # Pixura Contracts
 
-Smart Contracts and various language bindings for SuperRare and Pixura ecosystem.
+Smart Contracts and various language bindings for the [SuperRare](https://superrare.co/activity) and [Pixura](http://platform.pixura.io/) ecosystem.
+
+## Init
+
+```bash
+make init
+```
 
 ## Tests
 
@@ -28,4 +34,4 @@ The `v4` and `v5` directories indicate which solc compiler was used. From a usag
 
 ### Javascript/Typescript
 
-WIP, eventually compiled from the PureScript libraries.
+WIP, eventually to be compiled from the PureScript libraries.
