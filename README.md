@@ -2,7 +2,7 @@
 
 Smart Contracts and various language bindings for the [SuperRare](https://superrare.co/activity) and [Pixura](http://platform.pixura.io/) ecosystem.
 
-We use [chanterelle](https://docs.chntrl.io/en/latest/) for smart contract compilation, deployment, and testing. 
+We use [chanterelle](https://docs.chntrl.io/en/latest/) to manage smart contract compilation, deployment, and testing. 
 
 ## Init
 
