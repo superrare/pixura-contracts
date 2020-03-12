@@ -1,0 +1,11 @@
+version: "3"
+services:
+  cliquebait:
+    image: foamspace/cliquebait:latest
+    environment:
+      - "ACCOUNTS_TO_CREATE=18"
+    command: /cliquebait/run.bash --nodiscover --maxpeers=0 --gcmode=archive --targetgaslimit=0x8000000
+    ports:
+      - 8545:8545
+    volumes:
+      - "./cliquebait.json:/cliquebait/cliquebait.json"
