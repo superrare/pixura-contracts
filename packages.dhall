@@ -253,6 +253,12 @@ let additions =
           , repo = "https://github.com/f-o-a-m/chanterelle.git"
           , version = "v4.0.0"
           }
+      , truffle-hd-wallet =
+          { dependencies = [ "web3" ]
+          , repo =
+              "https://github.com/Pixura/purescript-truffle-hd-wallet-provider/"
+          , version = "v0.1.0"
+          }
       }
 
 in  upstream ⫽ overrides ⫽ additions

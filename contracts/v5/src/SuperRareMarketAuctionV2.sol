@@ -31,7 +31,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     uint256 public marketplaceFee = 3; // 3 %
 
     // Royalty fee paid to the creator of a token on secondary sales.
-    uint256 public royaltyFee = 3; // 3 %
+    uint256 public royaltyFee = 5; // 5 %
 
     // Primary sale fee split.
     uint256 public primarySaleFee = 15; // 15 %

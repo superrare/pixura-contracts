@@ -5,9 +5,10 @@ import Chanterelle.Deploy (deployContract)
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (DeployM, DeployConfig(..), ContractConfig, NoArgs, noArgs, constructorNoArgs)
 import Control.Monad.Reader.Class (ask)
-import Data.Lens ((?~))
-import Data.Maybe (fromJust)
-import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
+import Data.Lens ((.~), (?~), (^.), (^?))
+import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
+import Deploy.Utils (defaultTxOptions, deployContractWithConfig)
+import Network.Ethereum.Core.BigNumber (BigNumber, decimal, parseBigNumber)
 import Network.Ethereum.Web3 (_from, _gas, _gasPrice, defaultTransactionOptions)
 import Partial.Unsafe (unsafePartial)
 
@@ -23,19 +24,16 @@ type DeployResults
   = ( superRareMarketAuctionV2 :: DeployReceipt NoArgs
     )
 
-deployScript :: DeployM (Record DeployResults)
-deployScript = do
-  deployCfg@(DeployConfig { primaryAccount, provider }) <- ask
-  let
-    bigGasLimit = unsafePartial fromJust $ parseBigNumber decimal "67123880"
+deployStrict :: DeployM (Record DeployResults)
+deployStrict = deployScriptWithGasSettings { gasLimit: Nothing, gasPrice: Nothing }
 
-    bigGasPrice = unsafePartial fromJust $ parseBigNumber decimal "10000000000"
-
-    txOpts =
-      defaultTransactionOptions # _from ?~ primaryAccount
-        # _gas
-        ?~ bigGasLimit
-        # _gasPrice
-        ?~ bigGasPrice
-  superRareMarketAuctionV2 <- deployContract txOpts makeSuperRareMarketAuctionV2Config
+deployScriptWithGasSettings ::
+  { gasSettings {gasLimit :: Maybe BigNumber, gasPrice :: Maybe BigNumber} } -> DeployM (Record DeployResults)
+deployScriptWithGasSettings { gasLimit, gasPrice } = do
+  superRareMarketAuctionV2 <-
+    deployContractWithConfig
+      { contractConfig: makeSuperRareMarketAuctionV2Config
+      , gasLimit
+      , gasPrice
+      }
   pure { superRareMarketAuctionV2 }
