@@ -11,6 +11,8 @@ You can edit this file as you like.
   , "chanterelle"
   , "spec"
   , "quickcheck"
+  , "simple-gql-query"
+  , "truffle-hd-wallet"
   ]
 , packages = ./packages.dhall
 , sources = [ "purs-contracts/src/**/*.purs", "purs-contracts/test/**/*.purs" ]

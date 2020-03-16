@@ -253,6 +253,31 @@ let additions =
           , repo = "https://github.com/f-o-a-m/chanterelle.git"
           , version = "v4.0.0"
           }
+      , truffle-hd-wallet =
+          { dependencies = [ "web3" ]
+          , repo =
+              "https://github.com/Pixura/purescript-truffle-hd-wallet-provider/"
+          , version = "v0.1.0"
+          }
+      , simple-gql-query =
+          { dependencies =
+            [ "aff"
+            , "aff-promise"
+            , "affjax"
+            , "console"
+            , "effect"
+            , "exceptions"
+            , "generics-rep"
+            , "node-fs-aff"
+            , "parsing"
+            , "prelude"
+            , "prettier"
+            , "psci-support"
+            , "simple-json"
+            ]
+          , repo = "https://github.com/charlescrain/purescript-simple-gql-query"
+          , version = "v1.0.0"
+          }
       }
 
 in  upstream ⫽ overrides ⫽ additions
