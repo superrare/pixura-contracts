@@ -1,5 +1,10 @@
-.PHONY: help clean hlint stylish init compile-contracts purs-contract-gen hs-build purs-build purs-build-all deploy-test-chain takedown-test-chain run-contract-tests contract-tests
+.PHONY: help clean hlint stylish init compile-contracts purs-contract-gen hs-build purs-build purs-build-all deploy-test-chain takedown-test-chain run-contract-tests contract-tests migrate-marketplaceV2
 .DEFAULT_GOAL := help
+
+######################################################
+#### Env
+######################################################
+MARKETPLACEV2_CONFIG ?= "./deploy-configs/marketplacev2.json"
 
 ######################################################
 #### Utils
@@ -63,6 +68,13 @@ purs-build-all: ## Compiles contracts, codegens purescript bindings, and builds 
 	make purs-contract-gen && \
 	make purs-build
 
+######################################################
+#### Migrations
+######################################################
+
+migrate-marketplaceV2:  ## Deploy test environment and run contract tests
+	CONFIG=$(MARKETPLACEV2_CONFIG) \
+	yarn spago run --main Migrations.SuperRareMarketAuctionV2
 
 ######################################################
 #### Test
