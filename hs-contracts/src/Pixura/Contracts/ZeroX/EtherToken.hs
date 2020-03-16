@@ -9,4 +9,4 @@ module Pixura.Contracts.ZeroX.EtherToken where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|../contracts/abis/WETH9.json|]
+[abiFrom|contracts/abis/WETH9.json|]
