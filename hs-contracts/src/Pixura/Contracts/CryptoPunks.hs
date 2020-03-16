@@ -9,4 +9,4 @@ module Pixura.Contracts.CryptoPunks where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|contracts/v4/build/CryptoPunksMarket.json|]
+[abiFrom|../contracts/v4/build/CryptoPunksMarket.json|]

@@ -9,4 +9,4 @@ module Pixura.Contracts.ZeroX.ERC20Proxy where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|contracts/abis/ERC20Proxy.json|]
+[abiFrom|../contracts/abis/ERC20Proxy.json|]

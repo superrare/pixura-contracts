@@ -9,4 +9,4 @@ module Pixura.Contracts.SuperRareMarketAuction where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|contracts/v4/build/SuperRareMarketAuction.json|]
+[abiFrom|../contracts/v4/build/SuperRareMarketAuction.json|]

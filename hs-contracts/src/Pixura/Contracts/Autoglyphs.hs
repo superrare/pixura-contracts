@@ -9,4 +9,4 @@ module Pixura.Contracts.Autoglyphs where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|contracts/abis/Autoglyphs.json|]
+[abiFrom|../contracts/abis/Autoglyphs.json|]
