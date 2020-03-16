@@ -1,16 +1,10 @@
 module Deploy.Contracts.SuperRareMarketAuctionV2 where
 
 import Prelude
-import Chanterelle.Deploy (deployContract)
 import Chanterelle.Internal.Deploy (DeployReceipt)
-import Chanterelle.Internal.Types (DeployM, DeployConfig(..), ContractConfig, NoArgs, noArgs, constructorNoArgs)
-import Control.Monad.Reader.Class (ask)
-import Data.Lens ((.~), (?~), (^.), (^?))
-import Data.Maybe (Maybe(..), fromJust, fromMaybe, maybe)
-import Deploy.Utils (defaultTxOptions, deployContractWithConfig)
-import Network.Ethereum.Core.BigNumber (BigNumber, decimal, parseBigNumber)
-import Network.Ethereum.Web3 (_from, _gas, _gasPrice, defaultTransactionOptions)
-import Partial.Unsafe (unsafePartial)
+import Chanterelle.Internal.Types (ContractConfig, DeployM, NoArgs, constructorNoArgs, noArgs)
+import Deploy.Utils (GasSettings, deployContractWithConfig)
+import Migrations.Utils (emptyGasSettings)
 
 makeSuperRareMarketAuctionV2Config :: ContractConfig NoArgs
 makeSuperRareMarketAuctionV2Config =
@@ -24,16 +18,14 @@ type DeployResults
   = ( superRareMarketAuctionV2 :: DeployReceipt NoArgs
     )
 
-deployStrict :: DeployM (Record DeployResults)
-deployStrict = deployScriptWithGasSettings { gasLimit: Nothing, gasPrice: Nothing }
+deployScript :: DeployM (Record DeployResults)
+deployScript = deployScriptWithGasSettings emptyGasSettings
 
-deployScriptWithGasSettings ::
-  { gasSettings {gasLimit :: Maybe BigNumber, gasPrice :: Maybe BigNumber} } -> DeployM (Record DeployResults)
-deployScriptWithGasSettings { gasLimit, gasPrice } = do
+deployScriptWithGasSettings :: GasSettings -> DeployM (Record DeployResults)
+deployScriptWithGasSettings gasSettings = do
   superRareMarketAuctionV2 <-
     deployContractWithConfig
       { contractConfig: makeSuperRareMarketAuctionV2Config
-      , gasLimit
-      , gasPrice
+      , gasSettings
       }
   pure { superRareMarketAuctionV2 }

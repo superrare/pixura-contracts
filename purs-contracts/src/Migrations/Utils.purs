@@ -2,16 +2,16 @@ module Migrations.Utils where
 
 import Prelude
 import Chanterelle.Deploy (deployWithProvider)
-import Chanterelle.Internal.Types (DeployM(..))
+import Chanterelle.Internal.Types (DeployM)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Nullable (null)
-import Deploy.Utils (GasSettings)
+import Deploy.Utils (GasSettings(..))
 import Effect (Effect)
-import Effect.Aff (Aff, Milliseconds(..))
+import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Exception (throw)
-import Network.Ethereum.Web3 (BigNumber, Provider, httpProvider)
+import Network.Ethereum.Web3 (Provider, httpProvider)
 import Network.Ethereum.Web3.Types.HdWalletProvider (hdWalletProvider, unHdWalletProvider)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
@@ -23,10 +23,7 @@ runMigration ::
   JSON.ReadForeign b =>
   ( { migrationArgs :: b
     , gasSettings ::
-        Maybe
-          { gasLimit :: Maybe BigNumber
-          , gasPrice :: Maybe BigNumber
-          }
+        Maybe GasSettings
     } ->
     DeployM a
   ) ->
@@ -45,7 +42,7 @@ loadMigrationConfig = do
     Right a -> pure a
 
 emptyGasSettings :: GasSettings
-emptyGasSettings = { gasPrice: Nothing, gasLimit: Nothing }
+emptyGasSettings = GasSettings { gasPrice: Nothing, gasLimit: Nothing }
 
 mkProvider :: forall a. (MigrationConfig (a)) -> Effect Provider
 mkProvider cfg@{ rpcUrl } =
@@ -58,6 +55,6 @@ mkProvider cfg@{ rpcUrl } =
 type MigrationConfig a
   = { rpcUrl :: String
     , mnemonic :: Maybe String
-    , gasSettings :: Maybe { gasLimit :: Maybe BigNumber, gasPrice :: Maybe BigNumber }
+    , gasSettings :: Maybe GasSettings
     , migrationArgs :: a
     }
