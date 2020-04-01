@@ -3,7 +3,7 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, primarySaleFee, royaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, getERC721ContractRoyaltyFee, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, primarySaleFee, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
 import Contracts.V5.TestAssertFailOnPay as TestAssertFailOnPay
 import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
 import Contracts.V5.TestRequireFailOnPay as TestRequireFailOnPay
@@ -27,10 +27,10 @@ import Partial.Unsafe (unsafePartial)
 import Prim.Row (class Lacks)
 import Record as Record
 import Test.QuickCheck (arbitrary)
-import Test.QuickCheck.Gen (randomSample')
+import Test.QuickCheck.Gen (chooseInt, randomSample')
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
-import Test.Spec.Contracts.Utils (defaultTxOpts, throwOnCallError, uInt256FromBigNumber)
+import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, throwOnCallError, uInt256FromBigNumber)
 
 -----------------------------------------------------------------------------
 -- | TestEnv
@@ -260,20 +260,56 @@ currentBidDetailsOfToken tenv _tokenId = do
   pure { price, bidder }
 
 -----------------------------------------------------------------------------
--- | marketplaceFee
+-- | getERC721ContractRoyaltyFee
 -----------------------------------------------------------------------------
-royaltyFee ::
-  forall r. TestEnv r -> Web3 (UIntN S256)
-royaltyFee tenv =
+getERC721ContractRoyaltyFee ::
+  forall r. TestEnv r -> Address -> Web3 (UIntN S256)
+getERC721ContractRoyaltyFee tenv _originContract =
   let
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   in
     throwOnCallError
-      $ SuperRareMarketAuctionV2.royaltyFee
+      $ SuperRareMarketAuctionV2.getERC721ContractRoyaltyFee
           (defaultTxOpts primaryAccount # _to ?~ deployAddress)
           Latest
+          { _originContract }
+
+-----------------------------------------------------------------------------
+-- | setERC721ContractRoyaltyFee
+-----------------------------------------------------------------------------
+setERC721ContractRoyaltyFee ::
+  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 HexString
+setERC721ContractRoyaltyFee tenv _originContract _percentage = do
+  let
+    { v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  txHash <-
+    SuperRareMarketAuctionV2.setERC721ContractRoyaltyFee
+      (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+      { _originContract, _percentage }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+-----------------------------------------------------------------------------
+-- | royaltyFee
+-----------------------------------------------------------------------------
+royaltyFee ::
+  forall r. TestEnv r -> Web3 (UIntN S256)
+royaltyFee tenv =
+  let
+    { v2Marketplace: { deployAddress }
+    , v2SuperRare: { deployAddress: _originContract }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.getERC721ContractRoyaltyFee
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _originContract }
 
 -----------------------------------------------------------------------------
 -- | primarySaleFee
@@ -353,13 +389,21 @@ mkSuperRareTokens ::
   Int ->
   Web3 (Array { owner ∷ Address, tokenId ∷ UIntN S256, uri ∷ String })
 mkSuperRareTokens tenv n =
-  SuperRareV2Spec.createTokensWithFunction
+  createTokensWithFunction
     tenv
     n
     (SuperRareV2Spec.addNewToken tenv)
 
 -----------------------------------------------------------------------------
 -- | genTokenPrices
+-----------------------------------------------------------------------------
+genPercentageLessThan :: forall m. MonadEffect m => Int -> m (UIntN S256)
+genPercentageLessThan n =
+  liftEffect (randomSample' 1 $ chooseInt 1 n)
+    >>= \v -> pure $ uInt256FromBigNumber $ embed $ unsafePartial $ head v
+
+-----------------------------------------------------------------------------
+-- | genPercentage
 -----------------------------------------------------------------------------
 genTokenPrices :: forall m. MonadEffect m => Int -> m (Array (UIntN S256))
 genTokenPrices n =

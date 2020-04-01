@@ -1,0 +1,113 @@
+module Test.Spec.Contracts.SuperRareLegacy.Actions where
+
+import Prelude
+import Chanterelle.Internal.Deploy (DeployReceipt)
+import Chanterelle.Internal.Types (NoArgs)
+import Contracts.V5.SuperRareLegacy as SuperRareLegacy
+import Data.Lens ((?~))
+import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
+import Deploy.Utils (awaitTxSuccessWeb3)
+import Effect.Class.Console (logShow)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), HexString, Provider, UIntN, Web3, _to)
+import Network.Ethereum.Web3.Solidity.Sizes (S256)
+import Test.Spec.Contracts.Utils (defaultTxOpts, throwOnCallError)
+
+-----------------------------------------------------------------------------
+-- | TestEnv
+-----------------------------------------------------------------------------
+type TestEnv r
+  = { supeRare :: DeployReceipt NoArgs
+    , superRareLegacy :: DeployReceipt SuperRareLegacy
+    , provider :: Provider
+    , accounts :: Array Address
+    , primaryAccount :: Address
+    , numOldSuperRareTokens :: Int
+    | r
+    }
+
+-----------------------------------------------------------------------------
+-- | totalSupply
+-----------------------------------------------------------------------------
+totalSupply ::
+  forall r. TestEnv r -> Web3 (UIntN S256)
+totalSupply tenv =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.totalSupply
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+
+-----------------------------------------------------------------------------
+-- | preUpgradeOwnerOf
+-----------------------------------------------------------------------------
+preUpgradeOwnerOf ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 Address
+preUpgradeOwnerOf tenv _tokenId =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.preUpgradeOwnerOf
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _tokenId }
+
+-----------------------------------------------------------------------------
+-- | ownerOf
+-----------------------------------------------------------------------------
+ownerOf ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 Address
+ownerOf tenv _tokenId =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.ownerOf
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _tokenId }
+
+-----------------------------------------------------------------------------
+-- | isUpgraded
+-----------------------------------------------------------------------------
+isUpgraded ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 Boolean
+isUpgraded tenv _tokenId =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.isUpgraded
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _tokenId }
+
+-----------------------------------------------------------------------------
+-- | refreshPreUpgradeOwnerOf
+-----------------------------------------------------------------------------
+refreshPreUpgradeOwnerOf ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 HexString
+refreshPreUpgradeOwnerOf tenv _tokenId = do
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  txHash <-
+    SuperRareLegacy.refreshPreUpgradeOwnerOf
+      ( defaultTxOpts primaryAccount
+          # _to
+          ?~ deployAddress
+      )
+      { _tokenId }
+  awaitTxSuccessWeb3 txHash
+  pure txHash

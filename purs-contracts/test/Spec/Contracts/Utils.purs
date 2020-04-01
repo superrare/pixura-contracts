@@ -2,16 +2,19 @@ module Test.Spec.Contracts.Utils where
 
 import Prelude
 import Control.Monad.Error.Class (class MonadThrow, throwError)
+import Data.Array (zipWith)
 import Data.Either (Either(..))
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromJust)
+import Data.Traversable (for)
 import Effect.Aff (Error, error)
 import Effect.Aff.AVar (AVar, tryRead)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Network.Ethereum.Core.BigNumber (BigNumber, decimal, embed, parseBigNumber)
-import Network.Ethereum.Web3 (Address, CallError, Provider, TransactionOptions, UIntN, Web3, _from, _gas, _gasPrice, defaultTransactionOptions, runWeb3, uIntNFromBigNumber)
+import Network.Ethereum.Core.HexString (nullWord, takeHex)
+import Network.Ethereum.Web3 (Address, CallError, Provider, TransactionOptions, UIntN, Web3, _from, _gas, _gasPrice, defaultTransactionOptions, mkAddress, runWeb3, uIntNFromBigNumber)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafePartial)
@@ -62,3 +65,18 @@ throwOnCallError f =
     >>= case _ of
         Left cerr -> throwError $ error $ show cerr
         Right x -> pure x
+
+createTokensWithFunction ::
+  forall r.
+  { accounts :: Array Address | r } ->
+  Int ->
+  (Address -> String -> Web3 (UIntN S256)) ->
+  Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
+createTokensWithFunction { accounts } amount f = do
+  tokenUris <- mkTokenUris amount
+  for (zipWith { acc: _, _uri: _ } accounts tokenUris) \{ acc, _uri } -> do
+    tokenId <- f acc _uri
+    pure { owner: acc, uri: _uri, tokenId }
+
+nullAddress :: Address
+nullAddress = unsafePartial fromJust $ mkAddress $ takeHex 40 nullWord
