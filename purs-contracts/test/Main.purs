@@ -16,7 +16,7 @@ main =
   launchAff_
     $ do
         let
-          specConfig = defaultConfig { timeout = Just (Milliseconds $ 120.0 * 1000.0) }
+          specConfig = defaultConfig { timeout = Just (Milliseconds $ 120.0 * 10000.0) }
         join
           $ runSpecT specConfig [ consoleReporter ] do
               SupeRare.spec

@@ -26,13 +26,13 @@ import Partial.Unsafe (unsafePartial)
 --------------------------------------------------------------------------------
 
 
-type ConstructorFn = Tagged (SProxy "constructor(string,string,address,uint256)") (Tuple4 (Tagged (SProxy "_name") String) (Tagged (SProxy "_symbol") String) (Tagged (SProxy "_oldSuperRare") Address) (Tagged (SProxy "_lastTokenId") (UIntN (D2 :& D5 :& DOne D6))))
+type ConstructorFn = Tagged (SProxy "constructor(string,string,address)") (Tuple3 (Tagged (SProxy "_name") String) (Tagged (SProxy "_symbol") String) (Tagged (SProxy "_oldSuperRare") Address))
 
-constructor :: TransactionOptions NoPay -> HexString -> { _name :: String, _symbol :: String, _oldSuperRare :: Address, _lastTokenId :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+constructor :: TransactionOptions NoPay -> HexString -> { _name :: String, _symbol :: String, _oldSuperRare :: Address } -> Web3 HexString
 constructor x0 bc r = uncurryFields  r $ constructor' x0 bc
    where
-    constructor' :: TransactionOptions NoPay -> HexString -> (Tagged (SProxy "_name") String) -> (Tagged (SProxy "_symbol") String) -> (Tagged (SProxy "_oldSuperRare") Address) -> (Tagged (SProxy "_lastTokenId") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    constructor' y0 bc' y2 y3 y4 y5 = deployContract y0 bc' ((tagged $ Tuple4 y2 y3 y4 y5) :: ConstructorFn)
+    constructor' :: TransactionOptions NoPay -> HexString -> (Tagged (SProxy "_name") String) -> (Tagged (SProxy "_symbol") String) -> (Tagged (SProxy "_oldSuperRare") Address) -> Web3 HexString
+    constructor' y0 bc' y2 y3 y4 = deployContract y0 bc' ((tagged $ Tuple3 y2 y3 y4) :: ConstructorFn)
 
 --------------------------------------------------------------------------------
 -- | Approval
@@ -218,6 +218,29 @@ isUpgraded x0 cm r = uncurryFields  r $ isUpgraded' x0 cm
    where
     isUpgraded' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 (Either CallError Boolean)
     isUpgraded' y0 cm' y2 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple1 y2) :: IsUpgradedFn)
+
+--------------------------------------------------------------------------------
+-- | MarkMintingCompletedFn
+--------------------------------------------------------------------------------
+
+
+type MarkMintingCompletedFn = Tagged (SProxy "markMintingCompleted()") (Tuple0 )
+
+markMintingCompleted :: TransactionOptions NoPay -> Web3 HexString
+markMintingCompleted x0 = sendTx x0 ((tagged $ Tuple0 ) :: MarkMintingCompletedFn)
+
+--------------------------------------------------------------------------------
+-- | MintLegacyTokensFn
+--------------------------------------------------------------------------------
+
+
+type MintLegacyTokensFn = Tagged (SProxy "mintLegacyTokens(uint256[])") (Tuple1 (Tagged (SProxy "_tokenIds") (Array (UIntN (D2 :& D5 :& DOne D6)))))
+
+mintLegacyTokens :: TransactionOptions NoPay -> { _tokenIds :: (Array (UIntN (D2 :& D5 :& DOne D6))) } -> Web3 HexString
+mintLegacyTokens x0 r = uncurryFields  r $ mintLegacyTokens' x0
+   where
+    mintLegacyTokens' :: TransactionOptions NoPay -> (Tagged (SProxy "_tokenIds") (Array (UIntN (D2 :& D5 :& DOne D6)))) -> Web3 HexString
+    mintLegacyTokens' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: MintLegacyTokensFn)
 
 --------------------------------------------------------------------------------
 -- | NameFn

@@ -27,22 +27,57 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     // Mapping from token ID to the pre upgrade token owner.
     mapping(uint256 => address) private _tokenOwnerPreUpgrade;
 
+    // Boolean for when minting has completed.
+    bool private _mintingCompleted;
+
     /////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////
     constructor(
         string memory _name,
         string memory _symbol,
-        address _oldSuperRare,
-        uint256 _lastTokenId
+        address _oldSuperRare
     ) public ERC721Full(_name, _symbol) {
         // Set old SuperRare.
         oldSuperRare = ISupeRare(_oldSuperRare);
 
-        // Mint the legacy tokens.
-        for (uint256 i = 1; i <= _lastTokenId; i++) {
-            _createLegacyToken(i);
+        // Mark minting as not completed
+        _mintingCompleted = false;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // Admin Public Methods
+    /////////////////////////////////////////////////////////////////////////
+
+    /////////////////////////////////////////////////////////////////////////
+    // mintLegacyTokens
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Mints the legacy tokens without emitting any events.
+     * @param _tokenIds uint256 array of token ids mint.
+     */
+    function mintLegacyTokens(uint256[] calldata _tokenIds) external onlyOwner {
+        require(
+            !_mintingCompleted,
+            "SuperRareLegacy: Cannot mint tokens once minting has completed."
+        );
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            _createLegacyToken(_tokenIds[i]);
         }
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // markMintingCompleted
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Marks _mintedCompleted as true which forever prevents any more minting.
+     */
+    function markMintingCompleted() external onlyOwner {
+        require(
+            !_mintingCompleted,
+            "SuperRareLegacy: Cannot mark completed if already completed."
+        );
+        _mintingCompleted = true;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -58,7 +93,6 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
      * @return address of the token owner.
      */
     function ownerOf(uint256 _tokenId) public view returns (address owner) {
-        require(false, "will always fail");
         require(
             isUpgraded(_tokenId),
             "SuperRareLegacy: owner query for non-upgraded token"

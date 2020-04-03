@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Test (buildTestConfig)
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
-import Data.Maybe (fromJust)
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
@@ -16,6 +16,7 @@ import Partial.Unsafe (unsafePartial)
 import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it, itOnly)
 import Test.Spec.Assertions (shouldEqual)
+import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
 import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (intToUInt256, uInt256FromBigNumber, web3Test)
@@ -377,7 +378,7 @@ spec =
 -----------------------------------------------------------------------------
 init :: Aff (TestEnv ())
 init = do
-  tenv@{ provider } <- initSupeRareV2
+  tenv@{ provider, primaryAccount } <- initSupeRareV2
   { superRareMarketAuctionV2 } <-
     buildTestConfig "http://localhost:8545" 60
       SuperRareMarketAuctionV2.deployScript
@@ -404,6 +405,8 @@ init = do
     tenv@{ accounts, provider } <- SuperRareV2Spec.init
     web3Test provider $ whitelistAddresses tenv
     pure tenv
+
+  initSupeRareLegacy = SuperRareLegacySpec.init
 
   whitelistAddresses tenv@{ accounts } = void $ for accounts (SuperRareV2Spec.whitelistAddress tenv)
 

@@ -111,3 +111,77 @@ refreshPreUpgradeOwnerOf tenv _tokenId = do
       { _tokenId }
   awaitTxSuccessWeb3 txHash
   pure txHash
+
+-----------------------------------------------------------------------------
+-- | tokenCreator
+-----------------------------------------------------------------------------
+tokenCreator ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 Address
+tokenCreator tenv _tokenId =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.tokenCreator
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { _tokenId }
+
+-----------------------------------------------------------------------------
+-- | setApprovalForAll
+-----------------------------------------------------------------------------
+setApprovalForAll ::
+  forall r. TestEnv r -> Address -> Address -> Boolean -> Web3 HexString
+setApprovalForAll tenv owner operator approved = do
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  txHash <-
+    SuperRareLegacy.setApprovalForAll
+      ( defaultTxOpts owner
+          # _to
+          ?~ deployAddress
+      )
+      { approved, to: operator }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+-----------------------------------------------------------------------------
+-- | isApprovedForAll
+-----------------------------------------------------------------------------
+isApprovedForAll ::
+  forall r. TestEnv r -> Address -> Address -> Web3 Boolean
+isApprovedForAll tenv owner operator =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.isApprovedForAll
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { operator, owner }
+
+-----------------------------------------------------------------------------
+-- | transferFrom
+-----------------------------------------------------------------------------
+transferFrom ::
+  forall r. TestEnv r -> Address -> Address -> UIntN S256 -> Web3 HexString
+transferFrom tenv from to tokenId = do
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  txHash <-
+    SuperRareLegacy.transferFrom
+      ( defaultTxOpts from
+          # _to
+          ?~ deployAddress
+      )
+      { from, to, tokenId }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
