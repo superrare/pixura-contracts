@@ -7,10 +7,12 @@ import Data.Array.Partial (head)
 import Data.Either (isLeft)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (for)
-import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
+import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy, mintLegacyTokens)
 import Deploy.Contracts.SuperRareLegacy (deployScript) as SuperRareLegacy
+import Deploy.Utils (GasSettings(..))
 import Effect.Aff (Aff, try)
 import Effect.Class.Console (logShow)
+import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
 import Network.Ethereum.Web3 (embed)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
@@ -127,21 +129,28 @@ spec =
 -----------------------------------------------------------------------------
 init :: Maybe (SupeRare.TestEnv ()) -> Aff (TestEnv ())
 init mtenv = do
-  tenv@{ provider, supeRare: { deployAddress: supeRare } } <-
+  tenv@{ provider
+  , supeRare: { deployAddress: supeRare }
+  , primaryAccount
+  } <-
     maybe initSupeRare pure mtenv
   let
     numOldSuperRareTokens = 5
+
+    tids = (1 .. numOldSuperRareTokens) <#> intToUInt256
   web3Test provider $ createOldSupeRareTokens tenv numOldSuperRareTokens
   { superRareLegacy } <-
     buildTestConfig "http://localhost:8545" 60
       ( SuperRareLegacy.deployScript
-          ((1 .. numOldSuperRareTokens) <#> intToUInt256)
           { _name: "SupeRareLegacy"
           , _symbol: "SUPR"
           , _oldSuperRare: supeRare
           }
       )
-  pure $ Record.merge { superRareLegacy, numOldSuperRareTokens } tenv
+  let
+    tenv' = Record.merge { superRareLegacy, numOldSuperRareTokens } tenv
+  mintLegacyTokens' tenv' tids
+  pure tenv'
   where
   initSupeRare = do
     tenv@{ accounts, provider } <- SupeRareSpec.init
@@ -151,3 +160,15 @@ init mtenv = do
   createOldSupeRareTokens tenv n = void $ createTokensWithFunction tenv n (SupeRare.addNewToken tenv)
 
   whitelistAddresses tenv@{ accounts } = void $ for accounts (SupeRareSpec.whitelistAddress tenv)
+
+  mintLegacyTokens' tenv tids =
+    let
+      gs =
+        GasSettings
+          { gasLimit: parseBigNumber decimal "60000000"
+          , gasPrice: parseBigNumber decimal "5000000000"
+          }
+
+      { superRareLegacy: { deployAddress } } = tenv
+    in
+      mintLegacyTokens tenv gs tids deployAddress

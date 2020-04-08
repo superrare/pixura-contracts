@@ -164,6 +164,24 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     }
 
     /////////////////////////////////////////////////////////////////////////
+    // tokenURI
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Returns the URI for a given token ID. May return an empty string.
+     * If the token's URI is non-empty and a base URI was set
+     * Reverts if the token ID does not exist.
+     * @param tokenId uint256 token id to refresh the pre-upgrade token owner.
+     * @return string URI of the given token ID.
+     */
+    function tokenURI(uint256 tokenId) external view returns (string memory) {
+        require(
+            _exists(tokenId),
+            "SuperRareLegacy: URI query for nonexistent token"
+        );
+        oldSuperRare.tokenURI(tokenId);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // Internal Methods
     /////////////////////////////////////////////////////////////////////////
 
@@ -177,9 +195,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
      */
     function _createLegacyToken(uint256 _tokenId) internal {
         address ownerOnOldSuperRare = oldSuperRare.ownerOf(_tokenId);
-        string memory tokenURI = oldSuperRare.tokenURI(_tokenId);
         _mintWithNoEvent(ownerOnOldSuperRare, _tokenId);
-        _setTokenURI(_tokenId, tokenURI);
         _tokenOwnerPreUpgrade[_tokenId] = ownerOnOldSuperRare;
     }
 }

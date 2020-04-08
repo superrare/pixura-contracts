@@ -13,11 +13,11 @@ import Data.Lens ((?~))
 import Data.Maybe (Maybe(..))
 import Data.Traversable (for)
 import Deploy.Utils (GasSettings(..), awaitTxSuccess, awaitTxSuccessWeb3, deployContractWithConfig, txOptsWithGasSettings)
-import Effect.Aff.Class (liftAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Migrations.Utils (emptyGasSettings)
 import Network.Ethereum.Core.BigNumber (decimal, divide, embed, parseBigNumber, pow, unsafeToInt)
-import Network.Ethereum.Web3 (Address, ChainCursor(..), Ether, Transaction(..), TransactionReceipt(..), UIntN, Value, _from, _to, formatValue, mkValue, runWeb3, toMinorUnit, unAddress, unUIntN)
-import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), Ether, Provider, Transaction(..), TransactionReceipt(..), UIntN, Value, _from, _to, formatValue, mkValue, runWeb3, toMinorUnit, unAddress, unUIntN)
+import Network.Ethereum.Web3.Api (eth_estimateGas, eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 
 type SuperRareLegacy
@@ -39,33 +39,30 @@ type DeployResults
     )
 
 deployScript ::
-  Array (UIntN S256) ->
   Record SuperRareLegacy ->
   DeployM (Record DeployResults)
-deployScript =
-  deployScriptWithGasSettings
-    ( GasSettings
-        { gasLimit: parseBigNumber decimal "107123880"
-        , gasPrice: parseBigNumber decimal "5000000000"
-        }
-    )
+deployScript = deployScriptWithGasSettings emptyGasSettings
 
 deployScriptWithGasSettings ::
   GasSettings ->
-  Array (UIntN S256) ->
   Record SuperRareLegacy -> DeployM (Record DeployResults)
-deployScriptWithGasSettings gasSettings tokenIds srl = do
+deployScriptWithGasSettings gasSettings srl = do
   superRareLegacy@{ deployAddress } <-
     deployContractWithConfig
       { contractConfig: makeSuperRareLegacyConfig srl
       , gasSettings
       }
-  mintLegacyTokens gasSettings tokenIds deployAddress
   pure { superRareLegacy }
 
-mintLegacyTokens :: GasSettings -> Array (UIntN S256) -> Address -> DeployM Unit
-mintLegacyTokens gasSettings tokenIds addr = do
-  DeployConfig { primaryAccount, provider } <- ask
+mintLegacyTokens ::
+  forall m r.
+  MonadAff m =>
+  { primaryAccount :: Address, provider :: Provider | r } ->
+  GasSettings ->
+  Array (UIntN S256) ->
+  Address ->
+  m Unit
+mintLegacyTokens { primaryAccount, provider } gasSettings tokenIds addr = do
   res <-
     liftAff
       $ runWeb3 provider do
@@ -77,10 +74,11 @@ mintLegacyTokens gasSettings tokenIds addr = do
                 # _to
                 ?~ addr
           void
-            $ for (chunk 500 tokenIds) \_tokenIds -> do
+            $ for (chunk 20 tokenIds) \_tokenIds -> do
                 logBalanceAndPrint primaryAccount
                 log Info $ "Minting Legacy tokens for:\n" <> show _tokenIds
                 txHash <- SuperRareLegacy.mintLegacyTokens txOpts { _tokenIds }
+                log Info $ "Hash is: " <> show txHash
                 awaitTxSuccessWeb3 txHash
                 logEthSpentOnTx txHash
           txHash <- SuperRareLegacy.markMintingCompleted txOpts

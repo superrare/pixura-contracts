@@ -1,4 +1,4 @@
-module Migrations.SuperRareMarketAuctionV2 where
+module Migrations.SuperRareLegacy where
 
 import Prelude
 import Chanterelle.Internal.Logging (LogLevel(..), log)
@@ -9,7 +9,7 @@ import Data.Either (Either(..), either)
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Traversable (for)
-import Deploy.Contracts.SuperRareLegacy (deployScriptWithGasSettings)
+import Deploy.Contracts.SuperRareLegacy (deployScriptWithGasSettings, mintLegacyTokens)
 import Deploy.Utils (GasSettings, awaitTxSuccessWeb3, txOptsWithGasSettings)
 import Effect (Effect)
 import Effect.Aff (joinFiber, launchAff, runAff_)
@@ -26,6 +26,7 @@ type MigrationArgs
   = { oldSuperRare :: Address
     , pixuraApi :: { url :: String, apiKey :: String }
     , tokenIds :: Maybe (Array Int)
+    , existingSuperRareLegacy :: Maybe Address
     }
 
 main :: Effect Unit
@@ -41,6 +42,7 @@ main =
           { oldSuperRare
           , pixuraApi: { url, apiKey }
           , tokenIds: mTokenIds
+          , existingSuperRareLegacy
           } = migrationArgs
 
           gasSettings = fromMaybe emptyGasSettings mgs
@@ -49,12 +51,16 @@ main =
         tokenIds <- case mTokenIds of
           Nothing -> lookUpTokenIds { tokenContract: oldSuperRare, url, apiKey }
           Just tids -> pure $ nub $ catMaybes $ tids <#> \tid -> uIntNFromBigNumber s256 (embed tid)
-        void
-          $ deployScriptWithGasSettings gasSettings tokenIds
-              { _name: "SuperRareLegacy"
-              , _symbol: "SUPR"
-              , _oldSuperRare: oldSuperRare
-              }
+        case existingSuperRareLegacy of
+          Just srl -> mintLegacyTokens { primaryAccount, provider } gasSettings tokenIds srl
+          Nothing -> do
+            { superRareLegacy: { deployAddress } } <-
+              deployScriptWithGasSettings gasSettings
+                { _name: "SuperRareLegacy"
+                , _symbol: "SUPR"
+                , _oldSuperRare: oldSuperRare
+                }
+            mintLegacyTokens { primaryAccount, provider } gasSettings tokenIds deployAddress
   where
   chunk n [] = []
 
@@ -96,5 +102,4 @@ lookUpTokenIds { tokenContract, url, apiKey } = do
         }
       }
     }
-
     """
