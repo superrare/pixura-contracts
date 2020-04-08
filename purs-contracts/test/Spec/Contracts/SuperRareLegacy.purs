@@ -20,7 +20,7 @@ import Test.Spec (SpecT, beforeAll, describe, describeOnly, it, pending)
 import Test.Spec.Assertions (shouldEqual, shouldNotSatisfy, shouldSatisfy)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SupeRare as SupeRareSpec
-import Test.Spec.Contracts.SuperRareLegacy.Actions (TestEnv, isApprovedForAll, isUpgraded, ownerOf, preUpgradeOwnerOf, refreshPreUpgradeOwnerOf, setApprovalForAll, tokenCreator, totalSupply, transferFrom)
+import Test.Spec.Contracts.SuperRareLegacy.Actions (TestEnv, isApprovedForAll, isUpgraded, ownerOf, preUpgradeOwnerOf, refreshPreUpgradeOwnerOf, setApprovalForAll, tokenCreator, tokenURI, totalSupply, transferFrom)
 import Test.Spec.Contracts.Utils (createTokensWithFunction, intToUInt256, nullAddress, uInt256FromBigNumber, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
@@ -34,6 +34,15 @@ spec =
                 { numOldSuperRareTokens } = tenv
               supply <- totalSupply tenv
               supply `shouldEqual` intToUInt256 numOldSuperRareTokens
+          it "should have same token uris as old tokens" \tenv@{ provider } ->
+            web3Test provider do
+              let
+                { numOldSuperRareTokens } = tenv
+              void
+                $ for (1 .. numOldSuperRareTokens) \tid -> do
+                    oldUri <- SupeRare.tokenURI tenv (intToUInt256 tid)
+                    uri <- tokenURI tenv (intToUInt256 tid)
+                    uri `shouldEqual` oldUri
           it "should have correct pre-upgrade token owners" \tenv@{ provider } ->
             web3Test provider do
               let

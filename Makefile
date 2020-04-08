@@ -5,6 +5,7 @@
 #### Env
 ######################################################
 MARKETPLACEV2_CONFIG ?= "./deploy-configs/marketplacev2.json"
+SUPERRARE_LEGACY_CONFIG ?= "./deploy-configs/superrareLegacy.json"
 
 ######################################################
 #### Utils
@@ -75,6 +76,10 @@ purs-build-all: ## Compiles contracts, codegens purescript bindings, and builds 
 migrate-marketplaceV2:  ## Deploy test environment and run contract tests
 	CONFIG=$(MARKETPLACEV2_CONFIG) \
 	yarn spago run --main Migrations.SuperRareMarketAuctionV2
+
+migrate-legacy:  ## Deploy test environment and run contract tests
+	CONFIG=$(SUPERRARE_LEGACY_CONFIG) \
+	yarn spago run --main Migrations.SuperRareLegacy
 
 ######################################################
 #### Test

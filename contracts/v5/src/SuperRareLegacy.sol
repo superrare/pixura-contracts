@@ -178,7 +178,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
             _exists(tokenId),
             "SuperRareLegacy: URI query for nonexistent token"
         );
-        oldSuperRare.tokenURI(tokenId);
+        return oldSuperRare.tokenURI(tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////

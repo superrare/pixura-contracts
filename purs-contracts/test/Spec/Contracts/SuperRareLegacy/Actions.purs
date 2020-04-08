@@ -76,6 +76,23 @@ ownerOf tenv _tokenId =
           { _tokenId }
 
 -----------------------------------------------------------------------------
+-- | tokenURI
+-----------------------------------------------------------------------------
+tokenURI ::
+  forall r. TestEnv r -> UIntN S256 -> Web3 String
+tokenURI tenv tokenId =
+  let
+    { superRareLegacy: { deployAddress }
+    , primaryAccount
+    } = tenv
+  in
+    throwOnCallError
+      $ SuperRareLegacy.tokenURI
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+          { tokenId }
+
+-----------------------------------------------------------------------------
 -- | isUpgraded
 -----------------------------------------------------------------------------
 isUpgraded ::
