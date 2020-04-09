@@ -238,6 +238,29 @@ currentBidDetailsOfToken x0 cm r = uncurryFields  r $ currentBidDetailsOfToken' 
     currentBidDetailsOfToken' y0 cm' y2 y3 = call y0 cm' ((tagged $ Tuple2 y2 y3) :: CurrentBidDetailsOfTokenFn)
 
 --------------------------------------------------------------------------------
+-- | DefaultRoyaltyFeeFn
+--------------------------------------------------------------------------------
+
+
+type DefaultRoyaltyFeeFn = Tagged (SProxy "defaultRoyaltyFee()") (Tuple0 )
+
+defaultRoyaltyFee :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+defaultRoyaltyFee x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: DefaultRoyaltyFeeFn)
+
+--------------------------------------------------------------------------------
+-- | GetERC721ContractRoyaltyFeeFn
+--------------------------------------------------------------------------------
+
+
+type GetERC721ContractRoyaltyFeeFn = Tagged (SProxy "getERC721ContractRoyaltyFee(address)") (Tuple1 (Tagged (SProxy "_originContract") Address))
+
+getERC721ContractRoyaltyFee :: TransactionOptions NoPay -> ChainCursor -> { _originContract :: Address } -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+getERC721ContractRoyaltyFee x0 cm r = uncurryFields  r $ getERC721ContractRoyaltyFee' x0 cm
+   where
+    getERC721ContractRoyaltyFee' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_originContract") Address) -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+    getERC721ContractRoyaltyFee' y0 cm' y2 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple1 y2) :: GetERC721ContractRoyaltyFeeFn)
+
+--------------------------------------------------------------------------------
 -- | HasTokenBeenSoldFn
 --------------------------------------------------------------------------------
 
@@ -327,14 +350,30 @@ renounceOwnership :: TransactionOptions NoPay -> Web3 HexString
 renounceOwnership x0 = sendTx x0 ((tagged $ Tuple0 ) :: RenounceOwnershipFn)
 
 --------------------------------------------------------------------------------
--- | RoyaltyFeeFn
+-- | SetDefaultRoyaltyFeeFn
 --------------------------------------------------------------------------------
 
 
-type RoyaltyFeeFn = Tagged (SProxy "royaltyFee()") (Tuple0 )
+type SetDefaultRoyaltyFeeFn = Tagged (SProxy "setDefaultRoyaltyFee(uint256)") (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
 
-royaltyFee :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
-royaltyFee x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: RoyaltyFeeFn)
+setDefaultRoyaltyFee :: TransactionOptions NoPay -> { _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+setDefaultRoyaltyFee x0 r = uncurryFields  r $ setDefaultRoyaltyFee' x0
+   where
+    setDefaultRoyaltyFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    setDefaultRoyaltyFee' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetDefaultRoyaltyFeeFn)
+
+--------------------------------------------------------------------------------
+-- | SetERC721ContractRoyaltyFeeFn
+--------------------------------------------------------------------------------
+
+
+type SetERC721ContractRoyaltyFeeFn = Tagged (SProxy "setERC721ContractRoyaltyFee(address,uint256)") (Tuple2 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
+
+setERC721ContractRoyaltyFee :: TransactionOptions NoPay -> { _originContract :: Address, _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+setERC721ContractRoyaltyFee x0 r = uncurryFields  r $ setERC721ContractRoyaltyFee' x0
+   where
+    setERC721ContractRoyaltyFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    setERC721ContractRoyaltyFee' y0 y1 y2 = sendTx y0 ((tagged $ Tuple2 y1 y2) :: SetERC721ContractRoyaltyFeeFn)
 
 --------------------------------------------------------------------------------
 -- | SetMarketplaceFeeFn
@@ -361,19 +400,6 @@ setPrimarySaleFee x0 r = uncurryFields  r $ setPrimarySaleFee' x0
    where
     setPrimarySaleFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
     setPrimarySaleFee' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetPrimarySaleFeeFn)
-
---------------------------------------------------------------------------------
--- | SetRoyaltyFeeFn
---------------------------------------------------------------------------------
-
-
-type SetRoyaltyFeeFn = Tagged (SProxy "setRoyaltyFee(uint256)") (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
-
-setRoyaltyFee :: TransactionOptions NoPay -> { _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
-setRoyaltyFee x0 r = uncurryFields  r $ setRoyaltyFee' x0
-   where
-    setRoyaltyFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    setRoyaltyFee' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetRoyaltyFeeFn)
 
 --------------------------------------------------------------------------------
 -- | SetSalePriceFn

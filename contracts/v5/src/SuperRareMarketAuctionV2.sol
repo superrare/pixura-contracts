@@ -6,6 +6,7 @@ import "./SendValueOrEscrow.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
+
 contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     using SafeMath for uint256;
 
@@ -27,11 +28,14 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // Mapping of ERC721 contract to mapping of token ID to the current bidder.
     mapping(address => mapping(uint256 => address)) private tokenCurrentBidders;
 
+    // Mapping of ERC721 contract to creator royalty fee
+    mapping(address => uint256) private originContractRoyalty;
+
     // Marketplace fee paid to the owner of the contract.
     uint256 public marketplaceFee = 3; // 3 %
 
     // Royalty fee paid to the creator of a token on secondary sales.
-    uint256 public royaltyFee = 5; // 5 %
+    uint256 public defaultRoyaltyFee = 5; // 5 %
 
     // Primary sale fee split.
     uint256 public primarySaleFee = 15; // 15 %
@@ -79,10 +83,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // Modifiers
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Checks that the token owner is approved for the ERC721Market
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   */
+     * @dev Checks that the token owner is approved for the ERC721Market
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     */
     modifier ownerMustHaveMarketplaceApproved(
         address _originContract,
         uint256 _tokenId
@@ -97,10 +101,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     }
 
     /**
-   * @dev Checks that the token is owned by the sender
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   */
+     * @dev Checks that the token is owned by the sender
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     */
     modifier senderMustBeTokenOwner(address _originContract, uint256 _tokenId) {
         IERC721 erc721 = IERC721(_originContract);
         require(
@@ -114,11 +118,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // setSalePrice
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Set the token for sale
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   * @param _amount uint256 wei value that the item is for sale
-   */
+     * @dev Set the token for sale
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     * @param _amount uint256 wei value that the item is for sale
+     */
     function setSalePrice(
         address _originContract,
         uint256 _tokenId,
@@ -137,10 +141,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // buy
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Purchases the token if it is for sale.
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token.
-   */
+     * @dev Purchases the token if it is for sale.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token.
+     */
     function buy(address _originContract, uint256 _tokenId)
         public
         payable
@@ -202,11 +206,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // tokenPrice
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Gets the sale price of the token
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   * @return sale price of the token
-   */
+     * @dev Gets the sale price of the token
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     * @return sale price of the token
+     */
     function tokenPrice(address _originContract, uint256 _tokenId)
         public
         view
@@ -222,11 +226,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // tokenPriceFeeIncluded
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Gets the sale price of the token including the fee.
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   * @return sale price of the token including the fee.
-   */
+     * @dev Gets the sale price of the token including the fee.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     * @return sale price of the token including the fee.
+     */
     function tokenPriceFeeIncluded(address _originContract, uint256 _tokenId)
         public
         view
@@ -245,11 +249,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // bid
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Bids on the token, replacing the bid if the bid is higher than the current bid. You cannot bid on a token you already own.
-   * @param _newBidAmount uint256 value in wei to bid, plus marketplace fee.
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   */
+     * @dev Bids on the token, replacing the bid if the bid is higher than the current bid. You cannot bid on a token you already own.
+     * @param _newBidAmount uint256 value in wei to bid, plus marketplace fee.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     */
     function bid(
         uint256 _newBidAmount,
         address _originContract,
@@ -292,10 +296,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // acceptBid
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Accept the bid on the token.
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token
-   */
+     * @dev Accept the bid on the token.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     */
     function acceptBid(address _originContract, uint256 _tokenId)
         public
         ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
@@ -338,10 +342,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // cancelBid
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Cancel the bid on the token.
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId uint256 ID of the token.
-   */
+     * @dev Cancel the bid on the token.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token.
+     */
     function cancelBid(address _originContract, uint256 _tokenId) public {
         // Check that sender has a current bid.
         address bidder = msg.sender;
@@ -361,10 +365,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // currentBidDetailsOfToken
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Function to get current bid and bidder of a token.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Function to get current bid and bidder of a token.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function currentBidDetailsOfToken(address _originContract, uint256 _tokenId)
         public
         view
@@ -380,10 +384,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // hasTokenBeenSold
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Function to find whether the token has had a primary sale
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uint256 id of the token.
-  */
+     * @dev Function to find whether the token has had a primary sale
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uint256 id of the token.
+     */
     function hasTokenBeenSold(address _originContract, uint256 _tokenId)
         public
         view
@@ -396,31 +400,65 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // setMarketplaceFee
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Function to set the marketplace fee percentage.
-  * @param _percentage uint256 fee to take from purchases.
-  */
+     * @dev Function to set the marketplace fee percentage.
+     * @param _percentage uint256 fee to take from purchases.
+     */
     function setMarketplaceFee(uint256 _percentage) public onlyOwner {
         marketplaceFee = _percentage;
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // setRoyaltyFee
+    // setDefaultRoyaltyFee
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Function to set the royalty fee percentage.
-  * @param _percentage uint256 royalty fee to take split between seller and creator.
-  */
-    function setRoyaltyFee(uint256 _percentage) public onlyOwner {
-        royaltyFee = _percentage;
+     * @dev Function to set the default royalty fee percentage.
+     * @param _percentage uint256 royalty fee to take split between seller and creator.
+     */
+    function setDefaultRoyaltyFee(uint256 _percentage) public onlyOwner {
+        defaultRoyaltyFee = _percentage;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setERC721ContractRoyaltyFee
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Function to set the royalty fee percentage.
+     * @param _originContract address of the ERC721 tokens
+     * @param _percentage uint256 royalty fee to take split between seller and creator.
+     */
+    function setERC721ContractRoyaltyFee(
+        address _originContract,
+        uint256 _percentage
+    ) public onlyOwner {
+        originContractRoyalty[_originContract] = _percentage;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // getERC721ContractRoyaltyFee
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Function to get the royalty fee percentage for an origin contract.
+     * @param _originContract address of the ERC721 tokens
+     */
+    function getERC721ContractRoyaltyFee(address _originContract)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 percentage = originContractRoyalty[_originContract];
+        if (percentage > 0) {
+            return percentage;
+        }
+        return defaultRoyaltyFee;
     }
 
     /////////////////////////////////////////////////////////////////////////
     // setPrimarySaleFee
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Function to set the primary sale fee percentage.
-  * @param _percentage uint256 fee to take from purchases.
-  */
+     * @dev Function to set the primary sale fee percentage.
+     * @param _percentage uint256 fee to take from purchases.
+     */
     function setPrimarySaleFee(uint256 _percentage) public onlyOwner {
         primarySaleFee = _percentage;
     }
@@ -429,10 +467,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // markTokensAsSold
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Function to set an array of tokens for a contract as sold.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenIds uin256[] array of token ids.
-  */
+     * @dev Function to set an array of tokens for a contract as sold.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenIds uin256[] array of token ids.
+     */
     function markTokensAsSold(
         address _originContract,
         uint256[] calldata _tokenIds
@@ -447,10 +485,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _priceSetterStillOwnsTheToken
     /////////////////////////////////////////////////////////////////////////
     /**
-   * @dev Checks that the token is owned by the same person who set the sale price.
-   * @param _originContract address of the contract storing the token.
-   * @param _tokenId address of the contract storing the token.
-   */
+     * @dev Checks that the token is owned by the same person who set the sale price.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId address of the contract storing the token.
+     */
     function _priceSetterStillOwnsTheToken(
         address _originContract,
         uint256 _tokenId
@@ -465,12 +503,12 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _payout
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to pay the seller, creator, and maintainer.
-  * @param _amount uint256 value to be split.
-  * @param _seller address seller of the token.
-  * @param _originContract address of the token contract.
-  * @param _tokenId uint256 ID of the token.
-  */
+     * @dev Internal function to pay the seller, creator, and maintainer.
+     * @param _amount uint256 value to be split.
+     * @param _seller address seller of the token.
+     * @param _originContract address of the token contract.
+     * @param _tokenId uint256 ID of the token.
+     */
     function _payout(
         uint256 _amount,
         address payable _seller,
@@ -538,13 +576,13 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _calcRoyaltyPayment
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to calculate royalty payment.
-  *      If primary sale: 0
-  *      otherwise:       artist royalty.
-  * @param _amount uint256 value to be split
-  * @param _originContract address of the token contract
-  * @param _tokenId id of the token
-  */
+     * @dev Internal function to calculate royalty payment.
+     *      If primary sale: 0
+     *      otherwise:       artist royalty.
+     * @param _amount uint256 value to be split
+     * @param _originContract address of the token contract
+     * @param _tokenId id of the token
+     */
     function _calcRoyaltyPayment(
         uint256 _amount,
         address _originContract,
@@ -554,6 +592,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         if (isPrimarySale) {
             return 0;
         }
+        uint256 royaltyFee = getERC721ContractRoyaltyFee(_originContract);
         return _amount.mul(royaltyFee).div(100);
     }
 
@@ -561,13 +600,13 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _calcSellerPayment
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to calculate seller payment.
-  *      If primary sale: _amount - split with marketplace,
-  *      otherwise:       _amount - artist royalty.
-  * @param _amount uint256 value to be split
-  * @param _originContract address of the token contract
-  * @param _tokenId id of the token
-  */
+     * @dev Internal function to calculate seller payment.
+     *      If primary sale: _amount - split with marketplace,
+     *      otherwise:       _amount - artist royalty.
+     * @param _amount uint256 value to be split
+     * @param _originContract address of the token contract
+     * @param _tokenId id of the token
+     */
     function _calcSellerPayment(
         uint256 _amount,
         address _originContract,
@@ -590,10 +629,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _calcMarketplaceFee
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function calculate marketplace fee for a given amount.
-  *      f(_amount) =  _amount * (fee % / 100)
-  * @param _amount uint256 value to be split.
-  */
+     * @dev Internal function calculate marketplace fee for a given amount.
+     *      f(_amount) =  _amount * (fee % / 100)
+     * @param _amount uint256 value to be split.
+     */
     function _calcMarketplaceFee(uint256 _amount)
         internal
         view
@@ -606,10 +645,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _setTokenAsSold
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to set a token as sold.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function to set a token as sold.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _setTokenAsSold(address _originContract, uint256 _tokenId)
         internal
     {
@@ -623,10 +662,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _resetTokenPrice
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to set token price to 0 for a give contract.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function to set token price to 0 for a give contract.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _resetTokenPrice(address _originContract, uint256 _tokenId)
         internal
     {
@@ -638,11 +677,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _addressHasBidOnToken
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function see if the given address has an existing bid on a token.
-  * @param _bidder address that may have a current bid.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function see if the given address has an existing bid on a token.
+     * @param _bidder address that may have a current bid.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _addressHasBidOnToken(
         address _bidder,
         address _originContract,
@@ -655,10 +694,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _tokenHasBid
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function see if the token has an existing bid.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function see if the token has an existing bid.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _tokenHasBid(address _originContract, uint256 _tokenId)
         internal
         view
@@ -671,11 +710,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _refundBid
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to return an existing bid on a token to the
-  *      bidder and reset bid.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function to return an existing bid on a token to the
+     *      bidder and reset bid.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _refundBid(address _originContract, uint256 _tokenId) internal {
         address currentBidder = tokenCurrentBidders[_originContract][_tokenId];
         uint256 currentBid = tokenCurrentBids[_originContract][_tokenId];
@@ -691,10 +730,10 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _resetBid
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to reset bid by setting bidder and bid to 0.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function to reset bid by setting bidder and bid to 0.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _resetBid(address _originContract, uint256 _tokenId) internal {
         tokenCurrentBidders[_originContract][_tokenId] = address(0);
         tokenCurrentBids[_originContract][_tokenId] = 0;
@@ -704,12 +743,12 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _setBid
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to set a bid.
-  * @param _amount uint256 value in wei to bid. Does not include marketplace fee.
-  * @param _bidder address of the bidder.
-  * @param _originContract address of ERC721 contract.
-  * @param _tokenId uin256 id of the token.
-  */
+     * @dev Internal function to set a bid.
+     * @param _amount uint256 value in wei to bid. Does not include marketplace fee.
+     * @param _bidder address of the bidder.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
     function _setBid(
         uint256 _amount,
         address _bidder,
@@ -728,16 +767,15 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _makePayable
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to set a bid.
-  * @param _address non-payable address
-  * @return payable address
-  */
+     * @dev Internal function to set a bid.
+     * @param _address non-payable address
+     * @return payable address
+     */
     function _makePayable(address _address)
         internal
-        view
+        pure
         returns (address payable)
     {
         return address(uint160(_address));
     }
-
 }

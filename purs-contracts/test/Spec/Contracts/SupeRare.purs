@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.V4.SupeRare (addNewToken, isWhitelisted, ownerOf, tokenURI, totalSupply, whitelistCreator) as SupeRare
+import Contracts.V4.SupeRare (addNewToken, creatorOfToken, isWhitelisted, ownerOf, tokenURI, totalSupply, transfer, whitelistCreator) as SupeRare
 import Data.Array (drop, length, replicate, take, zipWith, (..))
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
@@ -13,8 +13,9 @@ import Deploy.Contracts.SupeRare (deployScript) as SupeRare
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class.Console (logShow)
 import Network.Ethereum.Core.BigNumber (unsafeToInt)
-import Network.Ethereum.Web3 (Address, ChainCursor(..), Provider, UIntN, Web3, _to, unUIntN)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), HexString, Provider, UIntN, Web3, _to, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
 import Partial.Unsafe (unsafePartial)
 import Test.Spec (SpecT, beforeAll, describe, it)
@@ -110,3 +111,23 @@ totalSupply { supeRare: { deployAddress }, primaryAccount } =
     $ SupeRare.totalSupply
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
+
+transfer ::
+  forall r.
+  TestEnv r ->
+  Address ->
+  Address -> UIntN S256 -> Web3 HexString
+transfer testEnv@{ supeRare: { deployAddress } } from to _tokenId = do
+  txHash <-
+    SupeRare.transfer (defaultTxOpts from # _to ?~ deployAddress)
+      { _to: to, _tokenId }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+creatorOfToken :: forall r. TestEnv r -> UIntN S256 -> Web3 Address
+creatorOfToken { supeRare: { deployAddress }, primaryAccount } _tokenId =
+  throwOnCallError
+    $ SupeRare.creatorOfToken
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { _tokenId }

@@ -5,7 +5,7 @@ import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
 import Contracts.V4.SuperRareV2 (addNewToken, addToWhitelist, isApprovedForAll, isWhitelisted, ownerOf, setApprovalForAll, tokenByIndex, tokenURI, totalSupply, transferFrom) as SuperRareV2
-import Data.Array (filter, length, replicate, zipWith)
+import Data.Array (filter, length, replicate)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
 import Data.Symbol (SProxy(..))
@@ -21,7 +21,7 @@ import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.SupeRare as SupeRare
-import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, mkTokenUris, throwOnCallError, web3Test)
+import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, intToUInt256, throwOnCallError, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =
@@ -108,18 +108,6 @@ init = do
 -----------------------------------------------------------------------------
 -- | Utils
 -----------------------------------------------------------------------------
-createTokensWithFunction ::
-  forall r.
-  { accounts :: Array Address | r } ->
-  Int ->
-  (Address -> String -> Web3 (UIntN S256)) ->
-  Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
-createTokensWithFunction { accounts } amount f = do
-  tokenUris <- mkTokenUris amount
-  for (zipWith { acc: _, _uri: _ } accounts tokenUris) \{ acc, _uri } -> do
-    tokenId <- f acc _uri
-    pure { owner: acc, uri: _uri, tokenId }
-
 addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 (UIntN S256)
 addNewToken tenv@{ v2SuperRare: { deployAddress }, primaryAccount } from _uri = do
   SuperRareV2.addNewToken (defaultTxOpts from # _to ?~ deployAddress)

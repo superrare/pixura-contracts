@@ -16,7 +16,8 @@ import Partial.Unsafe (unsafePartial)
 import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, setSalePrice, tokenPrice)
+import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
+import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (intToUInt256, uInt256FromBigNumber, web3Test)
 
@@ -337,13 +338,47 @@ spec =
                 owedPayment <- unUIntN <$> payments tenv revertfailOnPayAddr
                 checkEthDifference buyer (embed 0) purchaseTxHash
                 owedPayment `shouldEqual` (price + buyerFee)
+      it "can modify the royalty percentage and accept a bid with appropriate royalty" \tenv@{ provider } ->
+        web3Test provider do
+          tokenDetails <- mkSuperRareTokens tenv 1
+          newPerencetage <- genPercentageLessThan 20
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            { accounts
+            , v2Marketplace: { deployAddress: marketAddr }
+            , v2SuperRare: { deployAddress: _originContract }
+            } = tenv
+
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          void $ setERC721ContractRoyaltyFee tenv _originContract newPerencetage
+          bidRess <- for tokensAndBids (placeBid tenv)
+          acceptRess <-
+            for bidRess \abPayload -> do
+              txHash <- acceptBid tenv abPayload
+              pure abPayload { purchaseTxHash = txHash }
+          pricesSec <- map unUIntN <$> genTokenPrices (length acceptRess)
+          let
+            tokensAndBidsSec =
+              zipWith
+                (\price { buyer, tokenId, uri } -> { price, owner: buyer, tokenId, uri })
+                pricesSec
+                acceptRess
+          bidRessSec <- for tokensAndBidsSec (placeBid tenv)
+          acceptRessSec <-
+            for bidRessSec \abPayload -> do
+              txHash <- acceptBid tenv abPayload
+              pure abPayload { purchaseTxHash = txHash }
+          void
+            $ for acceptRessSec \pd@{ owner, sellerFee, purchaseTxHash, price } -> do
+                checkNewOwnerStatus tenv pd
+                checkEthDifference owner (price - sellerFee) purchaseTxHash
 
 -----------------------------------------------------------------------------
 -- | Init
 -----------------------------------------------------------------------------
 init :: Aff (TestEnv ())
 init = do
-  tenv@{ provider } <- initSupeRareV2
+  tenv@{ provider, primaryAccount } <- initSupeRareV2
   { superRareMarketAuctionV2 } <-
     buildTestConfig "http://localhost:8545" 60
       SuperRareMarketAuctionV2.deployScript
@@ -370,6 +405,8 @@ init = do
     tenv@{ accounts, provider } <- SuperRareV2Spec.init
     web3Test provider $ whitelistAddresses tenv
     pure tenv
+
+  initSupeRareLegacy = SuperRareLegacySpec.init
 
   whitelistAddresses tenv@{ accounts } = void $ for accounts (SuperRareV2Spec.whitelistAddress tenv)
 
