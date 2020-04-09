@@ -7,26 +7,24 @@ import Data.Array.Partial (head)
 import Data.Either (isLeft)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (for)
-import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy, mintLegacyTokens)
+import Deploy.Contracts.SuperRareLegacy (mintLegacyTokens)
 import Deploy.Contracts.SuperRareLegacy (deployScript) as SuperRareLegacy
 import Deploy.Utils (GasSettings(..))
 import Effect.Aff (Aff, try)
-import Effect.Class.Console (logShow)
 import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
-import Network.Ethereum.Web3 (embed)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, describeOnly, it, itOnly, pending)
-import Test.Spec.Assertions (shouldEqual, shouldNotSatisfy, shouldSatisfy)
+import Test.Spec (SpecT, beforeAll, describe, it)
+import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SupeRare as SupeRareSpec
 import Test.Spec.Contracts.SuperRareLegacy.Actions (TestEnv, isApprovedForAll, isUpgraded, ownerOf, preUpgradeOwnerOf, refreshPreUpgradeOwnerOf, setApprovalForAll, tokenCreator, tokenURI, totalSupply, transferFrom)
-import Test.Spec.Contracts.Utils (createTokensWithFunction, intToUInt256, nullAddress, uInt256FromBigNumber, web3Test)
+import Test.Spec.Contracts.Utils (createTokensWithFunction, intToUInt256, nullAddress, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =
   beforeAll (init Nothing) do
-    describeOnly "SuperRareLegacy"
+    describe "SuperRareLegacy"
       $ do
           it "should have correct total supply" \tenv@{ provider } ->
             web3Test provider do

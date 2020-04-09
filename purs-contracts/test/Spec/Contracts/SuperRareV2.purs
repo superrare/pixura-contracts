@@ -5,7 +5,7 @@ import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
 import Contracts.V4.SuperRareV2 (addNewToken, addToWhitelist, isApprovedForAll, isWhitelisted, ownerOf, setApprovalForAll, tokenByIndex, tokenURI, totalSupply, transferFrom) as SuperRareV2
-import Data.Array (filter, length, replicate, zipWith)
+import Data.Array (filter, length, replicate)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
 import Data.Symbol (SProxy(..))
@@ -21,7 +21,7 @@ import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.SupeRare as SupeRare
-import Test.Spec.Contracts.Utils (defaultTxOpts, createTokensWithFunction, intToUInt256, mkTokenUris, throwOnCallError, web3Test)
+import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, intToUInt256, throwOnCallError, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =

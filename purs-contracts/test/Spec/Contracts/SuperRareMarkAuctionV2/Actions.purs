@@ -15,7 +15,6 @@ import Data.Maybe (fromJust)
 import Data.Ord (abs)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
-import Deploy.Contracts.SuperRareLegacy as SuperRareLegacy
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Class (class MonadEffect, liftEffect)

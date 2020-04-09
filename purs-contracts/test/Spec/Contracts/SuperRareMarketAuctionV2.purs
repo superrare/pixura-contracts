@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Test (buildTestConfig)
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
-import Data.Maybe (Maybe(..), fromJust)
+import Data.Maybe (fromJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
@@ -14,7 +14,7 @@ import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, it, itOnly)
+import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
 import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice)

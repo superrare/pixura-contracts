@@ -13,6 +13,11 @@ import "./IERC721Creator.sol";
  * @dev This contract acts the new SuperRare Legacy contract (formerly known as SupeRare).
  * It is used to upgrade SupeRare tokens to make them fully ERC721 compliant.
  *
+ * Steps for upgrading:
+ * 1.) As the token owner, make sure you are the `preUpgradeOwner` to ensure you are the receiver of the new token.
+ * 2.) Transfer your old token to this contract's address.
+ * 3.) Boom! You're now the owner of the upgraded token.
+ *
  */
 contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     using SafeMath for uint256;
@@ -54,7 +59,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Mints the legacy tokens without emitting any events.
-     * @param _tokenIds uint256 array of token ids mint.
+     * @param _tokenIds uint256 array of token ids to mint.
      */
     function mintLegacyTokens(uint256[] calldata _tokenIds) external onlyOwner {
         require(
@@ -104,7 +109,8 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     // preUpgradeOwnerOf
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Returns the pre-upgrade token owner of the NFT specified by `tokenId`. This owner will become the owner of the upgrade legacy token. Throws if
+     * @dev Returns the pre-upgrade token owner of the NFT specified by `tokenId`.
+     * This owner will become the owner of the upgraded token.
      * @param _tokenId uint256 token id to get the pre-upgrade owner of.
      * @return address of the token pre-upgrade owner.
      */
@@ -114,7 +120,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
             preUpgradeOwner != address(0),
             "SuperRareLegacy: pre-upgrade owner query for nonexistent token"
         );
-        return _tokenOwnerPreUpgrade[_tokenId];
+        return preUpgradeOwner;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -134,7 +140,9 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     // refreshPreUpgradeOwnerOf
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Refreshes the pre-upgrade token owner. Useful in the event of a non-upgraded token transferring ownership. Throws if token has upgraded or if there is nothing to refresh.
+     * @dev Refreshes the pre-upgrade token owner. Useful in the event of a
+     * non-upgraded token transferring ownership. Throws if token has upgraded
+     * or if there is nothing to refresh.
      * @param _tokenId uint256 token id to refresh the pre-upgrade token owner.
      * @return address of the token pre-upgrade owner.
      */
@@ -146,7 +154,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
         address ownerOnOldSuperRare = oldSuperRare.ownerOf(_tokenId);
         address outdatedOwner = preUpgradeOwnerOf(_tokenId);
         require(
-            ownerOnOldSuperRare != preUpgradeOwnerOf(_tokenId),
+            ownerOnOldSuperRare != outdatedOwner,
             "SuperRareLegacy: cannot refresh when pre-upgrade owners match"
         );
         _transferFromNoEvent(outdatedOwner, ownerOnOldSuperRare, _tokenId);
@@ -157,7 +165,9 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     // tokenCreator
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Refreshes the pre-upgrade token owner. Useful in the event of a non-upgraded token transferring ownership. Throws if token has upgraded or if there is nothing to refresh.
+     * @dev Refreshes the pre-upgrade token owner. Useful in the event of a
+     * non-upgraded token transferring ownership. Throws if token has upgraded
+     * or if there is nothing to refresh.
      * @param _tokenId uint256 token id to refresh the pre-upgrade token owner.
      * @return address of the token pre-upgrade owner.
      */
