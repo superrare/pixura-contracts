@@ -25,6 +25,8 @@ stylish: ## stylish all
 
 init: ## install node files
 	yarn && \
+	[ -d contracts/v4/node_modules ] || ( cp -r node_modules contracts/v4/node_modules ) && \
+	[ -d contracts/v5/node_modules ] || ( cp -r node_modules contracts/v5/node_modules ) && \
 	yarn spago install && \
 	yarn spago build -d
 
@@ -32,11 +34,9 @@ init: ## install node files
 #### Smart Contract / Solidity related commands
 ######################################################
 compile-contracts-v4: ## compiles contracts solc v4
-	@[ -d contracts/v4/node_modules ] || ( cp -r node_modules contracts/v4/node_modules ) && \
 	yarn chanterelle -r contracts/v4 compile
 
 compile-contracts-v5: ## compiles contracts solc v5
-	@[ -d contracts/v5/node_modules ] || ( cp -r node_modules contracts/v5/node_modules ) && \
 	yarn chanterelle -r contracts/v5 compile
 
 compile-contracts: ## compiles contracts 

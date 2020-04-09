@@ -16,7 +16,7 @@ import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
 import Network.Ethereum.Web3 (embed)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, describeOnly, it, pending)
+import Test.Spec (SpecT, beforeAll, describe, describeOnly, it, itOnly, pending)
 import Test.Spec.Assertions (shouldEqual, shouldNotSatisfy, shouldSatisfy)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SupeRare as SupeRareSpec
@@ -118,7 +118,7 @@ spec =
               $ for (1 .. 2) \tid -> do
                   upgraded <- isUpgraded tenv (intToUInt256 tid)
                   upgraded `shouldEqual` true
-          it "can approve others to manage tokens" \tenv@{ provider, accounts } -> do
+          it "should be able to approve others to manage tokens" \tenv@{ provider, accounts } -> do
             web3Test provider
               $ void
               $ for (1 .. 2) \tid -> do
@@ -132,6 +132,20 @@ spec =
                     $ transferFrom tenv owner approvedOperator (intToUInt256 tid)
                   newOwner <- ownerOf tenv (intToUInt256 tid)
                   newOwner `shouldEqual` approvedOperator
+          it "should refresh a pre-upgrade owner and have correct owner after upgrading" \tenv@{ provider } ->
+            web3Test provider do
+              let
+                { numOldSuperRareTokens, accounts, superRareLegacy: { deployAddress: legacyAddr } } = tenv
+              void
+                $ for (3 .. 3) \tid -> do
+                    owner <- SupeRare.ownerOf tenv (intToUInt256 tid)
+                    let
+                      to = unsafePartial head $ filter (\addr -> addr /= owner) accounts
+                    void $ SupeRare.transfer tenv owner to $ intToUInt256 tid
+                    void $ refreshPreUpgradeOwnerOf tenv $ intToUInt256 tid
+                    void $ SupeRare.transfer tenv to legacyAddr $ intToUInt256 tid
+                    newOwner <- ownerOf tenv (intToUInt256 tid)
+                    to `shouldEqual` newOwner
 
 -----------------------------------------------------------------------------
 -- | Init

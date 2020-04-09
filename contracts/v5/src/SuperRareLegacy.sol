@@ -46,7 +46,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // Admin Public Methods
+    // Admin Methods
     /////////////////////////////////////////////////////////////////////////
 
     /////////////////////////////////////////////////////////////////////////
@@ -144,10 +144,12 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
             "SuperRareLegacy: cannot refresh an upgraded token"
         );
         address ownerOnOldSuperRare = oldSuperRare.ownerOf(_tokenId);
+        address outdatedOwner = preUpgradeOwnerOf(_tokenId);
         require(
             ownerOnOldSuperRare != preUpgradeOwnerOf(_tokenId),
             "SuperRareLegacy: cannot refresh when pre-upgrade owners match"
         );
+        _transferFromNoEvent(outdatedOwner, ownerOnOldSuperRare, _tokenId);
         _tokenOwnerPreUpgrade[_tokenId] = ownerOnOldSuperRare;
     }
 
