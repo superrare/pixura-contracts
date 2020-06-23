@@ -3,7 +3,7 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, getERC721ContractRoyaltyFee, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, primarySaleFee, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.V5.SuperRareMarketAuctionV2 (safeAcceptBid, acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, getERC721ContractRoyaltyFee, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, primarySaleFee, safeBuy, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
 import Contracts.V5.TestAssertFailOnPay as TestAssertFailOnPay
 import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
 import Contracts.V5.TestRequireFailOnPay as TestRequireFailOnPay
@@ -137,6 +137,36 @@ bid tenv pd = do
           ?~ fromMinorUnit (price + buyerFee)
       )
       { _tokenId: tokenId, _originContract: originContract, _newBidAmount: uInt256FromBigNumber price }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+-----------------------------------------------------------------------------
+-- | safeAcceptBid
+-----------------------------------------------------------------------------
+safeAcceptBid ::
+  forall r r1.
+  TestEnv r ->
+  { buyer :: Address
+  , tokenId :: UIntN S256
+  , owner :: Address
+  , price :: BigNumber
+  | r1
+  } ->
+  Web3 HexString
+safeAcceptBid tenv pd = do
+  let
+    { v2Marketplace: { deployAddress: marketContract }
+    , v2SuperRare: { deployAddress: originContract }
+    } = tenv
+
+    { tokenId, owner, price } = pd
+  txHash <-
+    SuperRareMarketAuctionV2.safeAcceptBid
+      ( defaultTxOpts owner
+          # _to
+          ?~ marketContract
+      )
+      { _tokenId: tokenId, _originContract: originContract, _amount: uInt256FromBigNumber price }
   awaitTxSuccessWeb3 txHash
   pure txHash
 
@@ -509,6 +539,48 @@ checkPayout ::
 checkPayout { buyer, owner, purchaseTxHash, price, buyerFee, sellerFee } = do
   checkEthDifference buyer (buyerFee + price) purchaseTxHash
   checkEthDifference owner (price - sellerFee) purchaseTxHash
+
+-----------------------------------------------------------------------------
+-- | safeBuy
+-----------------------------------------------------------------------------
+safeBuy ::
+  forall r r1.
+  Lacks "purchaseTxHash" r1 =>
+  TestEnv r ->
+  { buyer :: Address
+  , tokenId :: UIntN S256
+  , owner :: Address
+  , price :: BigNumber
+  , buyerFee :: BigNumber
+  | r1
+  } ->
+  Web3
+    { buyer :: Address
+    , tokenId :: UIntN S256
+    , owner :: Address
+    , price :: BigNumber
+    , buyerFee :: BigNumber
+    , purchaseTxHash :: HexString
+    | r1
+    }
+safeBuy tenv pd = do
+  let
+    { v2Marketplace: { deployAddress: marketContract }
+    , v2SuperRare: { deployAddress: originContract }
+    } = tenv
+
+    { tokenId, price, buyerFee, buyer, owner } = pd
+  txHash <-
+    SuperRareMarketAuctionV2.safeBuy
+      ( defaultTxOpts buyer
+          # _to
+          ?~ marketContract
+          # _value
+          ?~ fromMinorUnit (price + buyerFee)
+      )
+      { _tokenId: tokenId, _originContract: originContract, _amount: uInt256FromBigNumber price }
+  awaitTxSuccessWeb3 txHash
+  pure $ Record.insert (SProxy :: _ "purchaseTxHash") txHash pd
 
 -----------------------------------------------------------------------------
 -- | buy

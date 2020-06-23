@@ -6,7 +6,6 @@ import "./SendValueOrEscrow.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-
 contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     using SafeMath for uint256;
 
@@ -135,6 +134,34 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         tokenPrices[_originContract][_tokenId] = _amount;
         priceSetters[_originContract][_tokenId] = msg.sender;
         emit SetSalePrice(_originContract, _amount, _tokenId);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // safeBuy
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Purchase the token with the expected amount.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     * @param _amount uint256 wei amount expecting to purchase the token for.
+     */
+    function safeBuy(
+        address _originContract,
+        uint256 _tokenId,
+        uint256 _amount
+    )
+        public
+        payable
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
+    {
+        uint256 tokenPrice = tokenPrices[_originContract][_tokenId];
+
+        // Make sure the tokenPrice is the expected amount
+        require(
+            tokenPrice == _amount,
+            "Purchase amount must equal expected amount"
+        );
+        buy(_originContract, _tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -290,6 +317,34 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         _setBid(_newBidAmount, bidder, _originContract, _tokenId);
 
         emit Bid(_originContract, bidder, _newBidAmount, _tokenId);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // safeAcceptBid
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Accept the bid on the token with the expected bid amount.
+     * @param _originContract address of the contract storing the token.
+     * @param _tokenId uint256 ID of the token
+     * @param _amount uint256 wei amount of the bid
+     */
+    function safeAcceptBid(
+        address _originContract,
+        uint256 _tokenId,
+        uint256 _amount
+    )
+        public
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
+        senderMustBeTokenOwner(_originContract, _tokenId)
+    {
+        (uint256 bidAmount, address _) = currentBidDetailsOfToken(
+            _originContract,
+            _tokenId
+        );
+
+        // Make sure accepting bid is the expected amount
+        require(bidAmount == _amount, "Bid amount must equal expected amount");
+        acceptBid(_originContract, _tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////

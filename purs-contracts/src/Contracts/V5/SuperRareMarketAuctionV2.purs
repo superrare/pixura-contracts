@@ -350,6 +350,32 @@ renounceOwnership :: TransactionOptions NoPay -> Web3 HexString
 renounceOwnership x0 = sendTx x0 ((tagged $ Tuple0 ) :: RenounceOwnershipFn)
 
 --------------------------------------------------------------------------------
+-- | SafeAcceptBidFn
+--------------------------------------------------------------------------------
+
+
+type SafeAcceptBidFn = Tagged (SProxy "safeAcceptBid(address,uint256,uint256)") (Tuple3 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))))
+
+safeAcceptBid :: TransactionOptions NoPay -> { _originContract :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)), _amount :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+safeAcceptBid x0 r = uncurryFields  r $ safeAcceptBid' x0
+   where
+    safeAcceptBid' :: TransactionOptions NoPay -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    safeAcceptBid' y0 y1 y2 y3 = sendTx y0 ((tagged $ Tuple3 y1 y2 y3) :: SafeAcceptBidFn)
+
+--------------------------------------------------------------------------------
+-- | SafeBuyFn
+--------------------------------------------------------------------------------
+
+
+type SafeBuyFn = Tagged (SProxy "safeBuy(address,uint256,uint256)") (Tuple3 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))))
+
+safeBuy :: TransactionOptions MinorUnit -> { _originContract :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)), _amount :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+safeBuy x0 r = uncurryFields  r $ safeBuy' x0
+   where
+    safeBuy' :: TransactionOptions MinorUnit -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    safeBuy' y0 y1 y2 y3 = sendTx y0 ((tagged $ Tuple3 y1 y2 y3) :: SafeBuyFn)
+
+--------------------------------------------------------------------------------
 -- | SetDefaultRoyaltyFeeFn
 --------------------------------------------------------------------------------
 
