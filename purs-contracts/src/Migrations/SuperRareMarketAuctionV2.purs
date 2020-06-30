@@ -2,71 +2,223 @@ module Migrations.SuperRareMarketAuctionV2 where
 
 import Prelude
 import Chanterelle.Internal.Logging (LogLevel(..), log)
-import Chanterelle.Internal.Types (DeployConfig(..))
+import Chanterelle.Internal.Types (DeployConfig(..), throwDeploy)
 import Contracts.V5.SuperRareMarketAuctionV2 (markTokensAsSold)
 import Control.Monad.Reader (ask)
-import Data.Array (catMaybes, drop, nub, take, (:))
+import Data.Array (catMaybes, concat, drop, elem, filter, nub, take, (:))
 import Data.Either (Either(..), either)
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Traversable (for)
+import Data.Traversable (for, sequence)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScriptWithGasSettings)
 import Deploy.Utils (GasSettings, awaitTxSuccessWeb3, txOptsWithGasSettings)
 import Effect (Effect)
-import Effect.Aff (joinFiber, launchAff, runAff_)
+import Effect.Aff (Aff, error, runAff_, throwError, try)
+import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (throw, throwException)
-import Migrations.Utils (emptyGasSettings, runMigration)
-import Network.Ethereum.Web3 (Address, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber)
+import Migrations.Utils (attempt, emptyGasSettings, runMigration)
+import Network.Ethereum.Core.HexString (HexString, nullWord, toAscii)
+import Network.Ethereum.Web3 (Address, BigNumber, Provider, TransactionOptions, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber, unAddress, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
+import Network.Ethereum.Web3.Types (NoPay)
+import Node.Encoding (Encoding(..))
+import Node.FS.Aff as FS
+import Node.Process (cwd)
 import Simple.Graphql.Query (runQuery)
 import Simple.Graphql.Types (GraphQlQuery(..), runQueryT)
+import Simple.JSON (readJSON, writeJSON)
 
 type MigrationArgs
-  = { superRareV2ContractAddress :: Address
+  = { v2SuperRareAddress :: Address
+    , oldSuperRareAddress :: Address
+    , legacySuperRareAddress :: Address
     , pixuraApi :: { url :: String, apiKey :: String }
+    , migrationDetailsFile :: Maybe String
     }
+
+type MigrationDetails
+  = { marketContractAddress :: Address
+    , successfulTransactions ::
+        Array
+          { hash :: HexString
+          , tokens ::
+              Array
+                { tokenId :: BigNumber
+                , contractAddress :: Address
+                }
+          }
+    , failedTransactions ::
+        Array
+          { hash :: HexString
+          , error :: String
+          , tokens ::
+              Array
+                { tokenId :: BigNumber
+                , contractAddress :: Address
+                }
+          }
+    }
+
+emptyMigrationDetails :: Address -> MigrationDetails
+emptyMigrationDetails =
+  { marketContractAddress: _
+  , successfulTransactions: []
+  , failedTransactions: []
+  }
 
 main :: Effect Unit
 main =
   runAff_ (either throwException (const $ log Info "Completed Migration"))
     $ runMigration \(args :: { gasSettings :: Maybe GasSettings, migrationArgs :: MigrationArgs }) -> do
         DeployConfig { provider, primaryAccount } <- ask
+        cwd' <- liftEffect cwd
         let
           { migrationArgs
           , gasSettings: mgs
           } = args
 
-          { superRareV2ContractAddress: _originContract
+          gasSettings = fromMaybe emptyGasSettings mgs
+
+          { migrationArgs
+          , gasSettings: mgs
+          } = args
+
+          { v2SuperRareAddress
+          , oldSuperRareAddress
+          , legacySuperRareAddress
+          , migrationDetailsFile
           , pixuraApi: { url, apiKey }
           } = migrationArgs
 
-          gasSettings = fromMaybe emptyGasSettings mgs
-
           txOpts = txOptsWithGasSettings gasSettings # _from ?~ primaryAccount
-        fibTokens <- liftEffect $ launchAff (lookUpSoldTokens { tokenContract: _originContract, url, apiKey })
-        { superRareMarketAuctionV2: { deployAddress } } <- deployScriptWithGasSettings gasSettings
-        res <-
-          liftAff
-            $ runWeb3 provider do
-                soldTokens <- liftAff $ joinFiber fibTokens
-                for (chunk 100 soldTokens) \_tokenIds -> do
-                  txHash <-
-                    markTokensAsSold
-                      (txOpts # _to ?~ deployAddress)
-                      { _originContract, _tokenIds }
-                  log Info $ "Batch marking tokens sold: " <> show _tokenIds
-                  log Info $ "Polling for markTokensAsSold transaction receipt: " <> show txHash
-                  awaitTxSuccessWeb3 txHash
-        case res of
-          Left err -> liftEffect $ throw $ show err
+
+          writeFilename = fromMaybe (cwd' <> "/migration-details.json") migrationDetailsFile
+
+          readJSONFile n = do
+            t <- liftAff $ FS.readTextFile UTF8 n
+            case readJSON t of
+              Left err -> throwDeploy (error $ show err)
+              Right v -> pure v
+        migrationDetails <- case migrationDetailsFile of
+          Nothing -> do
+            { superRareMarketAuctionV2: { deployAddress } } <- deployScriptWithGasSettings gasSettings
+            pure $ emptyMigrationDetails deployAddress
+          Just mdf -> readJSONFile mdf
+        avMd <- liftAff $ AVar.new migrationDetails
+        let
+          batchMark =
+            batchMarkSold
+              { url, apiKey, txOpts, migrationDetails: avMd, writeFilename, provider }
+              100
+              migrationDetails.marketContractAddress
+
+          markSolds = [ batchMark v2SuperRareAddress v2SuperRareAddress, batchMark oldSuperRareAddress legacySuperRareAddress ]
+        eres <- liftAff $ try $ sequence markSolds
+        mmd <- liftAff $ AVar.tryRead avMd
+        case mmd of
+          Nothing -> throwDeploy (error "MigrationDetails found to be empty")
+          Just md -> liftAff $ FS.writeTextFile UTF8 writeFilename (writeJSON md)
+        case eres of
+          Left err -> do
+            throwDeploy (error $ show err)
           _ -> pure unit
+        pure unit
+
+-----------------------------------------------------------------------------
+-- | batchMarkSold
+-----------------------------------------------------------------------------
+batchMarkSold ::
+  { url :: String
+  , apiKey :: String
+  , writeFilename :: String
+  , migrationDetails :: AVar.AVar MigrationDetails
+  , txOpts :: TransactionOptions NoPay
+  , provider :: Provider
+  } ->
+  Int ->
+  Address ->
+  Address ->
+  Address ->
+  Aff Unit
+batchMarkSold cfg batchSize deployAddress _originContract upgradedOriginContract = do
+  let
+    { url, apiKey, txOpts, migrationDetails, provider, writeFilename } = cfg
+  log Debug $ "Looking up sold tokens for contract: " <> addressToString _originContract
+  soldTokens <- lookUpSoldTokens { tokenContract: _originContract, url, apiKey }
+  liftAff do
+    eres <-
+      runWeb3 provider $ void $ batch batchSize soldTokens markTokens
+    either (throwError <<< error <<< show) pure eres
   where
-  chunk n [] = []
+  handleFailure hash err tids md = do
+    log Error $ "Caught error batching tokens as sold:\n" <> show err
+    let
+      failed = { hash, error: err, tokens: map (tokenAndContract upgradedOriginContract) tids }
 
-  chunk n xs = take n xs : chunk n (drop n xs)
+      md' = md { failedTransactions = md.failedTransactions <> [ failed ] }
+    liftAff $ AVar.put md' cfg.migrationDetails
 
+  handleSuccess hash tids md = do
+    let
+      success = { hash, tokens: map (tokenAndContract upgradedOriginContract) tids }
+
+      md' = md { successfulTransactions = md.successfulTransactions <> [ success ] }
+    liftAff $ AVar.put md' cfg.migrationDetails
+
+  markTokens _tokenIds = do
+    let
+      { url, apiKey, txOpts, migrationDetails, provider, writeFilename } = cfg
+    md <- liftAff $ AVar.take migrationDetails
+    eres <-
+      try do
+        let
+          tokenAndAddrs = concat $ md.successfulTransactions <#> \{ tokens } -> tokens
+
+          filteredTokens = filter (\tid -> not $ elem { tokenId: unUIntN tid, contractAddress: upgradedOriginContract } tokenAndAddrs) _tokenIds
+        txHash <-
+          attempt 3
+            $ markTokensAsSold
+                (txOpts # _to ?~ deployAddress)
+                { _originContract, _tokenIds: filteredTokens }
+        log Info $ "Batch marking tokens sold: " <> show _tokenIds
+        log Info $ "Polling for markTokensAsSold transaction receipt: " <> show txHash
+        eres <- try $ awaitTxSuccessWeb3 txHash
+        case eres of
+          Left err -> handleFailure txHash (show err) _tokenIds md
+          Right _ -> handleSuccess txHash _tokenIds md
+    case eres of
+      Left err -> do
+        log Error
+          $ "Caught error batch market tokens, writing error to market details: "
+          <> "\n"
+          <> show err
+        handleFailure nullWord (show err) _tokenIds md
+      Right _ -> pure unit
+
+batch :: forall m a b. (MonadAff m) => Int -> Array a -> (Array a -> m b) -> m (Array b)
+batch batchSize xs f = for (chunk batchSize xs) f
+
+chunk :: forall a. Int -> Array a -> Array (Array a)
+chunk n = case _ of
+  [] -> []
+  xs -> take n xs : chunk n (drop n xs)
+
+addressToString :: Address -> String
+addressToString = toAscii <<< unAddress
+
+tokenAndContract ::
+  Address ->
+  UIntN S256 ->
+  { contractAddress :: Address
+  , tokenId :: BigNumber
+  }
+tokenAndContract addr tid = { tokenId: unUIntN tid, contractAddress: addr }
+
+-----------------------------------------------------------------------------
+-- | lookUpSoldTokens
+-----------------------------------------------------------------------------
 type LookUpSoldTokensRes
   = { allNonFungibleTokenEvents ::
         { nodes :: Array { tokenId :: Int }

@@ -2,13 +2,16 @@ module Migrations.Utils where
 
 import Prelude
 import Chanterelle.Deploy (deployWithProvider)
+import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (DeployM)
+import Control.Monad.Error.Class (class MonadError)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Nullable (null)
 import Deploy.Utils (GasSettings(..))
 import Effect (Effect)
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, Milliseconds(..), delay, try)
+import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (throw)
 import Network.Ethereum.Web3 (Provider, httpProvider)
@@ -58,3 +61,21 @@ type MigrationConfig a
     , gasSettings :: Maybe GasSettings
     , migrationArgs :: a
     }
+
+attempt ::
+  forall e m a.
+  MonadError e m =>
+  MonadAff m =>
+  Show e =>
+  Int -> m a -> m a
+attempt n f = do
+  res <- try f
+  case res of
+    Left err ->
+      if (n - 1) == 0 then
+        liftEffect $ throw $ show err
+      else do
+        liftAff $ delay (Milliseconds 3000.0)
+        log Warn $ "Errored with " <> show (n - 1) <> "attempts left.\n" <> show err
+        attempt (n - 1) f
+    Right v -> pure v

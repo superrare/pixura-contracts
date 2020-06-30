@@ -7,7 +7,6 @@ import Contracts.V5.SuperRareLegacy as SuperRareLegacy
 import Data.Lens ((?~))
 import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
 import Deploy.Utils (awaitTxSuccessWeb3)
-import Effect.Class.Console (logShow)
 import Network.Ethereum.Web3 (Address, ChainCursor(..), HexString, Provider, UIntN, Web3, _to)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
 import Test.Spec.Contracts.Utils (defaultTxOpts, throwOnCallError)

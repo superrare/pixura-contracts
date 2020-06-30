@@ -3,18 +3,21 @@ module Deploy.Utils where
 import Prelude
 import Chanterelle.Deploy (deployContract)
 import Chanterelle.Internal.Deploy (DeployReceipt)
+import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (ContractConfig, DeployConfig(DeployConfig), DeployM)
 import Chanterelle.Internal.Utils (pollTransactionReceipt)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader.Class (ask)
+import Data.Int (toNumber)
 import Data.Lens ((.~), (?~), (^.))
 import Data.List.NonEmpty (singleton)
 import Data.Maybe (Maybe(..), fromJust, maybe)
 import Effect.Aff.Class (class MonadAff)
 import Foreign (ForeignError(..))
-import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
+import Network.Ethereum.Core.BigNumber (decimal, divide, embed, parseBigNumber, pow, unsafeToInt)
 import Network.Ethereum.Core.HexString (HexString)
-import Network.Ethereum.Web3 (BigNumber, Provider, TransactionOptions, TransactionReceipt(..), TransactionStatus(..), Web3, _from, _gas, _gasPrice, defaultTransactionOptions)
+import Network.Ethereum.Web3 (Address, BigNumber, ChainCursor(..), Provider, Transaction(..), TransactionOptions, TransactionReceipt(..), TransactionStatus(..), Web3, _from, _gas, _gasPrice, defaultTransactionOptions, unAddress)
+import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 import Simple.JSON as JSON
@@ -88,3 +91,20 @@ instance gasSettingsReadForeign :: JSON.ReadForeign GasSettings where
         )
         pure
         $ parseBigNumber decimal val
+
+logEthSpentOnTx :: HexString -> Web3 Unit
+logEthSpentOnTx txHash = do
+  Transaction { gasPrice } <- eth_getTransaction txHash
+  TransactionReceipt { gasUsed } <- eth_getTransactionReceipt txHash
+  let
+    weiSpent = gasPrice * gasUsed
+  log Info $ "Eth spent on Tx:" <> show ((toNumber $ unsafeToInt (weiSpent `divide` pow (embed 10) 14)) / 10000.0)
+
+logBalanceAndPrint :: Address -> Web3 Unit
+logBalanceAndPrint primAddr = do
+  bal <- eth_getBalance primAddr Latest
+  log Info
+    $ "Current balance for address "
+    <> show (unAddress primAddr)
+    <> " is "
+    <> show (toNumber (unsafeToInt (bal `divide` pow (embed 10) 14)) / 10000.0)

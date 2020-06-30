@@ -7,8 +7,8 @@ import Data.Array.Partial (head)
 import Data.Either (isLeft)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Traversable (for)
-import Deploy.Contracts.SuperRareLegacy (mintLegacyTokens)
 import Deploy.Contracts.SuperRareLegacy (deployScript) as SuperRareLegacy
+import Deploy.Contracts.SuperRareLegacy (emptyMintingDetails, mintLegacyTokens)
 import Deploy.Utils (GasSettings(..))
 import Effect.Aff (Aff, try)
 import Network.Ethereum.Core.BigNumber (decimal, parseBigNumber)
@@ -170,7 +170,7 @@ init mtenv = do
       )
   let
     tenv' = Record.merge { superRareLegacy, numOldSuperRareTokens } tenv
-  mintLegacyTokens' tenv' tids
+  void $ mintLegacyTokens' tenv' tids
   pure tenv'
   where
   initSupeRare = do
@@ -191,5 +191,9 @@ init mtenv = do
           }
 
       { superRareLegacy: { deployAddress } } = tenv
+
+      tenv' =
+        Record.merge { mintingDetails: Just $ emptyMintingDetails deployAddress }
+          tenv
     in
-      mintLegacyTokens tenv gs tids deployAddress
+      mintLegacyTokens tenv' gs tids deployAddress
