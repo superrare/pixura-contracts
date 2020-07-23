@@ -4,33 +4,36 @@ import Prelude
 import Chanterelle.Test (buildTestConfig)
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
-import Data.Maybe (fromJust)
+import Data.Lens ((?~))
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
 import Effect.Aff (Aff)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
-import Network.Ethereum.Web3 (embed, mkAddress, unUIntN)
+import Network.Ethereum.Web3 (_to, embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
+import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
+import Test.Spec.Contracts.SuperRareLegacy.Actions as SuperRareLegacy
 import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, safeAcceptBid, safeBuy, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
-import Test.Spec.Contracts.Utils (intToUInt256, uInt256FromBigNumber, web3Test)
+import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, uInt256FromBigNumber, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =
   beforeAll init do
     describe "SuperRareMarketAuctionV2" do
-      it "can mark tokens as sold" \tenv@{ provider } ->
+      it "can mark tokens as sold" \tenv@{ provider, v2SuperRare: { deployAddress: srV2Addr } } ->
         web3Test provider do
           newTokens <- mkSuperRareTokens tenv 1
-          markTokensAsSold tenv (newTokens <#> \{ tokenId } -> tokenId)
+          markTokensAsSold tenv srV2Addr (newTokens <#> \{ tokenId } -> tokenId)
           isMarkedSolds <-
-            for (newTokens <#> \{ tokenId } -> tokenId) (hasTokenBeenSold tenv)
+            for newTokens \{ tokenId, contractAddress } -> hasTokenBeenSold tenv contractAddress tokenId
           isMarkedSolds `shouldEqual` replicate (length newTokens) true
       it "can set the price of tokens" \tenv@{ provider } ->
         web3Test provider do
@@ -39,10 +42,10 @@ spec =
           let
             tokenDetails = zipWith (Record.insert (SProxy :: _ "price")) prices newTokens
           void
-            $ for tokenDetails \td@{ tokenId, price, owner } -> do
-                setSalePrice tenv owner tokenId price
+            $ for tokenDetails \td@{ tokenId, contractAddress, price, owner } -> do
+                setSalePrice tenv contractAddress owner tokenId price
           onChainPrices <-
-            for tokenDetails \{ tokenId } -> tokenPrice tenv tokenId
+            for tokenDetails \{ tokenId, contractAddress } -> tokenPrice tenv contractAddress tokenId
           onChainPrices `shouldEqual` (tokenDetails <#> \{ price } -> price)
       it "can make sale - primary" \tenv@{ provider, accounts } ->
         web3Test provider do
@@ -69,9 +72,16 @@ spec =
                 updatedPayload = Record.disjointUnion { buyer } purchasePayload
               buy tenv updatedPayload
           void
-            $ for purchaseRess \{ tokenId, buyer: owner, uri } -> do
-                price <- genPriceAndSet tenv owner tokenId
-                purchasePayloads <- mkPurchasePayload tenv { tokenId, owner, price, uri }
+            $ for purchaseRess \{ tokenId, buyer: owner, uri, contractAddress } -> do
+                price <- genPriceAndSet tenv contractAddress owner tokenId
+                purchasePayloads <-
+                  mkPurchasePayload tenv
+                    { tokenId
+                    , owner
+                    , price
+                    , uri
+                    , contractAddress
+                    }
                 let
                   buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
 
@@ -102,9 +112,16 @@ spec =
                 updatedPayload = Record.disjointUnion { buyer } purchasePayload
               safeBuy tenv updatedPayload
           void
-            $ for purchaseRess \{ tokenId, buyer: owner, uri } -> do
-                price <- genPriceAndSet tenv owner tokenId
-                purchasePayloads <- mkPurchasePayload tenv { tokenId, owner, price, uri }
+            $ for purchaseRess \{ tokenId, buyer: owner, uri, contractAddress } -> do
+                price <- genPriceAndSet tenv contractAddress owner tokenId
+                purchasePayloads <-
+                  mkPurchasePayload tenv
+                    { tokenId
+                    , owner
+                    , price
+                    , uri
+                    , contractAddress
+                    }
                 let
                   buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
 
@@ -117,7 +134,7 @@ spec =
           let
             tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
           bidRess <- for tokensAndBids (placeBid tenv)
-          currentBids <- for bidRess (\{ tokenId } -> currentBidDetailsOfToken tenv tokenId)
+          currentBids <- for bidRess (\{ tokenId, contractAddress } -> currentBidDetailsOfToken tenv contractAddress tokenId)
           currentBids `shouldEqual` (bidRess <#> \{ price, buyer } -> { price: uInt256FromBigNumber price, bidder: buyer })
           void
             $ for bidRess \bidsRes@{ buyer, buyerFee, purchaseTxHash, price } -> do
@@ -131,8 +148,15 @@ spec =
             tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
           bidRess <- for tokensAndBids (placeBid tenv)
           bidRess2 <-
-            for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
-              purch <- mkPurchasePayload tenv { owner, tokenId, price: price * embed 2, uri }
+            for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee, contractAddress } -> do
+              purch <-
+                mkPurchasePayload tenv
+                  { owner
+                  , tokenId
+                  , price: price * embed 2
+                  , uri
+                  , contractAddress
+                  }
               let
                 newBuyer = unsafePartial head $ filter (\acc -> acc /= owner && acc /= buyer) accounts
 
@@ -189,7 +213,7 @@ spec =
           let
             tokensAndBidsSec =
               zipWith
-                (\price { buyer, tokenId, uri } -> { price, owner: buyer, tokenId, uri })
+                (\price { buyer, tokenId, uri, contractAddress } -> { price, owner: buyer, tokenId, uri, contractAddress })
                 pricesSec
                 acceptRess
           bidRessSec <- for tokensAndBidsSec (placeBid tenv)
@@ -231,7 +255,7 @@ spec =
           let
             tokensAndBidsSec =
               zipWith
-                (\price { buyer, tokenId, uri } -> { price, owner: buyer, tokenId, uri })
+                (\price { buyer, tokenId, uri, contractAddress } -> { price, owner: buyer, tokenId, uri, contractAddress })
                 pricesSec
                 acceptRess
           bidRessSec <- for tokensAndBidsSec (placeBid tenv)
@@ -256,7 +280,7 @@ spec =
             for bidRess \br -> do
               txHash <- cancelBid tenv br
               pure br { purchaseTxHash = txHash }
-          currentBids <- for cancelBidRess (\{ tokenId } -> currentBidDetailsOfToken tenv tokenId)
+          currentBids <- for cancelBidRess (\{ tokenId, contractAddress } -> currentBidDetailsOfToken tenv contractAddress tokenId)
           currentBids `shouldEqual` replicate (length cancelBidRess) { price: intToUInt256 0, bidder: zeroAddress }
           void
             $ for bidRess \{ buyer, buyerFee, purchaseTxHash, price } -> do
@@ -280,11 +304,11 @@ spec =
               purchaseTxHash <- expensiveWalletBid tenv updatedPayload
               pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
           bidRess2 <-
-            for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+            for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee, contractAddress } -> do
               purch <-
                 mkPurchasePayload
                   tenv
-                  { owner, tokenId, price: price * embed 2, uri }
+                  { owner, tokenId, price: price * embed 2, uri, contractAddress }
               let
                 newBuyer =
                   unsafePartial head
@@ -325,11 +349,11 @@ spec =
               purchaseTxHash <- assertFailBid tenv updatedPayload
               pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
           void
-            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee, contractAddress } -> do
                 purch <-
                   mkPurchasePayload
                     tenv
-                    { owner, tokenId, price: price * embed 2, uri }
+                    { owner, tokenId, price: price * embed 2, uri, contractAddress }
                 let
                   newBuyer =
                     unsafePartial head
@@ -362,11 +386,11 @@ spec =
               purchaseTxHash <- requireFailBid tenv updatedPayload
               pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
           void
-            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee, contractAddress } -> do
                 purch <-
                   mkPurchasePayload
                     tenv
-                    { owner, tokenId, price: price * embed 2, uri }
+                    { owner, tokenId, price: price * embed 2, uri, contractAddress }
                 let
                   newBuyer =
                     unsafePartial head
@@ -398,11 +422,11 @@ spec =
               purchaseTxHash <- revertFailBid tenv updatedPayload
               pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
           void
-            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee } -> do
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee, contractAddress } -> do
                 purch <-
                   mkPurchasePayload
                     tenv
-                    { owner, tokenId, price: price * embed 2, uri }
+                    { owner, tokenId, price: price * embed 2, uri, contractAddress }
                 let
                   newBuyer =
                     unsafePartial head
@@ -435,7 +459,7 @@ spec =
           let
             tokensAndBidsSec =
               zipWith
-                (\price { buyer, tokenId, uri } -> { price, owner: buyer, tokenId, uri })
+                (\price { buyer, tokenId, uri, contractAddress } -> { price, owner: buyer, tokenId, uri, contractAddress })
                 pricesSec
                 acceptRess
           bidRessSec <- for tokensAndBidsSec (placeBid tenv)
@@ -447,13 +471,45 @@ spec =
             $ for acceptRessSec \pd@{ owner, sellerFee, purchaseTxHash, price } -> do
                 checkNewOwnerStatus tenv pd
                 checkEthDifference owner (price - sellerFee) purchaseTxHash
+      it "should place bid on token before being upgraded, have it upgrade, and then have bid be accepted" \tenv@{ provider } ->
+        web3Test provider do
+          let
+            { accounts
+            , superRareLegacy: { deployAddress: legacyAddr }
+            , v2Marketplace:
+                { deployAddress: marketAddr
+                }
+            } = tenv
+
+            legacyCallArgs =
+              ( defaultTxOpts legacyAddr
+                  # _to
+                  ?~ legacyAddr
+              )
+
+            tid = intToUInt256 2
+          uri <- SupeRare.tokenURI tenv tid
+          owner <- SupeRare.ownerOf tenv tid
+          prices <- map unUIntN <$> genTokenPrices 1
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices [ { owner, uri, tokenId: tid, contractAddress: legacyAddr } ]
+          bidRess <- for tokensAndBids (placeBid tenv)
+          void $ SuperRareLegacy.setApprovalForAll tenv owner marketAddr true
+          void $ for bidRess $ \{ tokenId, owner: owner' } -> SuperRareLegacy.upgrade tenv owner' tokenId
+          void
+            $ for bidRess \abPayload -> do
+                txHash <- safeAcceptBid tenv abPayload
+                pure abPayload { purchaseTxHash = txHash }
 
 -----------------------------------------------------------------------------
 -- | Init
 -----------------------------------------------------------------------------
 init :: Aff (TestEnv ())
 init = do
-  tenv@{ provider, primaryAccount } <- initSupeRareV2
+  tenv@{ provider, supeRare, accounts, primaryAccount } <- initSupeRareV2
+  let
+    srTenv = { supeRare, provider, accounts, primaryAccount }
+  { superRareLegacy, numOldSuperRareTokens } <- initSupeRareLegacy srTenv
   { superRareMarketAuctionV2 } <-
     buildTestConfig "http://localhost:8545" 60
       SuperRareMarketAuctionV2.deployScript
@@ -473,6 +529,8 @@ init = do
         , testExpensiveWallet
         , testRequireFailOnPay
         , testRevertOnPay
+        , superRareLegacy
+        , numOldSuperRareTokens
         }
         tenv
   where
@@ -481,7 +539,7 @@ init = do
     web3Test provider $ whitelistAddresses tenv
     pure tenv
 
-  initSupeRareLegacy = SuperRareLegacySpec.init
+  initSupeRareLegacy = SuperRareLegacySpec.init <<< Just
 
   whitelistAddresses tenv@{ accounts } = void $ for accounts (SuperRareV2Spec.whitelistAddress tenv)
 

@@ -3,6 +3,7 @@ module Test.Spec.Contracts.SuperRareLegacy.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
+import Contracts.V4.SupeRare as SupeRare
 import Contracts.V5.SuperRareLegacy as SuperRareLegacy
 import Data.Lens ((?~))
 import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
@@ -199,5 +200,26 @@ transferFrom tenv from to tokenId = do
           ?~ deployAddress
       )
       { from, to, tokenId }
+  awaitTxSuccessWeb3 txHash
+  pure txHash
+
+-----------------------------------------------------------------------------
+-- | upgrade
+-----------------------------------------------------------------------------
+upgrade ::
+  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 HexString
+upgrade tenv owner tokenId = do
+  let
+    { superRareLegacy: { deployAddress }
+    , supeRare: { deployAddress: supeRareAddress }
+    , primaryAccount
+    } = tenv
+  txHash <-
+    SupeRare.transfer
+      ( defaultTxOpts owner
+          # _to
+          ?~ supeRareAddress
+      )
+      { _to: deployAddress, _tokenId: tokenId }
   awaitTxSuccessWeb3 txHash
   pure txHash

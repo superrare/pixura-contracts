@@ -66,13 +66,13 @@ init = do
 -----------------------------------------------------------------------------
 -- | Utils
 -----------------------------------------------------------------------------
-addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 (UIntN S256)
+addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 { tokenId :: UIntN S256, contractAddress :: Address }
 addNewToken testEnv@{ supeRare: { deployAddress }, primaryAccount } from _uri = do
   lastTokenId <- (unsafeToInt <<< unUIntN) <$> totalSupply testEnv
   SupeRare.addNewToken (defaultTxOpts from # _to ?~ deployAddress)
     { _uri }
     >>= awaitTxSuccessWeb3
-  pure (intToUInt256 (lastTokenId + 1))
+  pure { tokenId: intToUInt256 (lastTokenId + 1), contractAddress: deployAddress }
 
 whitelistAddress :: forall r. TestEnv r -> Address -> Web3 Unit
 whitelistAddress { supeRare: { deployAddress }, primaryAccount } _creator =

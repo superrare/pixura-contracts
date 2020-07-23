@@ -1,6 +1,6 @@
 {
     "networks": {},
-    "lastModified": 1595455353544,
+    "lastModified": 1595455407513,
     "code": {
         "deployedBytecode": {
             "linkReferences": {},
@@ -14,26 +14,19 @@
     "abi": [
         {
             "constant": true,
-            "inputs": [],
-            "name": "name",
-            "outputs": [
+            "inputs": [
                 {
-                    "name": "_name",
-                    "type": "string"
+                    "internalType": "uint256",
+                    "name": "_tokenId",
+                    "type": "uint256"
                 }
             ],
-            "payable": false,
-            "stateMutability": "pure",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [],
-            "name": "totalSupply",
+            "name": "creatorOfToken",
             "outputs": [
                 {
+                    "internalType": "address",
                     "name": "",
-                    "type": "uint256"
+                    "type": "address"
                 }
             ],
             "payable": false,
@@ -44,6 +37,7 @@
             "constant": true,
             "inputs": [
                 {
+                    "internalType": "address",
                     "name": "_creator",
                     "type": "address"
                 }
@@ -51,8 +45,45 @@
             "name": "isWhitelisted",
             "outputs": [
                 {
+                    "internalType": "bool",
                     "name": "",
                     "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "name",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "_name",
+                    "type": "string"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "pure",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_tokenId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "ownerOf",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
                 }
             ],
             "payable": false,
@@ -65,6 +96,7 @@
             "name": "symbol",
             "outputs": [
                 {
+                    "internalType": "string",
                     "name": "_symbol",
                     "type": "string"
                 }
@@ -77,6 +109,7 @@
             "constant": true,
             "inputs": [
                 {
+                    "internalType": "uint256",
                     "name": "_tokenId",
                     "type": "uint256"
                 }
@@ -84,6 +117,7 @@
             "name": "tokenURI",
             "outputs": [
                 {
+                    "internalType": "string",
                     "name": "",
                     "type": "string"
                 }
@@ -94,17 +128,13 @@
         },
         {
             "constant": true,
-            "inputs": [
-                {
-                    "name": "_tokenId",
-                    "type": "uint256"
-                }
-            ],
-            "name": "creatorOfToken",
+            "inputs": [],
+            "name": "totalSupply",
             "outputs": [
                 {
+                    "internalType": "uint256",
                     "name": "",
-                    "type": "address"
+                    "type": "uint256"
                 }
             ],
             "payable": false,

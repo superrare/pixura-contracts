@@ -7,7 +7,6 @@ import "openzeppelin-solidity-pixura/contracts/token/ERC721/ERC721Full.sol";
 import "./ISupeRare.sol";
 import "./IERC721Creator.sol";
 
-
 /**
  * @title SuperRare Legacy Tokens
  * @dev This contract acts the new SuperRare Legacy contract (formerly known as SupeRare).
@@ -98,10 +97,9 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
      * @return address of the token owner.
      */
     function ownerOf(uint256 _tokenId) public view returns (address owner) {
-        require(
-            isUpgraded(_tokenId),
-            "SuperRareLegacy: owner query for non-upgraded token"
-        );
+        if (!isUpgraded((_tokenId))) {
+            return address(this);
+        }
         return ERC721.ownerOf(_tokenId);
     }
 

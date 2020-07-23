@@ -236,7 +236,7 @@ let additions =
             , "heterogeneous"
             ]
           , repo = "https://github.com/f-o-a-m/purescript-web3.git"
-          , version = "v2.0.1"
+          , version = "a5e5a6e01e3effa5656ef26fa8fded69fd165131"
           }
       , chanterelle =
           { dependencies =

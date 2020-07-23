@@ -15,6 +15,7 @@ import Data.Maybe (fromJust)
 import Data.Ord (abs)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
+import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Class (class MonadEffect, liftEffect)
@@ -42,6 +43,8 @@ type TestEnv r
     , primaryAccount :: Address
     , v2SuperRare :: DeployReceipt SuperRareV2.SuperRareV2
     , v2Marketplace :: DeployReceipt NoArgs
+    , superRareLegacy :: DeployReceipt SuperRareLegacy
+    , numOldSuperRareTokens :: Int
     , testAssertFailOnPay :: DeployReceipt NoArgs
     , testExpensiveWallet :: DeployReceipt NoArgs
     , testRequireFailOnPay :: DeployReceipt NoArgs
@@ -57,23 +60,23 @@ cancelBid ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   | r1
   } ->
   Web3 HexString
 cancelBid tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     } = tenv
 
-    { tokenId, buyer } = pd
+    { tokenId, contractAddress, buyer } = pd
   txHash <-
     SuperRareMarketAuctionV2.cancelBid
       ( defaultTxOpts buyer
           # _to
           ?~ marketContract
       )
-      { _tokenId: tokenId, _originContract: originContract }
+      { _tokenId: tokenId, _originContract: contractAddress }
   awaitTxSuccessWeb3 txHash
   pure txHash
 
@@ -84,12 +87,14 @@ placeBid ::
   forall r.
   TestEnv r ->
   { tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   , price :: BigNumber
   , uri :: String
   } ->
   Web3
     { tokenId :: UIntN S256
+    , contractAddress :: Address
     , owner :: Address
     , price :: BigNumber
     , buyerFee :: BigNumber
@@ -98,8 +103,8 @@ placeBid ::
     , buyer :: Address
     , uri :: String
     }
-placeBid tenv@{ accounts } td@{ owner, tokenId, price, uri } = do
-  purch <- mkPurchasePayload tenv { owner, tokenId, price, uri }
+placeBid tenv@{ accounts } td@{ owner, tokenId, price, uri, contractAddress } = do
+  purch <- mkPurchasePayload tenv { owner, tokenId, price, uri, contractAddress }
   let
     buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
 
@@ -115,6 +120,7 @@ bid ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   , price :: BigNumber
   , buyerFee :: BigNumber
@@ -124,10 +130,9 @@ bid ::
 bid tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     } = tenv
 
-    { tokenId, price, buyerFee, buyer, owner } = pd
+    { tokenId, price, buyerFee, buyer, owner, contractAddress } = pd
   txHash <-
     SuperRareMarketAuctionV2.bid
       ( defaultTxOpts buyer
@@ -136,7 +141,7 @@ bid tenv pd = do
           # _value
           ?~ fromMinorUnit (price + buyerFee)
       )
-      { _tokenId: tokenId, _originContract: originContract, _newBidAmount: uInt256FromBigNumber price }
+      { _tokenId: tokenId, _originContract: contractAddress, _newBidAmount: uInt256FromBigNumber price }
   awaitTxSuccessWeb3 txHash
   pure txHash
 
@@ -148,6 +153,7 @@ safeAcceptBid ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   , price :: BigNumber
   | r1
@@ -156,17 +162,16 @@ safeAcceptBid ::
 safeAcceptBid tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     } = tenv
 
-    { tokenId, owner, price } = pd
+    { tokenId, owner, price, contractAddress } = pd
   txHash <-
     SuperRareMarketAuctionV2.safeAcceptBid
       ( defaultTxOpts owner
           # _to
           ?~ marketContract
       )
-      { _tokenId: tokenId, _originContract: originContract, _amount: uInt256FromBigNumber price }
+      { _tokenId: tokenId, _originContract: contractAddress, _amount: uInt256FromBigNumber price }
   awaitTxSuccessWeb3 txHash
   pure txHash
 
@@ -178,6 +183,7 @@ acceptBid ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   | r1
   } ->
@@ -185,17 +191,16 @@ acceptBid ::
 acceptBid tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     } = tenv
 
-    { tokenId, owner } = pd
+    { tokenId, contractAddress, owner } = pd
   txHash <-
     SuperRareMarketAuctionV2.acceptBid
       ( defaultTxOpts owner
           # _to
           ?~ marketContract
       )
-      { _tokenId: tokenId, _originContract: originContract }
+      { _tokenId: tokenId, _originContract: contractAddress }
   awaitTxSuccessWeb3 txHash
   pure txHash
 
@@ -207,7 +212,13 @@ mkTokensAndSetForSale ::
   TestEnv r ->
   Int ->
   Web3
-    ( Array { owner :: Address, price :: BigNumber, tokenId :: UIntN S256, uri :: String }
+    ( Array
+        { owner :: Address
+        , price :: BigNumber
+        , tokenId :: UIntN S256
+        , contractAddress :: Address
+        , uri :: String
+        }
     )
 mkTokensAndSetForSale tenv n = do
   newTokens <- mkSuperRareTokens tenv n
@@ -216,20 +227,21 @@ mkTokensAndSetForSale tenv n = do
   let
     tokenDetails = zipWith (Record.insert (SProxy :: _ "price")) prices newTokens
   updatedDetails <-
-    for tokenDetails \td@{ tokenId, price, owner, uri } -> do
-      setSalePrice tenv owner tokenId price
-      pure { owner, tokenId, price: unUIntN price, uri }
+    for tokenDetails \td@{ tokenId, price, owner, uri, contractAddress } -> do
+      setSalePrice tenv contractAddress owner tokenId price
+      pure { owner, tokenId, price: unUIntN price, uri, contractAddress }
   pure updatedDetails
 
 -----------------------------------------------------------------------------
 -- | setSalePrice
 -----------------------------------------------------------------------------
 setSalePrice ::
-  forall r. TestEnv r -> Address -> UIntN S256 -> UIntN S256 -> Web3 Unit
-setSalePrice tenv owner _tokenId _amount =
+  forall r.
+  TestEnv r ->
+  Address -> Address -> UIntN S256 -> UIntN S256 -> Web3 Unit
+setSalePrice tenv _originContract owner _tokenId _amount =
   let
-    { v2SuperRare: { deployAddress: _originContract }
-    , v2Marketplace: { deployAddress }
+    { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   in
@@ -242,16 +254,15 @@ setSalePrice tenv owner _tokenId _amount =
 -- | genPriceAndSet
 -----------------------------------------------------------------------------
 genPriceAndSet ::
-  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 BigNumber
-genPriceAndSet tenv owner tokenId = do
+  forall r. TestEnv r -> Address -> Address -> UIntN S256 -> Web3 BigNumber
+genPriceAndSet tenv contractAddress owner tokenId = do
   let
-    { v2SuperRare: { deployAddress: _originContract }
-    , v2Marketplace: { deployAddress }
+    { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   do
     price <- unsafePartial head <$> genTokenPrices 1
-    setSalePrice tenv owner tokenId price
+    setSalePrice tenv contractAddress owner tokenId price
     pure $ unUIntN price
 
 -----------------------------------------------------------------------------
@@ -274,11 +285,10 @@ marketplaceFee tenv =
 -- | currentBidDetailsOfToken
 -----------------------------------------------------------------------------
 currentBidDetailsOfToken ::
-  forall r. TestEnv r -> UIntN S256 -> Web3 { price :: UIntN S256, bidder :: Address }
-currentBidDetailsOfToken tenv _tokenId = do
+  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 { price :: UIntN S256, bidder :: Address }
+currentBidDetailsOfToken tenv _originContract _tokenId = do
   let
     { v2Marketplace: { deployAddress }
-    , v2SuperRare: { deployAddress: _originContract }
     , primaryAccount
     } = tenv
   (Tuple2 price bidder) <-
@@ -327,11 +337,10 @@ setERC721ContractRoyaltyFee tenv _originContract _percentage = do
 -- | royaltyFee
 -----------------------------------------------------------------------------
 royaltyFee ::
-  forall r. TestEnv r -> Web3 (UIntN S256)
-royaltyFee tenv =
+  forall r. TestEnv r -> Address -> Web3 (UIntN S256)
+royaltyFee tenv _originContract =
   let
     { v2Marketplace: { deployAddress }
-    , v2SuperRare: { deployAddress: _originContract }
     , primaryAccount
     } = tenv
   in
@@ -361,11 +370,10 @@ primarySaleFee tenv =
 -- | markTokensAsSold
 -----------------------------------------------------------------------------
 markTokensAsSold ::
-  forall r. TestEnv r -> Array (UIntN S256) -> Web3 Unit
-markTokensAsSold tenv _tokenIds =
+  forall r. TestEnv r -> Address -> Array (UIntN S256) -> Web3 Unit
+markTokensAsSold tenv _originContract _tokenIds =
   let
-    { v2SuperRare: { deployAddress: _originContract }
-    , v2Marketplace: { deployAddress }
+    { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   in
@@ -378,11 +386,10 @@ markTokensAsSold tenv _tokenIds =
 -- | hasTokenBeenSold
 -----------------------------------------------------------------------------
 hasTokenBeenSold ::
-  forall r. TestEnv r -> UIntN S256 -> Web3 Boolean
-hasTokenBeenSold tenv _tokenId =
+  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 Boolean
+hasTokenBeenSold tenv _originContract _tokenId =
   let
-    { v2SuperRare: { deployAddress: _originContract }
-    , v2Marketplace: { deployAddress }
+    { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   in
@@ -396,11 +403,10 @@ hasTokenBeenSold tenv _tokenId =
 -- | tokenPrice
 -----------------------------------------------------------------------------
 tokenPrice ::
-  forall r. TestEnv r -> UIntN S256 -> Web3 (UIntN S256)
-tokenPrice tenv _tokenId =
+  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 (UIntN S256)
+tokenPrice tenv _originContract _tokenId =
   let
-    { v2SuperRare: { deployAddress: _originContract }
-    , v2Marketplace: { deployAddress }
+    { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   in
@@ -417,8 +423,8 @@ mkSuperRareTokens ::
   forall r.
   TestEnv r ->
   Int ->
-  Web3 (Array { owner ∷ Address, tokenId ∷ UIntN S256, uri ∷ String })
-mkSuperRareTokens tenv n =
+  Web3 (Array { owner ∷ Address, tokenId ∷ UIntN S256, uri ∷ String, contractAddress :: Address })
+mkSuperRareTokens tenv n = do
   createTokensWithFunction
     tenv
     n
@@ -453,6 +459,7 @@ mkPurchasePayload ::
   { owner :: Address
   , price :: BigNumber
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , uri :: String
   } ->
   Web3
@@ -461,15 +468,16 @@ mkPurchasePayload ::
     , price :: BigNumber
     , sellerFee :: BigNumber
     , tokenId :: UIntN S256
+    , contractAddress :: Address
     , uri :: String
     }
 mkPurchasePayload tenv td = do
   let
-    { tokenId, price, owner } = td
+    { tokenId, contractAddress, price, owner } = td
   marketfee <- unUIntN <$> marketplaceFee tenv
-  royaltyfee <- unUIntN <$> royaltyFee tenv
+  royaltyfee <- unUIntN <$> royaltyFee tenv contractAddress
   primfee <- unUIntN <$> primarySaleFee tenv
-  sold <- hasTokenBeenSold tenv tokenId
+  sold <- hasTokenBeenSold tenv contractAddress tokenId
   let
     sellerFeePercent =
       if not sold then
@@ -549,6 +557,7 @@ safeBuy ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   , price :: BigNumber
   , buyerFee :: BigNumber
@@ -557,6 +566,7 @@ safeBuy ::
   Web3
     { buyer :: Address
     , tokenId :: UIntN S256
+    , contractAddress :: Address
     , owner :: Address
     , price :: BigNumber
     , buyerFee :: BigNumber
@@ -566,10 +576,9 @@ safeBuy ::
 safeBuy tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     } = tenv
 
-    { tokenId, price, buyerFee, buyer, owner } = pd
+    { tokenId, contractAddress, price, buyerFee, buyer, owner } = pd
   txHash <-
     SuperRareMarketAuctionV2.safeBuy
       ( defaultTxOpts buyer
@@ -578,7 +587,7 @@ safeBuy tenv pd = do
           # _value
           ?~ fromMinorUnit (price + buyerFee)
       )
-      { _tokenId: tokenId, _originContract: originContract, _amount: uInt256FromBigNumber price }
+      { _tokenId: tokenId, _originContract: contractAddress, _amount: uInt256FromBigNumber price }
   awaitTxSuccessWeb3 txHash
   pure $ Record.insert (SProxy :: _ "purchaseTxHash") txHash pd
 
@@ -591,6 +600,7 @@ buy ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   , price :: BigNumber
   , buyerFee :: BigNumber
@@ -599,6 +609,7 @@ buy ::
   Web3
     { buyer :: Address
     , tokenId :: UIntN S256
+    , contractAddress :: Address
     , owner :: Address
     , price :: BigNumber
     , buyerFee :: BigNumber
@@ -608,10 +619,9 @@ buy ::
 buy tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     } = tenv
 
-    { tokenId, price, buyerFee, buyer, owner } = pd
+    { tokenId, contractAddress, price, buyerFee, buyer, owner } = pd
   txHash <-
     SuperRareMarketAuctionV2.buy
       ( defaultTxOpts buyer
@@ -620,7 +630,7 @@ buy tenv pd = do
           # _value
           ?~ fromMinorUnit (price + buyerFee)
       )
-      { _tokenId: tokenId, _originContract: originContract }
+      { _tokenId: tokenId, _originContract: contractAddress }
   awaitTxSuccessWeb3 txHash
   pure $ Record.insert (SProxy :: _ "purchaseTxHash") txHash pd
 
@@ -632,6 +642,7 @@ expensiveWalletBid ::
   TestEnv r ->
   { buyer :: Address
   , tokenId :: UIntN S256
+  , contractAddress :: Address
   , owner :: Address
   , price :: BigNumber
   , buyerFee :: BigNumber
@@ -641,12 +652,11 @@ expensiveWalletBid ::
 expensiveWalletBid tenv pd = do
   let
     { v2Marketplace: { deployAddress: marketContract }
-    , v2SuperRare: { deployAddress: originContract }
     , testExpensiveWallet: { deployAddress: walletContract }
     , primaryAccount
     } = tenv
 
-    { tokenId, price, buyerFee, buyer, owner } = pd
+    { tokenId, contractAddress, price, buyerFee, buyer, owner } = pd
   asOwnerOfContract tenv buyer walletContract do
     txHash <-
       TestExpensiveWallet.bid
@@ -657,7 +667,7 @@ expensiveWalletBid tenv pd = do
             ?~ fromMinorUnit (price + buyerFee)
         )
         { _tokenId: tokenId
-        , _originContract: originContract
+        , _originContract: contractAddress
         , _newBidAmount: uInt256FromBigNumber price
         , _market: marketContract
         }
@@ -677,7 +687,6 @@ claimMoneyFromExpensiveWallet ::
 claimMoneyFromExpensiveWallet tenv pd = do
   let
     { testExpensiveWallet: { deployAddress: walletContract }
-    , v2SuperRare: { deployAddress: originContract }
     , v2Marketplace: { deployAddress: marketContract }
     , primaryAccount
     } = tenv

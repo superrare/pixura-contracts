@@ -108,13 +108,14 @@ init = do
 -----------------------------------------------------------------------------
 -- | Utils
 -----------------------------------------------------------------------------
-addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 (UIntN S256)
+addNewToken :: forall r. TestEnv r -> Address -> String -> Web3 { tokenId :: UIntN S256, contractAddress :: Address }
 addNewToken tenv@{ v2SuperRare: { deployAddress }, primaryAccount } from _uri = do
   SuperRareV2.addNewToken (defaultTxOpts from # _to ?~ deployAddress)
     { _uri }
     >>= awaitTxSuccessWeb3
   supply <- (unsafeToInt <<< unUIntN) <$> totalSupply tenv
-  tokenByIndex tenv (intToUInt256 (supply - 1))
+  tid <- tokenByIndex tenv (intToUInt256 (supply - 1))
+  pure { tokenId: tid, contractAddress: deployAddress }
 
 transferFrom :: forall r. TestEnv r -> Address -> Address -> Address -> UIntN S256 -> Web3 Unit
 transferFrom tenv@{ v2SuperRare: { deployAddress }, primaryAccount } signer from to tokenId = do

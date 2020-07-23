@@ -19,7 +19,7 @@ import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SupeRare as SupeRareSpec
 import Test.Spec.Contracts.SuperRareLegacy.Actions (TestEnv, isApprovedForAll, isUpgraded, ownerOf, preUpgradeOwnerOf, refreshPreUpgradeOwnerOf, setApprovalForAll, tokenCreator, tokenURI, totalSupply, transferFrom)
-import Test.Spec.Contracts.Utils (createTokensWithFunction, intToUInt256, nullAddress, web3Test)
+import Test.Spec.Contracts.Utils (createTokensWithFunction, intToUInt256, web3Test)
 
 spec :: SpecT Aff Unit Aff Unit
 spec =
@@ -58,14 +58,14 @@ spec =
                 $ for (1 .. numOldSuperRareTokens) \tid -> do
                     upgraded <- isUpgraded tenv (intToUInt256 tid)
                     upgraded `shouldEqual` false
-          it "should get null address as token's owner if not upgraded" \tenv@{ provider } -> do
+          it "should get legacy contract address as token's owner if not upgraded" \tenv@{ provider } -> do
             web3Test provider do
               let
-                { numOldSuperRareTokens } = tenv
+                { numOldSuperRareTokens, superRareLegacy: { deployAddress } } = tenv
               void
                 $ for (1 .. 1) \tid -> do
                     owner <- ownerOf tenv (intToUInt256 tid)
-                    owner `shouldEqual` nullAddress
+                    owner `shouldEqual` deployAddress
           it "should fail to refresh a pre-upgrade owner when it needs no refreshing" \tenv@{ provider } -> do
             res <-
               try

@@ -73,16 +73,28 @@ createTokensWithFunction ::
   forall r.
   { accounts :: Array Address | r } ->
   Int ->
-  (Address -> String -> Web3 (UIntN S256)) ->
-  Web3 (Array { tokenId :: UIntN S256, owner :: Address, uri :: String })
+  ( Address ->
+    String ->
+    Web3
+      ( { tokenId :: UIntN S256, contractAddress :: Address }
+      )
+  ) ->
+  Web3
+    ( Array
+        { tokenId :: UIntN S256
+        , owner :: Address
+        , uri :: String
+        , contractAddress :: Address
+        }
+    )
 createTokensWithFunction { accounts } amount f = do
   let
     accounts' = unsafePartial fromJust $ (toNonEmpty <$> fromArray accounts)
   tokenUris <- mkTokenUris amount
   accs <- liftEffect $ randomSample' amount (elements accounts')
   for (zipWith { acc: _, _uri: _ } accs tokenUris) \{ acc, _uri } -> do
-    tokenId <- f acc _uri
-    pure { owner: acc, uri: _uri, tokenId }
+    { tokenId, contractAddress } <- f acc _uri
+    pure { owner: acc, uri: _uri, tokenId, contractAddress }
 
 nullAddress :: Address
 nullAddress = unsafePartial fromJust $ mkAddress $ takeHex 40 nullWord

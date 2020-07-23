@@ -21,5 +21,5 @@ main =
           $ runSpecT specConfig [ consoleReporter ] do
               SupeRare.spec
               SuperRareV2.spec
-              SuperRareMarketAuctionV2.spec
               SuperRareLegacy.spec
+              SuperRareMarketAuctionV2.spec

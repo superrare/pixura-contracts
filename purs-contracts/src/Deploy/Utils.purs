@@ -8,16 +8,19 @@ import Chanterelle.Internal.Types (ContractConfig, DeployConfig(DeployConfig), D
 import Chanterelle.Internal.Utils (pollTransactionReceipt)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Reader.Class (ask)
+import Data.Either (Either(..))
 import Data.Int (toNumber)
 import Data.Lens ((.~), (?~), (^.))
 import Data.List.NonEmpty (singleton)
 import Data.Maybe (Maybe(..), fromJust, maybe)
-import Effect.Aff.Class (class MonadAff)
+import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Class (liftEffect)
+import Effect.Exception (throw)
 import Foreign (ForeignError(..))
 import Network.Ethereum.Core.BigNumber (decimal, divide, embed, parseBigNumber, pow, unsafeToInt)
-import Network.Ethereum.Core.HexString (HexString)
-import Network.Ethereum.Web3 (Address, BigNumber, ChainCursor(..), Provider, Transaction(..), TransactionOptions, TransactionReceipt(..), TransactionStatus(..), Web3, _from, _gas, _gasPrice, defaultTransactionOptions, unAddress)
-import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
+import Network.Ethereum.Core.HexString (HexString, dropHex, toAscii)
+import Network.Ethereum.Web3 (Address, BigNumber, ChainCursor(..), Provider, Transaction(..), TransactionOptions, TransactionReceipt(..), TransactionStatus(..), Web3, _data, _from, _gas, _gasPrice, _nonce, _to, _value, defaultTransactionOptions, runWeb3, unAddress)
+import Network.Ethereum.Web3.Api (eth_call, eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 import Simple.JSON as JSON
@@ -43,12 +46,52 @@ txOptsWithGasSettings (GasSettings { gasLimit, gasPrice }) =
     # _gasPrice
     .~ maybe (defaultTxOptions ^. _gasPrice) Just gasPrice
 
+getFailedTxReason :: forall m. MonadAff m => HexString -> Provider -> m String
+getFailedTxReason txHash provider = do
+  eres <-
+    liftAff
+      $ runWeb3 provider do
+          tx@(Transaction { gas, gasPrice, value, from, to, blockNumber, input, nonce }) <- eth_getTransaction txHash
+          txReceipt <- eth_getTransactionReceipt txHash
+          eth_call
+            ( defaultTxOptions
+                # _gas
+                ?~ gas
+                # _gasPrice
+                ?~ gasPrice
+                # _data
+                ?~ input
+                # _nonce
+                ?~ nonce
+                # _to
+                .~ to
+                # _from
+                ?~ from
+                # _value
+                ?~ value
+            )
+            (maybe Latest BN blockNumber)
+  r <- case eres of
+    Left err -> liftEffect $ throw $ show err
+    Right r -> pure r
+  pure $ toAscii $ dropHex 136 r
+
 awaitTxSuccess :: forall m. MonadAff m => HexString -> Provider -> m Unit
 awaitTxSuccess txHash provider = do
   TransactionReceipt txReceipt <- pollTransactionReceipt txHash provider
   case txReceipt.status of
     Succeeded -> pure unit
-    Failed -> unsafeCrashWith $ "Transaction Failed w/ hash " <> show txHash <> "\n" <> show txReceipt
+    Failed -> do
+      res <- getFailedTxReason txHash provider
+      let
+        txReason = case res of
+          "" -> ""
+          reason -> "Reason for failure: " <> res <> "\n"
+      unsafeCrashWith $ "Transaction Failed w/ hash "
+        <> show txHash
+        <> "\n"
+        <> txReason
+        <> show txReceipt
 
 awaitTxSuccessWeb3 :: HexString -> Web3 Unit
 awaitTxSuccessWeb3 txHash = awaitTxSuccess txHash =<< ask
