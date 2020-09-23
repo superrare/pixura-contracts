@@ -4,23 +4,25 @@ import Prelude
 import Chanterelle.Test (buildTestConfig)
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
+import Data.Either (isLeft)
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, try)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (_to, embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it)
-import Test.Spec.Assertions (shouldEqual)
+import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
 import Test.Spec.Contracts.SuperRareLegacy.Actions as SuperRareLegacy
-import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, safeAcceptBid, safeBuy, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice)
+import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, safeAcceptBid, safeBuy, setERC721ContractRoyaltySettings, setSalePrice, tokenPrice)
+import Test.Spec.Contracts.SuperRareV2 as SuperRareV2
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, uInt256FromBigNumber, web3Test)
 
@@ -32,9 +34,10 @@ spec =
         web3Test provider do
           newTokens <- mkSuperRareTokens tenv 1
           markTokensAsSold tenv srV2Addr (newTokens <#> \{ tokenId } -> tokenId)
-          isMarkedSolds <-
-            for newTokens \{ tokenId, contractAddress } -> hasTokenBeenSold tenv contractAddress tokenId
-          isMarkedSolds `shouldEqual` replicate (length newTokens) true
+          void
+            $ for newTokens \{ tokenId, contractAddress } -> do
+                isSold <- hasTokenBeenSold tenv contractAddress tokenId
+                isSold `shouldEqual` true
       it "can set the price of tokens" \tenv@{ provider } ->
         web3Test provider do
           newTokens <- mkSuperRareTokens tenv 1
@@ -44,9 +47,100 @@ spec =
           void
             $ for tokenDetails \td@{ tokenId, contractAddress, price, owner } -> do
                 setSalePrice tenv contractAddress owner tokenId price
-          onChainPrices <-
-            for tokenDetails \{ tokenId, contractAddress } -> tokenPrice tenv contractAddress tokenId
-          onChainPrices `shouldEqual` (tokenDetails <#> \{ price } -> price)
+                onChainPrice <- tokenPrice tenv contractAddress tokenId
+                onChainPrice `shouldEqual` price
+      it "cannot set the price of token if not approved" \tenv@{ provider } ->
+        web3Test provider do
+          newTokens <- mkSuperRareTokens tenv 1
+          prices <- genTokenPrices $ length newTokens
+          let
+            { v2Marketplace: { deployAddress } } = tenv
+
+            tokenDetails = zipWith (Record.insert (SProxy :: _ "price")) prices newTokens
+          void
+            $ for tokenDetails \td@{ tokenId, contractAddress, price, owner } -> do
+                SuperRareV2.setApprovalForAll tenv owner deployAddress false
+                eres <- try $ setSalePrice tenv contractAddress owner tokenId price
+                eres `shouldSatisfy` isLeft
+                SuperRareV2.setApprovalForAll tenv owner deployAddress true
+      it "cannot set the price of token if not token owner" \tenv@{ provider } ->
+        web3Test provider do
+          newTokens <- mkSuperRareTokens tenv 1
+          prices <- genTokenPrices $ length newTokens
+          let
+            { v2Marketplace: { deployAddress }, accounts } = tenv
+
+            tokenDetails = zipWith (Record.insert (SProxy :: _ "price")) prices newTokens
+          void
+            $ for tokenDetails \td@{ tokenId, contractAddress, price, owner } -> do
+                let
+                  nonOwner = unsafePartial head $ filter (\a -> a /= owner) accounts
+                eres <- try $ setSalePrice tenv contractAddress nonOwner tokenId price
+                eres `shouldSatisfy` isLeft
+      it "cannot make sale if token is not for sale" \tenv@{ provider, accounts } ->
+        web3Test provider do
+          tokenDetails <- mkSuperRareTokens tenv 1
+          void
+            $ for tokenDetails \td@{ tokenId, owner } -> do
+                purchasePayload <- mkPurchasePayload tenv (Record.insert (SProxy :: _ "price") (embed 100000000) td)
+                let
+                  buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
+
+                  updatedPayload = Record.disjointUnion { buyer } purchasePayload
+                eres <- try $ buy tenv updatedPayload
+                eres `shouldSatisfy` isLeft
+      it "cannot make sale if owner no longer has marketplace approved" \tenv@{ provider, accounts } ->
+        web3Test provider do
+          tokenDetails <- mkTokensAndSetForSale tenv 1
+          void
+            $ for tokenDetails \td@{ tokenId, price, owner } -> do
+                purchasePayload <- mkPurchasePayload tenv td
+                let
+                  buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
+
+                  { v2Marketplace: { deployAddress }, accounts } = tenv
+
+                  updatedPayload = Record.disjointUnion { buyer } purchasePayload
+                SuperRareV2.setApprovalForAll tenv owner deployAddress false
+                eres <- try $ buy tenv updatedPayload
+                eres `shouldSatisfy` isLeft
+                SuperRareV2.setApprovalForAll tenv owner deployAddress true
+      it "cannot make sale if price setter no longer owns the token" \tenv@{ provider, accounts } ->
+        web3Test provider do
+          tokenDetails <- mkTokensAndSetForSale tenv 1
+          void
+            $ for tokenDetails \td@{ tokenId, price, owner } -> do
+                purchasePayload <- mkPurchasePayload tenv td
+                let
+                  buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
+
+                  newOwner = unsafePartial head $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                  { v2Marketplace: { deployAddress }, accounts } = tenv
+
+                  updatedPayload = Record.disjointUnion { buyer } purchasePayload
+                SuperRareV2.transferFrom tenv owner owner newOwner tokenId
+                eres <- try $ buy tenv updatedPayload
+                eres `shouldSatisfy` isLeft
+      it "cannot make sale if price is not correct" \tenv@{ provider, accounts } ->
+        web3Test provider do
+          tokenDetails <- mkTokensAndSetForSale tenv 1
+          void
+            $ for tokenDetails \td@{ tokenId, price, owner } -> do
+                purchasePayload <- mkPurchasePayload tenv td
+                let
+                  buyer = unsafePartial head $ filter (\acc -> acc /= owner) accounts
+
+                  newOwner = unsafePartial head $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                  { v2Marketplace: { deployAddress }, accounts } = tenv
+
+                  newPrice = sub price (embed 1000)
+
+                  updatedPayload = Record.disjointUnion { buyer } purchasePayload
+                SuperRareV2.transferFrom tenv owner owner newOwner tokenId
+                eres <- try $ buy tenv updatedPayload { price = newPrice }
+                eres `shouldSatisfy` isLeft
       it "can make sale - primary" \tenv@{ provider, accounts } ->
         web3Test provider do
           tokenDetails <- mkTokensAndSetForSale tenv 1
@@ -127,6 +221,17 @@ spec =
 
                   updatedPayload = Record.disjointUnion { buyer } purchasePayloads
                 safeBuy tenv updatedPayload
+      it "cannot bid 0" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
+        web3Test provider do
+          tokenDetails <- mkSuperRareTokens tenv 1
+          let
+            prices = replicate (length tokenDetails) (embed 0)
+
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          void
+            $ for tokensAndBids \td -> do
+                eres <- try $ placeBid tenv td
+                eres `shouldSatisfy` isLeft
       it "can place a bid" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
         web3Test provider do
           tokenDetails <- mkSuperRareTokens tenv 1
@@ -140,6 +245,29 @@ spec =
             $ for bidRess \bidsRes@{ buyer, buyerFee, purchaseTxHash, price } -> do
                 checkEthDifference buyer (price + buyerFee) purchaseTxHash
                 checkEthDifference marketAddr (price + buyerFee) purchaseTxHash
+      it "cannot place a bid lower than previous bid" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
+        web3Test provider do
+          tokenDetails <- mkSuperRareTokens tenv 1
+          prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+          let
+            tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+          bidRess <- for tokensAndBids (placeBid tenv)
+          void
+            $ for bidRess \pb@{ price, buyer, tokenId, uri, owner, buyerFee, contractAddress } -> do
+                purch <-
+                  mkPurchasePayload tenv
+                    { owner
+                    , tokenId
+                    , price: price `sub` embed 1
+                    , uri
+                    , contractAddress
+                    }
+                let
+                  newBuyer = unsafePartial head $ filter (\acc -> acc /= owner && acc /= buyer) accounts
+
+                  updatedPayload = (Record.disjointUnion purch { buyer: newBuyer })
+                eres <- try $ bid tenv updatedPayload
+                eres `shouldSatisfy` isLeft
       it "can place a bid outbidding another" \tenv@{ provider, accounts, v2Marketplace: { deployAddress: marketAddr } } ->
         web3Test provider do
           tokenDetails <- mkSuperRareTokens tenv 1
@@ -449,7 +577,7 @@ spec =
             } = tenv
 
             tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
-          void $ setERC721ContractRoyaltyFee tenv _originContract newPerencetage
+          void $ setERC721ContractRoyaltySettings tenv _originContract _originContract newPerencetage
           bidRess <- for tokensAndBids (placeBid tenv)
           acceptRess <-
             for bidRess \abPayload -> do

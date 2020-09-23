@@ -98,6 +98,31 @@ instance eventGenericCancelBideq :: Eq CancelBid where
   eq = genericEq
 
 --------------------------------------------------------------------------------
+-- | MarketplaceFeeSet
+--------------------------------------------------------------------------------
+
+
+newtype MarketplaceFeeSet = MarketplaceFeeSet {_percentage :: (UIntN (D2 :& D5 :& DOne D6))}
+
+derive instance newtypeMarketplaceFeeSet :: Newtype MarketplaceFeeSet _
+
+instance eventFilterMarketplaceFeeSet :: EventFilter MarketplaceFeeSet where
+  eventFilter _ addr = defaultFilter
+    # _address .~ Just addr
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "d81769cfbd70021010dde0ce784c926888ec237876c2d51c85b90f11065bf542"),Nothing]
+
+instance indexedEventMarketplaceFeeSet :: IndexedEvent (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple0 ) MarketplaceFeeSet where
+  isAnonymous _ = false
+
+derive instance genericMarketplaceFeeSet :: Generic MarketplaceFeeSet _
+
+instance eventGenericMarketplaceFeeSetShow :: Show MarketplaceFeeSet where
+  show = genericShow
+
+instance eventGenericMarketplaceFeeSeteq :: Eq MarketplaceFeeSet where
+  eq = genericEq
+
+--------------------------------------------------------------------------------
 -- | OwnershipTransferred
 --------------------------------------------------------------------------------
 
@@ -120,6 +145,56 @@ instance eventGenericOwnershipTransferredShow :: Show OwnershipTransferred where
   show = genericShow
 
 instance eventGenericOwnershipTransferredeq :: Eq OwnershipTransferred where
+  eq = genericEq
+
+--------------------------------------------------------------------------------
+-- | PrimarySalePercentageSet
+--------------------------------------------------------------------------------
+
+
+newtype PrimarySalePercentageSet = PrimarySalePercentageSet {_originContract :: Address,_percentage :: (UIntN (D2 :& D5 :& DOne D6))}
+
+derive instance newtypePrimarySalePercentageSet :: Newtype PrimarySalePercentageSet _
+
+instance eventFilterPrimarySalePercentageSet :: EventFilter PrimarySalePercentageSet where
+  eventFilter _ addr = defaultFilter
+    # _address .~ Just addr
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "acd8fb6367088ecead1c71d4949c7b16e86cbcfa22f5818cfbd154e80224f46b"),Nothing]
+
+instance indexedEventPrimarySalePercentageSet :: IndexedEvent (Tuple1 (Tagged (SProxy "_originContract") Address)) (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6)))) PrimarySalePercentageSet where
+  isAnonymous _ = false
+
+derive instance genericPrimarySalePercentageSet :: Generic PrimarySalePercentageSet _
+
+instance eventGenericPrimarySalePercentageSetShow :: Show PrimarySalePercentageSet where
+  show = genericShow
+
+instance eventGenericPrimarySalePercentageSeteq :: Eq PrimarySalePercentageSet where
+  eq = genericEq
+
+--------------------------------------------------------------------------------
+-- | RoyaltySettingsSet
+--------------------------------------------------------------------------------
+
+
+newtype RoyaltySettingsSet = RoyaltySettingsSet {_originContract :: Address,_erc721CreatorContract :: Address,_percentage :: (UIntN (D2 :& D5 :& DOne D6))}
+
+derive instance newtypeRoyaltySettingsSet :: Newtype RoyaltySettingsSet _
+
+instance eventFilterRoyaltySettingsSet :: EventFilter RoyaltySettingsSet where
+  eventFilter _ addr = defaultFilter
+    # _address .~ Just addr
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "f0e6a394adf6e0ec60cc7b657f02a07a301da7da4d8f7f0882a15e1a8669b8be"),Nothing,Nothing]
+
+instance indexedEventRoyaltySettingsSet :: IndexedEvent (Tuple2 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_erc721CreatorContract") Address)) (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6)))) RoyaltySettingsSet where
+  isAnonymous _ = false
+
+derive instance genericRoyaltySettingsSet :: Generic RoyaltySettingsSet _
+
+instance eventGenericRoyaltySettingsSetShow :: Show RoyaltySettingsSet where
+  show = genericShow
+
+instance eventGenericRoyaltySettingsSeteq :: Eq RoyaltySettingsSet where
   eq = genericEq
 
 --------------------------------------------------------------------------------
@@ -238,27 +313,30 @@ currentBidDetailsOfToken x0 cm r = uncurryFields  r $ currentBidDetailsOfToken' 
     currentBidDetailsOfToken' y0 cm' y2 y3 = call y0 cm' ((tagged $ Tuple2 y2 y3) :: CurrentBidDetailsOfTokenFn)
 
 --------------------------------------------------------------------------------
--- | DefaultRoyaltyFeeFn
+-- | GetERC721ContractPrimarySaleFeeFn
 --------------------------------------------------------------------------------
 
 
-type DefaultRoyaltyFeeFn = Tagged (SProxy "defaultRoyaltyFee()") (Tuple0 )
+type GetERC721ContractPrimarySaleFeeFn = Tagged (SProxy "getERC721ContractPrimarySaleFee(address)") (Tuple1 (Tagged (SProxy "_originContract") Address))
 
-defaultRoyaltyFee :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
-defaultRoyaltyFee x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: DefaultRoyaltyFeeFn)
-
---------------------------------------------------------------------------------
--- | GetERC721ContractRoyaltyFeeFn
---------------------------------------------------------------------------------
-
-
-type GetERC721ContractRoyaltyFeeFn = Tagged (SProxy "getERC721ContractRoyaltyFee(address)") (Tuple1 (Tagged (SProxy "_originContract") Address))
-
-getERC721ContractRoyaltyFee :: TransactionOptions NoPay -> ChainCursor -> { _originContract :: Address } -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
-getERC721ContractRoyaltyFee x0 cm r = uncurryFields  r $ getERC721ContractRoyaltyFee' x0 cm
+getERC721ContractPrimarySaleFee :: TransactionOptions NoPay -> ChainCursor -> { _originContract :: Address } -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+getERC721ContractPrimarySaleFee x0 cm r = uncurryFields  r $ getERC721ContractPrimarySaleFee' x0 cm
    where
-    getERC721ContractRoyaltyFee' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_originContract") Address) -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
-    getERC721ContractRoyaltyFee' y0 cm' y2 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple1 y2) :: GetERC721ContractRoyaltyFeeFn)
+    getERC721ContractPrimarySaleFee' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_originContract") Address) -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+    getERC721ContractPrimarySaleFee' y0 cm' y2 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple1 y2) :: GetERC721ContractPrimarySaleFeeFn)
+
+--------------------------------------------------------------------------------
+-- | GetERC721ContractRoyaltySettingsFn
+--------------------------------------------------------------------------------
+
+
+type GetERC721ContractRoyaltySettingsFn = Tagged (SProxy "getERC721ContractRoyaltySettings(address)") (Tuple1 (Tagged (SProxy "_originContract") Address))
+
+getERC721ContractRoyaltySettings :: TransactionOptions NoPay -> ChainCursor -> { _originContract :: Address } -> Web3 (Either CallError (Tuple2 Address (UIntN (D2 :& D5 :& DOne D6))))
+getERC721ContractRoyaltySettings x0 cm r = uncurryFields  r $ getERC721ContractRoyaltySettings' x0 cm
+   where
+    getERC721ContractRoyaltySettings' :: TransactionOptions NoPay -> ChainCursor -> (Tagged (SProxy "_originContract") Address) -> Web3 (Either CallError (Tuple2 Address (UIntN (D2 :& D5 :& DOne D6))))
+    getERC721ContractRoyaltySettings' y0 cm' y2 = call y0 cm' ((tagged $ Tuple1 y2) :: GetERC721ContractRoyaltySettingsFn)
 
 --------------------------------------------------------------------------------
 -- | HasTokenBeenSoldFn
@@ -330,16 +408,6 @@ payments x0 cm r = uncurryFields  r $ payments' x0 cm
     payments' y0 cm' y2 = map unTuple1 <$> call y0 cm' ((tagged $ Tuple1 y2) :: PaymentsFn)
 
 --------------------------------------------------------------------------------
--- | PrimarySaleFeeFn
---------------------------------------------------------------------------------
-
-
-type PrimarySaleFeeFn = Tagged (SProxy "primarySaleFee()") (Tuple0 )
-
-primarySaleFee :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
-primarySaleFee x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: PrimarySaleFeeFn)
-
---------------------------------------------------------------------------------
 -- | RenounceOwnershipFn
 --------------------------------------------------------------------------------
 
@@ -376,30 +444,30 @@ safeBuy x0 r = uncurryFields  r $ safeBuy' x0
     safeBuy' y0 y1 y2 y3 = sendTx y0 ((tagged $ Tuple3 y1 y2 y3) :: SafeBuyFn)
 
 --------------------------------------------------------------------------------
--- | SetDefaultRoyaltyFeeFn
+-- | SetERC721ContractPrimarySaleFeeFn
 --------------------------------------------------------------------------------
 
 
-type SetDefaultRoyaltyFeeFn = Tagged (SProxy "setDefaultRoyaltyFee(uint256)") (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
+type SetERC721ContractPrimarySaleFeeFn = Tagged (SProxy "setERC721ContractPrimarySaleFee(address,uint256)") (Tuple2 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
 
-setDefaultRoyaltyFee :: TransactionOptions NoPay -> { _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
-setDefaultRoyaltyFee x0 r = uncurryFields  r $ setDefaultRoyaltyFee' x0
+setERC721ContractPrimarySaleFee :: TransactionOptions NoPay -> { _originContract :: Address, _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+setERC721ContractPrimarySaleFee x0 r = uncurryFields  r $ setERC721ContractPrimarySaleFee' x0
    where
-    setDefaultRoyaltyFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    setDefaultRoyaltyFee' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetDefaultRoyaltyFeeFn)
+    setERC721ContractPrimarySaleFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    setERC721ContractPrimarySaleFee' y0 y1 y2 = sendTx y0 ((tagged $ Tuple2 y1 y2) :: SetERC721ContractPrimarySaleFeeFn)
 
 --------------------------------------------------------------------------------
--- | SetERC721ContractRoyaltyFeeFn
+-- | SetERC721ContractRoyaltySettingsFn
 --------------------------------------------------------------------------------
 
 
-type SetERC721ContractRoyaltyFeeFn = Tagged (SProxy "setERC721ContractRoyaltyFee(address,uint256)") (Tuple2 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
+type SetERC721ContractRoyaltySettingsFn = Tagged (SProxy "setERC721ContractRoyaltySettings(address,address,uint256)") (Tuple3 (Tagged (SProxy "_originContract") Address) (Tagged (SProxy "_erc721CreatorContract") Address) (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
 
-setERC721ContractRoyaltyFee :: TransactionOptions NoPay -> { _originContract :: Address, _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
-setERC721ContractRoyaltyFee x0 r = uncurryFields  r $ setERC721ContractRoyaltyFee' x0
+setERC721ContractRoyaltySettings :: TransactionOptions NoPay -> { _originContract :: Address, _erc721CreatorContract :: Address, _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+setERC721ContractRoyaltySettings x0 r = uncurryFields  r $ setERC721ContractRoyaltySettings' x0
    where
-    setERC721ContractRoyaltyFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    setERC721ContractRoyaltyFee' y0 y1 y2 = sendTx y0 ((tagged $ Tuple2 y1 y2) :: SetERC721ContractRoyaltyFeeFn)
+    setERC721ContractRoyaltySettings' :: TransactionOptions NoPay -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_erc721CreatorContract") Address) -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    setERC721ContractRoyaltySettings' y0 y1 y2 y3 = sendTx y0 ((tagged $ Tuple3 y1 y2 y3) :: SetERC721ContractRoyaltySettingsFn)
 
 --------------------------------------------------------------------------------
 -- | SetMarketplaceFeeFn
@@ -413,19 +481,6 @@ setMarketplaceFee x0 r = uncurryFields  r $ setMarketplaceFee' x0
    where
     setMarketplaceFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
     setMarketplaceFee' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetMarketplaceFeeFn)
-
---------------------------------------------------------------------------------
--- | SetPrimarySaleFeeFn
---------------------------------------------------------------------------------
-
-
-type SetPrimarySaleFeeFn = Tagged (SProxy "setPrimarySaleFee(uint256)") (Tuple1 (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))))
-
-setPrimarySaleFee :: TransactionOptions NoPay -> { _percentage :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
-setPrimarySaleFee x0 r = uncurryFields  r $ setPrimarySaleFee' x0
-   where
-    setPrimarySaleFee' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    setPrimarySaleFee' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetPrimarySaleFeeFn)
 
 --------------------------------------------------------------------------------
 -- | SetSalePriceFn

@@ -3,7 +3,7 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.V5.SuperRareMarketAuctionV2 (safeAcceptBid, acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, getERC721ContractRoyaltyFee, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, primarySaleFee, safeBuy, setERC721ContractRoyaltyFee, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, getERC721ContractPrimarySaleFee, getERC721ContractRoyaltySettings, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, safeAcceptBid, safeBuy, setERC721ContractRoyaltySettings, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
 import Contracts.V5.TestAssertFailOnPay as TestAssertFailOnPay
 import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
 import Contracts.V5.TestRequireFailOnPay as TestRequireFailOnPay
@@ -300,71 +300,56 @@ currentBidDetailsOfToken tenv _originContract _tokenId = do
   pure { price, bidder }
 
 -----------------------------------------------------------------------------
--- | getERC721ContractRoyaltyFee
+-- | getERC721ContractRoyaltySettings
 -----------------------------------------------------------------------------
-getERC721ContractRoyaltyFee ::
-  forall r. TestEnv r -> Address -> Web3 (UIntN S256)
-getERC721ContractRoyaltyFee tenv _originContract =
+getERC721ContractRoyaltySettings ::
+  forall r. TestEnv r -> Address -> Web3 ({ erc721CreatorContract :: Address, percentage :: UIntN S256 })
+getERC721ContractRoyaltySettings tenv _originContract = do
   let
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  in
+  Tuple2 ecc roy <-
     throwOnCallError
-      $ SuperRareMarketAuctionV2.getERC721ContractRoyaltyFee
+      $ SuperRareMarketAuctionV2.getERC721ContractRoyaltySettings
           (defaultTxOpts primaryAccount # _to ?~ deployAddress)
           Latest
           { _originContract }
+  pure { erc721CreatorContract: ecc, percentage: roy }
 
 -----------------------------------------------------------------------------
--- | setERC721ContractRoyaltyFee
+-- | setERC721ContractRoyaltySettings
 -----------------------------------------------------------------------------
-setERC721ContractRoyaltyFee ::
-  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 HexString
-setERC721ContractRoyaltyFee tenv _originContract _percentage = do
+setERC721ContractRoyaltySettings ::
+  forall r. TestEnv r -> Address -> Address -> UIntN S256 -> Web3 HexString
+setERC721ContractRoyaltySettings tenv _originContract _erc721CreatorContract _percentage = do
   let
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   txHash <-
-    SuperRareMarketAuctionV2.setERC721ContractRoyaltyFee
+    SuperRareMarketAuctionV2.setERC721ContractRoyaltySettings
       (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-      { _originContract, _percentage }
+      { _originContract, _percentage, _erc721CreatorContract }
   awaitTxSuccessWeb3 txHash
   pure txHash
 
 -----------------------------------------------------------------------------
--- | royaltyFee
+-- | getERC721ContractPrimarySaleFee
 -----------------------------------------------------------------------------
-royaltyFee ::
+getERC721ContractPrimarySaleFee ::
   forall r. TestEnv r -> Address -> Web3 (UIntN S256)
-royaltyFee tenv _originContract =
+getERC721ContractPrimarySaleFee tenv _originContract =
   let
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   in
     throwOnCallError
-      $ SuperRareMarketAuctionV2.getERC721ContractRoyaltyFee
+      $ SuperRareMarketAuctionV2.getERC721ContractPrimarySaleFee
           (defaultTxOpts primaryAccount # _to ?~ deployAddress)
           Latest
           { _originContract }
-
------------------------------------------------------------------------------
--- | primarySaleFee
------------------------------------------------------------------------------
-primarySaleFee ::
-  forall r. TestEnv r -> Web3 (UIntN S256)
-primarySaleFee tenv =
-  let
-    { v2Marketplace: { deployAddress }
-    , primaryAccount
-    } = tenv
-  in
-    throwOnCallError
-      $ SuperRareMarketAuctionV2.primarySaleFee
-          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-          Latest
 
 -----------------------------------------------------------------------------
 -- | markTokensAsSold
@@ -475,15 +460,15 @@ mkPurchasePayload tenv td = do
   let
     { tokenId, contractAddress, price, owner } = td
   marketfee <- unUIntN <$> marketplaceFee tenv
-  royaltyfee <- unUIntN <$> royaltyFee tenv contractAddress
-  primfee <- unUIntN <$> primarySaleFee tenv
+  { percentage: royaltyfee } <- getERC721ContractRoyaltySettings tenv contractAddress
+  primfee <- unUIntN <$> getERC721ContractPrimarySaleFee tenv contractAddress
   sold <- hasTokenBeenSold tenv contractAddress tokenId
   let
     sellerFeePercent =
       if not sold then
         primfee
       else
-        royaltyfee
+        unUIntN royaltyfee
 
     sellerFee = divide (price * sellerFeePercent) (embed 100)
 
