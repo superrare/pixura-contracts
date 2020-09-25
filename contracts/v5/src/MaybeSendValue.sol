@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity 0.5.17;
 
 import "./SendValueProxy.sol";
 
@@ -26,9 +26,6 @@ contract MaybeSendValue {
         (bool success, bytes memory _) = address(proxy).call.value(_value)(
             abi.encodeWithSignature("sendValue(address)", _to)
         );
-        if (success) {
-            return true;
-        }
-        return false;
+        return success;
     }
 }

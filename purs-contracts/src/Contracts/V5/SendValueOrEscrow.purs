@@ -15,22 +15,12 @@ import Data.Lens ((.~))
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy)
-import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, deployContract, sendTx)
+import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, sendTx)
 import Network.Ethereum.Web3.Contract.Internal (uncurryFields)
 import Network.Ethereum.Web3.Solidity (D2, D5, D6, DOne, Tuple0(..), Tuple1(..), Tuple2, UIntN, class IndexedEvent, unTuple1)
 import Network.Ethereum.Web3.Solidity.Size (type (:&))
 import Network.Ethereum.Web3.Types (Address, CallError, ChainCursor, HexString, NoPay, TransactionOptions, Web3, defaultFilter, mkHexString)
 import Partial.Unsafe (unsafePartial)
---------------------------------------------------------------------------------
--- | ConstructorFn
---------------------------------------------------------------------------------
-
-
-type ConstructorFn = Tagged (SProxy "constructor()") (Tuple0 )
-
-constructor :: TransactionOptions NoPay -> HexString -> Web3 HexString
-constructor x0 bc = deployContract x0 bc ((tagged $ Tuple0 ) :: ConstructorFn)
-
 --------------------------------------------------------------------------------
 -- | OwnershipTransferred
 --------------------------------------------------------------------------------

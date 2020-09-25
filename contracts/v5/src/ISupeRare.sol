@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity 0.5.17;
 
 /**
  * @dev Interface for interacting with the SupeRare contract that holds SuperRare beta tokens.

@@ -8,6 +8,7 @@ import Contracts.V5.TestAssertFailOnPay as TestAssertFailOnPay
 import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
 import Contracts.V5.TestRequireFailOnPay as TestRequireFailOnPay
 import Contracts.V5.TestRevertOnPay as TestRevertFailOnPay
+import Control.Monad.Error.Class (class MonadError, catchError, throwError)
 import Data.Array (filter, length, zipWith)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
@@ -18,7 +19,9 @@ import Data.Traversable (for, traverse)
 import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
+import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Exception (Error, error, message)
 import Network.Ethereum.Core.BigNumber (decimal, divide, parseBigNumber)
 import Network.Ethereum.Web3 (Address, BigNumber, BlockNumber(..), ChainCursor(..), HexString, Provider, Szabo, Transaction(..), TransactionReceipt(..), UIntN, Value, Web3, _gas, _to, _value, embed, fromMinorUnit, mkValue, toMinorUnit, unUIntN)
 import Network.Ethereum.Web3.Api (eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
@@ -506,7 +509,8 @@ checkEthDifference addr diff txHash = do
     gasCostFactor = if balanceAfter > balanceBefore then embed (-1) else embed 1
 
     diffWithGas = diff + if from == addr then gasCostFactor * weiSpentOnGas else embed 0
-  abs (balanceAfter - balanceBefore) `shouldEqual` diffWithGas
+  assertWithContext { gasUsed, diffWithGas, balanceBefore, balanceAfter, txHash }
+    $ abs (balanceAfter - balanceBefore) `shouldEqual` diffWithGas
   where
   getBalance = eth_getBalance addr
 
@@ -529,7 +533,7 @@ checkPayout ::
   | r
   } ->
   Web3 Unit
-checkPayout { buyer, owner, purchaseTxHash, price, buyerFee, sellerFee } = do
+checkPayout p@{ buyer, owner, purchaseTxHash, price, buyerFee, sellerFee } = do
   checkEthDifference buyer (buyerFee + price) purchaseTxHash
   checkEthDifference owner (price - sellerFee) purchaseTxHash
 
@@ -849,3 +853,9 @@ revertFailBid tenv pd = do
       }
   awaitTxSuccessWeb3 txHash
   pure txHash
+
+-----------------------------------------------------------------------------
+-- | assertWithContext
+-----------------------------------------------------------------------------
+assertWithContext :: forall a b m. Show b => MonadAff m => MonadError Error m => b -> m a -> m a
+assertWithContext ctx f = catchError f \e -> throwError $ error ("Context: " <> show ctx <> "\n" <> message e)

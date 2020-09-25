@@ -385,6 +385,16 @@ marketplaceFee :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallEr
 marketplaceFee x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: MarketplaceFeeFn)
 
 --------------------------------------------------------------------------------
+-- | MaximumMarketValueFn
+--------------------------------------------------------------------------------
+
+
+type MaximumMarketValueFn = Tagged (SProxy "maximumMarketValue()") (Tuple0 )
+
+maximumMarketValue :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+maximumMarketValue x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: MaximumMarketValueFn)
+
+--------------------------------------------------------------------------------
 -- | OwnerFn
 --------------------------------------------------------------------------------
 

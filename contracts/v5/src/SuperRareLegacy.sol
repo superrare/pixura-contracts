@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity 0.5.17;
 
 import "openzeppelin-solidity-pixura/contracts/token/ERC721/ERC721.sol";
 import "openzeppelin-solidity-pixura/contracts/ownership/Ownable.sol";
@@ -42,6 +42,11 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
         string memory _symbol,
         address _oldSuperRare
     ) public ERC721Full(_name, _symbol) {
+        require(
+            _oldSuperRare != address(0),
+            "constructor::Cannot have null address for _oldSuperRare"
+        );
+
         // Set old SuperRare.
         oldSuperRare = ISupeRare(_oldSuperRare);
 
@@ -144,7 +149,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
      * @param _tokenId uint256 token id to refresh the pre-upgrade token owner.
      * @return address of the token pre-upgrade owner.
      */
-    function refreshPreUpgradeOwnerOf(uint256 _tokenId) public {
+    function refreshPreUpgradeOwnerOf(uint256 _tokenId) external {
         require(
             !isUpgraded(_tokenId),
             "SuperRareLegacy: cannot refresh an upgraded token"
@@ -169,7 +174,7 @@ contract SuperRareLegacy is ERC721Full, IERC721Creator, Ownable {
      * @param _tokenId uint256 token id to refresh the pre-upgrade token owner.
      * @return address of the token pre-upgrade owner.
      */
-    function tokenCreator(uint256 _tokenId) public view returns (address) {
+    function tokenCreator(uint256 _tokenId) external view returns (address) {
         return oldSuperRare.creatorOfToken(_tokenId);
     }
 

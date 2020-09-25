@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity 0.5.17;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/payment/PullPayment.sol";
@@ -8,8 +8,6 @@ import "./MaybeSendValue.sol";
  * @dev Contract to make payments. If a direct transfer fails, it will store the payment in escrow until the address decides to pull the payment.
  */
 contract SendValueOrEscrow is Ownable, MaybeSendValue, PullPayment {
-    constructor() public {}
-
     /**
      * @dev Send some value to an address.
      * @param _to address to send some value to.
