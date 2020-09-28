@@ -2,7 +2,6 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2 where
 
 import Prelude
 import Chanterelle.Test (buildTestConfig)
-import Control.Monad.Error.Class (class MonadError, throwError)
 import Data.Array (filter, length, replicate, zipWith)
 import Data.Array.Partial (head)
 import Data.Either (isLeft)
@@ -12,15 +11,12 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
-import Effect.Aff (Aff, Error, catchError, error, message, try)
-import Effect.Aff.Class (class MonadAff)
-import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Exception (throw)
+import Effect.Aff (Aff, try)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (_to, embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, describeOnly, it)
+import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
@@ -33,7 +29,7 @@ import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, uInt256FromBigNum
 spec :: SpecT Aff Unit Aff Unit
 spec =
   beforeAll init do
-    describeOnly "SuperRareMarketAuctionV2" do
+    describe "SuperRareMarketAuctionV2" do
       it "can mark tokens as sold" \tenv@{ provider, v2SuperRare: { deployAddress: srV2Addr } } ->
         web3Test provider do
           newTokens <- mkSuperRareTokens tenv 1
