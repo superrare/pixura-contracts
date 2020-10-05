@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "./ISendValueProxy.sol";
 
@@ -7,9 +7,9 @@ import "./ISendValueProxy.sol";
  */
 contract SendValueProxy is ISendValueProxy {
     /**
-   * @dev Send some wei to the address.
-   * @param _to address to send some value to.
-   */
+     * @dev Send some wei to the address.
+     * @param _to address to send some value to.
+     */
     function sendValue(address payable _to) external payable {
         // Note that `<address>.transfer` limits gas sent to receiver. It may
         // not support complex contract operations in the future.

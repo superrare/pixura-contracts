@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity 0.5.17;
 
 import "openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
 import "./IERC721Creator.sol";
@@ -10,34 +10,55 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     using SafeMath for uint256;
 
     /////////////////////////////////////////////////////////////////////////
+    // Structs
+    /////////////////////////////////////////////////////////////////////////
+
+    // The active bid for a given token, contains the bidder, the marketplace fee at the time of the bid, and the amount of wei placed on the token
+    struct ActiveBid {
+        address payable bidder;
+        uint256 marketplaceFee;
+        uint256 amount;
+    }
+
+    // The sale price for a given token containing the seller and the amount of wei to be sold for
+    struct SalePrice {
+        address payable seller;
+        uint256 amount;
+    }
+
+    // Contains the contract address that implements the IERC721Creator Interface and the percentage (10 == 10%) that should be sent to the creator of the NFT
+    struct RoyaltySettings {
+        IERC721Creator iErc721CreatorContract;
+        uint256 percentage;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // State Variables
     /////////////////////////////////////////////////////////////////////////
-    // Mapping from ERC721 contract to mapping of tokenId to sale price.
-    mapping(address => mapping(uint256 => uint256)) private tokenPrices;
 
-    // Mapping from ERC721 contract to mapping of tokenId to token owner that set the sale price.
-    mapping(address => mapping(uint256 => address)) private priceSetters;
+    // Mapping from ERC721 contract to mapping of tokenId to sale price.
+    mapping(address => mapping(uint256 => SalePrice)) private tokenPrices;
 
     // Mapping of ERC721 contract to mapping of token ID to whether the token has been sold before.
     mapping(address => mapping(uint256 => bool)) private tokenSolds;
 
     // Mapping of ERC721 contract to mapping of token ID to the current bid amount.
-    mapping(address => mapping(uint256 => uint256)) private tokenCurrentBids;
+    mapping(address => mapping(uint256 => ActiveBid)) private tokenCurrentBids;
 
-    // Mapping of ERC721 contract to mapping of token ID to the current bidder.
-    mapping(address => mapping(uint256 => address)) private tokenCurrentBidders;
+    // Mapping of ERC721 contract to creator royalty settings. If royalty is 0 for an origin contract then royalty is ignored.
+    mapping(address => RoyaltySettings) private originContractRoyaltySettings;
 
-    // Mapping of ERC721 contract to creator royalty fee
-    mapping(address => uint256) private originContractRoyalty;
+    // Mapping of ERC721 contract to the primary sale fee. If primary sale fee is 0 for an origin contract then primary sale fee is ignored. 1 == 1%
+    mapping(address => uint256) private originContractPrimarySaleFee;
+
+    // The maximum primary sale fee.
+    uint256 constant maximumPercentage = 100; // 100 %
+
+    // The maximum sale price or bid in wei.
+    uint256 public constant maximumMarketValue = 2**255;
 
     // Marketplace fee paid to the owner of the contract.
     uint256 public marketplaceFee = 3; // 3 %
-
-    // Royalty fee paid to the creator of a token on secondary sales.
-    uint256 public defaultRoyaltyFee = 5; // 5 %
-
-    // Primary sale fee split.
-    uint256 public primarySaleFee = 15; // 15 %
 
     /////////////////////////////////////////////////////////////////////////////
     // Events
@@ -78,25 +99,37 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         uint256 _tokenId
     );
 
+    event RoyaltySettingsSet(
+        address indexed _originContract,
+        address indexed _erc721CreatorContract,
+        uint256 _percentage
+    );
+
+    event PrimarySalePercentageSet(
+        address indexed _originContract,
+        uint256 _percentage
+    );
+
+    event MarketplaceFeeSet(uint256 indexed _percentage);
+
     /////////////////////////////////////////////////////////////////////////
-    // Modifiers
+    // Modifiers (as functions)
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Checks that the token owner is approved for the ERC721Market
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      */
-    modifier ownerMustHaveMarketplaceApproved(
+    function ownerMustHaveMarketplaceApproved(
         address _originContract,
         uint256 _tokenId
-    ) {
+    ) internal view {
         IERC721 erc721 = IERC721(_originContract);
         address owner = erc721.ownerOf(_tokenId);
         require(
             erc721.isApprovedForAll(owner, address(this)),
             "owner must have approved contract"
         );
-        _;
     }
 
     /**
@@ -104,20 +137,22 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      */
-    modifier senderMustBeTokenOwner(address _originContract, uint256 _tokenId) {
+    function senderMustBeTokenOwner(address _originContract, uint256 _tokenId)
+        internal
+        view
+    {
         IERC721 erc721 = IERC721(_originContract);
         require(
             erc721.ownerOf(_tokenId) == msg.sender,
             "sender must be the token owner"
         );
-        _;
     }
 
     /////////////////////////////////////////////////////////////////////////
     // setSalePrice
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Set the token for sale
+     * @dev Set the token for sale. The owner of the token must be the sender and have the marketplace approved.
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      * @param _amount uint256 wei value that the item is for sale
@@ -126,13 +161,27 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         address _originContract,
         uint256 _tokenId,
         uint256 _amount
-    )
-        public
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
-        senderMustBeTokenOwner(_originContract, _tokenId)
-    {
-        tokenPrices[_originContract][_tokenId] = _amount;
-        priceSetters[_originContract][_tokenId] = msg.sender;
+    ) external {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
+
+        // The sender must be the token owner
+        senderMustBeTokenOwner(_originContract, _tokenId);
+
+        // Check that sale price is less than max value.
+        require(
+            _amount <= maximumMarketValue,
+            "setSalePrice::Cannot set sale price larger than max value"
+        );
+
+        if (_amount == 0) {
+            // Set not for sale and exit
+            _resetTokenPrice(_originContract, _tokenId);
+            emit SetSalePrice(_originContract, _amount, _tokenId);
+            return;
+        }
+
+        tokenPrices[_originContract][_tokenId] = SalePrice(msg.sender, _amount);
         emit SetSalePrice(_originContract, _amount, _tokenId);
     }
 
@@ -140,7 +189,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // safeBuy
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Purchase the token with the expected amount.
+     * @dev Purchase the token with the expected amount. The current token owner must have the marketplace approved.
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      * @param _amount uint256 wei amount expecting to purchase the token for.
@@ -149,17 +198,14 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         address _originContract,
         uint256 _tokenId,
         uint256 _amount
-    )
-        public
-        payable
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
-    {
-        uint256 tokenPrice = tokenPrices[_originContract][_tokenId];
+    ) external payable {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
 
         // Make sure the tokenPrice is the expected amount
         require(
-            tokenPrice == _amount,
-            "Purchase amount must equal expected amount"
+            tokenPrices[_originContract][_tokenId].amount == _amount,
+            "safeBuy::Purchase amount must equal expected amount"
         );
         buy(_originContract, _tokenId);
     }
@@ -172,39 +218,31 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token.
      */
-    function buy(address _originContract, uint256 _tokenId)
-        public
-        payable
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
-    {
+    function buy(address _originContract, uint256 _tokenId) public payable {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
+
         // Check that the person who set the price still owns the token.
         require(
             _priceSetterStillOwnsTheToken(_originContract, _tokenId),
-            "Current token owner must be the person to have the latest price."
+            "buy::Current token owner must be the person to have the latest price."
         );
 
+        SalePrice memory sp = tokenPrices[_originContract][_tokenId];
+
         // Check that token is for sale.
-        uint256 tokenPrice = tokenPrices[_originContract][_tokenId];
-        require(tokenPrice > 0, "Tokens priced at 0 are not for sale.");
+        require(sp.amount > 0, "buy::Tokens priced at 0 are not for sale.");
 
         // Check that enough ether was sent.
-        uint256 requiredCost = tokenPrice + _calcMarketplaceFee(tokenPrice);
+        uint256 requiredCost = tokenPriceFeeIncluded(_originContract, _tokenId);
         require(
             requiredCost == msg.value,
-            "Must purchase the token for the correct price"
+            "buy::Must purchase the token for the correct price"
         );
 
         // Get token contract details.
         IERC721 erc721 = IERC721(_originContract);
         address tokenOwner = erc721.ownerOf(_tokenId);
-
-        // Payout all parties.
-        _payout(
-            tokenPrice,
-            _makePayable(tokenOwner),
-            _originContract,
-            _tokenId
-        );
 
         // Transfer token.
         erc721.safeTransferFrom(tokenOwner, msg.sender, _tokenId);
@@ -220,13 +258,16 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         // set the token as sold
         _setTokenAsSold(_originContract, _tokenId);
 
-        emit Sold(
+        // Payout all parties.
+        _payout(
+            sp.amount,
+            marketplaceFee,
+            _makePayable(tokenOwner),
             _originContract,
-            msg.sender,
-            tokenOwner,
-            tokenPrice,
             _tokenId
         );
+
+        emit Sold(_originContract, msg.sender, tokenOwner, sp.amount, _tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -236,15 +277,18 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @dev Gets the sale price of the token
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
-     * @return sale price of the token
+     * @return uint256 sale price of the token
      */
     function tokenPrice(address _originContract, uint256 _tokenId)
-        public
+        external
         view
         returns (uint256)
     {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId); // TODO: Make sure to write test to verify that this returns 0 when it fails
+
         if (_priceSetterStillOwnsTheToken(_originContract, _tokenId)) {
-            return tokenPrices[_originContract][_tokenId];
+            return tokenPrices[_originContract][_tokenId].amount;
         }
         return 0;
     }
@@ -253,20 +297,26 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // tokenPriceFeeIncluded
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Gets the sale price of the token including the fee.
+     * @dev Gets the sale price of the token including the marketplace fee.
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
-     * @return sale price of the token including the fee.
+     * @return uint256 sale price of the token including the fee.
      */
     function tokenPriceFeeIncluded(address _originContract, uint256 _tokenId)
         public
         view
         returns (uint256)
     {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId); // TODO: Make sure to write test to verify that this returns 0 when it fails
+
         if (_priceSetterStillOwnsTheToken(_originContract, _tokenId)) {
             return
-                tokenPrices[_originContract][_tokenId].add(
-                    _calcMarketplaceFee(tokenPrices[_originContract][_tokenId])
+                tokenPrices[_originContract][_tokenId].amount.add(
+                    _calcMarketplaceFee(
+                        tokenPrices[_originContract][_tokenId].amount,
+                        marketplaceFee
+                    )
                 );
         }
         return 0;
@@ -277,7 +327,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Bids on the token, replacing the bid if the bid is higher than the current bid. You cannot bid on a token you already own.
-     * @param _newBidAmount uint256 value in wei to bid, plus marketplace fee.
+     * @param _newBidAmount uint256 value in wei to bid.
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      */
@@ -285,38 +335,45 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         uint256 _newBidAmount,
         address _originContract,
         uint256 _tokenId
-    ) public payable {
+    ) external payable {
         // Check that bid is greater than 0.
-        require(_newBidAmount > 0, "Cannot bid 0 Wei.");
+        require(_newBidAmount > 0, "bid::Cannot bid 0 Wei.");
+
+        // Check that bid is less than max value.
+        require(
+            _newBidAmount <= maximumMarketValue,
+            "bid::Cannot bid higher than max value"
+        );
 
         // Check that bid is higher than previous bid
-        uint256 currentBidAmount = tokenCurrentBids[_originContract][_tokenId];
+        uint256 currentBidAmount = tokenCurrentBids[_originContract][_tokenId]
+            .amount;
         require(
             _newBidAmount > currentBidAmount,
-            "Must place higher bid than existing bid."
+            "bid::Must place higher bid than existing bid."
         );
 
         // Check that enough ether was sent.
-        uint256 requiredCost = _newBidAmount +
-            _calcMarketplaceFee(_newBidAmount);
+        uint256 requiredCost = _newBidAmount.add(
+            _calcMarketplaceFee(_newBidAmount, marketplaceFee)
+        );
         require(
             requiredCost == msg.value,
-            "Must purchase the token for the correct price."
+            "bid::Must purchase the token for the correct price."
         );
 
         // Check that bidder is not owner.
         IERC721 erc721 = IERC721(_originContract);
         address tokenOwner = erc721.ownerOf(_tokenId);
-        address bidder = msg.sender;
-        require(tokenOwner != bidder, "Bidder cannot be owner.");
+        require(tokenOwner != msg.sender, "bid::Bidder cannot be owner.");
 
         // Refund previous bidder.
         _refundBid(_originContract, _tokenId);
 
         // Set the new bid.
-        _setBid(_newBidAmount, bidder, _originContract, _tokenId);
+        _setBid(_newBidAmount, msg.sender, _originContract, _tokenId);
 
-        emit Bid(_originContract, bidder, _newBidAmount, _tokenId);
+        emit Bid(_originContract, msg.sender, _newBidAmount, _tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -332,11 +389,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         address _originContract,
         uint256 _tokenId,
         uint256 _amount
-    )
-        public
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
-        senderMustBeTokenOwner(_originContract, _tokenId)
-    {
+    ) external {
         (uint256 bidAmount, address _) = currentBidDetailsOfToken(
             _originContract,
             _tokenId
@@ -355,27 +408,28 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token
      */
-    function acceptBid(address _originContract, uint256 _tokenId)
-        public
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId)
-        senderMustBeTokenOwner(_originContract, _tokenId)
-    {
+    function acceptBid(address _originContract, uint256 _tokenId) public {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
+
+        // The sender must be the token owner
+        senderMustBeTokenOwner(_originContract, _tokenId);
+
         // Check that a bid exists.
         require(
             _tokenHasBid(_originContract, _tokenId),
             "Cannot accept a bid when there is none."
         );
 
-        // Payout all parties.
-        (uint256 bidAmount, address bidder) = currentBidDetailsOfToken(
-            _originContract,
-            _tokenId
-        );
-        _payout(bidAmount, msg.sender, _originContract, _tokenId);
+        // Get current bid on token
+
+
+            ActiveBid memory currentBid
+         = tokenCurrentBids[_originContract][_tokenId];
 
         // Transfer token.
         IERC721 erc721 = IERC721(_originContract);
-        erc721.safeTransferFrom(msg.sender, bidder, _tokenId);
+        erc721.safeTransferFrom(msg.sender, currentBid.bidder, _tokenId);
 
         // Wipe the token price and bid.
         _resetTokenPrice(_originContract, _tokenId);
@@ -384,11 +438,20 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         // set the token as sold
         _setTokenAsSold(_originContract, _tokenId);
 
+        // Payout all parties.
+        _payout(
+            currentBid.amount,
+            currentBid.marketplaceFee,
+            msg.sender,
+            _originContract,
+            _tokenId
+        );
+
         emit AcceptBid(
             _originContract,
-            bidder,
+            currentBid.bidder,
             msg.sender,
-            bidAmount,
+            currentBid.amount,
             _tokenId
         );
     }
@@ -401,19 +464,22 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _originContract address of the contract storing the token.
      * @param _tokenId uint256 ID of the token.
      */
-    function cancelBid(address _originContract, uint256 _tokenId) public {
+    function cancelBid(address _originContract, uint256 _tokenId) external {
         // Check that sender has a current bid.
-        address bidder = msg.sender;
         require(
-            _addressHasBidOnToken(bidder, _originContract, _tokenId),
-            "Cannot cancel a bid if sender hasn't made one."
+            _addressHasBidOnToken(msg.sender, _originContract, _tokenId),
+            "cancelBid::Cannot cancel a bid if sender hasn't made one."
         );
-        uint256 bidAmount = tokenCurrentBids[_originContract][_tokenId];
 
         // Refund the bidder.
         _refundBid(_originContract, _tokenId);
 
-        emit CancelBid(_originContract, bidder, bidAmount, _tokenId);
+        emit CancelBid(
+            _originContract,
+            msg.sender,
+            tokenCurrentBids[_originContract][_tokenId].amount,
+            _tokenId
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -430,8 +496,8 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         returns (uint256, address)
     {
         return (
-            tokenCurrentBids[_originContract][_tokenId],
-            tokenCurrentBidders[_originContract][_tokenId]
+            tokenCurrentBids[_originContract][_tokenId].amount,
+            tokenCurrentBids[_originContract][_tokenId].bidder
         );
     }
 
@@ -444,7 +510,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _tokenId uint256 id of the token.
      */
     function hasTokenBeenSold(address _originContract, uint256 _tokenId)
-        public
+        external
         view
         returns (bool)
     {
@@ -456,80 +522,118 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Function to set the marketplace fee percentage.
-     * @param _percentage uint256 fee to take from purchases.
+     * @param _percentage uint256 fee to take from purchases 1 == 1%.
      */
-    function setMarketplaceFee(uint256 _percentage) public onlyOwner {
+    function setMarketplaceFee(uint256 _percentage) external onlyOwner {
+        require(
+            _percentage <= maximumPercentage,
+            "Marketpalce fee cannot be greater than max percentage"
+        );
         marketplaceFee = _percentage;
+        emit MarketplaceFeeSet(_percentage);
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // setDefaultRoyaltyFee
-    /////////////////////////////////////////////////////////////////////////
-    /**
-     * @dev Function to set the default royalty fee percentage.
-     * @param _percentage uint256 royalty fee to take split between seller and creator.
-     */
-    function setDefaultRoyaltyFee(uint256 _percentage) public onlyOwner {
-        defaultRoyaltyFee = _percentage;
-    }
-
-    /////////////////////////////////////////////////////////////////////////
-    // setERC721ContractRoyaltyFee
+    // setERC721ContractRoyaltySettings
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Function to set the royalty fee percentage.
      * @param _originContract address of the ERC721 tokens
-     * @param _percentage uint256 royalty fee to take split between seller and creator.
+     * @param _percentage uint256 royalty fee to take split between seller and creator 10 = 10%.
      */
-    function setERC721ContractRoyaltyFee(
+    function setERC721ContractRoyaltySettings(
         address _originContract,
+        address _erc721CreatorContract,
         uint256 _percentage
-    ) public onlyOwner {
-        originContractRoyalty[_originContract] = _percentage;
+    ) external onlyOwner {
+        require(
+            _percentage <= maximumPercentage,
+            "Royalty cannot be greater than max percentage"
+        );
+        originContractRoyaltySettings[_originContract] = RoyaltySettings(
+            IERC721Creator(_erc721CreatorContract),
+            _percentage
+        );
+        emit RoyaltySettingsSet(
+            _originContract,
+            _erc721CreatorContract,
+            _percentage
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // getERC721ContractRoyaltyFee
+    // getERC721ContractRoyaltySettings
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Function to get the royalty fee percentage for an origin contract.
      * @param _originContract address of the ERC721 tokens
      */
-    function getERC721ContractRoyaltyFee(address _originContract)
-        public
+    function getERC721ContractRoyaltySettings(address _originContract)
+        external
         view
-        returns (uint256)
+        returns (address, uint256)
     {
-        uint256 percentage = originContractRoyalty[_originContract];
-        if (percentage > 0) {
-            return percentage;
-        }
-        return defaultRoyaltyFee;
+        return (
+            address(
+                originContractRoyaltySettings[_originContract]
+                    .iErc721CreatorContract
+            ),
+            originContractRoyaltySettings[_originContract].percentage
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // setPrimarySaleFee
+    // setERC721ContractPrimarySaleFee
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Function to set the primary sale fee percentage.
-     * @param _percentage uint256 fee to take from purchases.
+     * @param _originContract address of the ERC721 tokens
+     * @param _percentage uint256 fee to take from purchases, 1 == 1%.
      */
-    function setPrimarySaleFee(uint256 _percentage) public onlyOwner {
-        primarySaleFee = _percentage;
+    function setERC721ContractPrimarySaleFee(
+        address _originContract,
+        uint256 _percentage
+    ) external onlyOwner {
+        require(
+            _percentage <= maximumPercentage,
+            "Primary sale fee cannot be greater than max percentage"
+        );
+        originContractPrimarySaleFee[_originContract] = _percentage;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // getERC721ContractPrimarySaleFee
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Function to get the primary sale fee percentage for an origin contract.
+     * @param _originContract address of the ERC721 tokens
+     */
+    function getERC721ContractPrimarySaleFee(address _originContract)
+        external
+        view
+        returns (uint256)
+    {
+        return originContractPrimarySaleFee[_originContract];
     }
 
     /////////////////////////////////////////////////////////////////////////
     // markTokensAsSold
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Function to set an array of tokens for a contract as sold.
+     * @dev Function to set an array of tokens for a contract as sold, thus not being subject to the primary sale fee, if one exists.
      * @param _originContract address of ERC721 contract.
-     * @param _tokenIds uin256[] array of token ids.
+     * @param _tokenIds uint256[] array of token ids.
      */
     function markTokensAsSold(
         address _originContract,
         uint256[] calldata _tokenIds
     ) external onlyOwner {
+        // limit to batches of 2000
+        require(
+            _tokenIds.length <= 2000,
+            "markTokensAsSold::Attempted to mark more than 2000 tokens as sold"
+        );
+
         // Mark provided tokens as sold.
         for (uint256 i = 0; i < _tokenIds.length; i++) {
             tokenSolds[_originContract][_tokenIds[i]] = true;
@@ -542,16 +646,16 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     /**
      * @dev Checks that the token is owned by the same person who set the sale price.
      * @param _originContract address of the contract storing the token.
-     * @param _tokenId address of the contract storing the token.
+     * @param _tokenId uint256 id of the.
      */
     function _priceSetterStillOwnsTheToken(
         address _originContract,
         uint256 _tokenId
     ) internal view returns (bool) {
         IERC721 erc721 = IERC721(_originContract);
-        address owner = erc721.ownerOf(_tokenId);
-        address priceSetter = priceSetters[_originContract][_tokenId];
-        return owner == priceSetter;
+        return
+            erc721.ownerOf(_tokenId) ==
+            tokenPrices[_originContract][_tokenId].seller;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -560,32 +664,39 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     /**
      * @dev Internal function to pay the seller, creator, and maintainer.
      * @param _amount uint256 value to be split.
+     * @param _marketplacePercentage uint256 percentage of the fee for the marketplace.
      * @param _seller address seller of the token.
      * @param _originContract address of the token contract.
      * @param _tokenId uint256 ID of the token.
      */
     function _payout(
         uint256 _amount,
+        uint256 _marketplacePercentage,
         address payable _seller,
         address _originContract,
         uint256 _tokenId
     ) private {
         address maintainer = this.owner();
-        address creator = IERC721Creator(_originContract).tokenCreator(
-            _tokenId
-        );
 
+        bool isPrimarySale = !tokenSolds[_originContract][_tokenId] &&
+            originContractPrimarySaleFee[_originContract] > 0;
         uint256 marketplacePayment = _calcMarketplacePayment(
+            isPrimarySale,
             _amount,
-            _originContract,
-            _tokenId
+            _marketplacePercentage,
+            _originContract
         );
         uint256 sellerPayment = _calcSellerPayment(
+            isPrimarySale,
             _amount,
             _originContract,
             _tokenId
         );
-        uint256 royaltyPayment = _calcRoyaltyPayment(
+        (
+            uint256 royaltyPayment,
+            address creator
+        ) = _calcRoyaltyPaymentAndGetCreator(
+            isPrimarySale,
             _amount,
             _originContract,
             _tokenId
@@ -606,49 +717,68 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _calcMarketplacePayment
     /////////////////////////////////////////////////////////////////////////
     /**
-  * @dev Internal function to calculate Marketplace fees.
-  *      If primary sale:  fee + split with seller
-         otherwise:        just fee.
-  * @param _amount uint256 value to be split
-  * @param _originContract address of the token contract
-  * @param _tokenId id of the token
-  */
+     * @dev Internal function to calculate Marketplace fees.
+     *      If primary sale:  fee + split with seller
+            otherwise:        just fee.
+     * @param _hasPrimarySaleFee bool of whether there's a primary sale fee
+     * @param _amount uint256 value to be split
+     * @param _marketplacePercentage uint256 marketplace fee percentage
+     * @param _originContract address of the token contract
+     * @return uint256 wei value owed the marketplace owner
+     */
     function _calcMarketplacePayment(
+        bool _hasPrimarySaleFee,
         uint256 _amount,
-        address _originContract,
-        uint256 _tokenId
+        uint256 _marketplacePercentage,
+        address _originContract
     ) internal view returns (uint256) {
-        uint256 marketplaceFeePayment = _calcMarketplaceFee(_amount);
-        bool isPrimarySale = !tokenSolds[_originContract][_tokenId];
-        if (isPrimarySale) {
-            uint256 primarySalePayment = _amount.mul(primarySaleFee).div(100);
-            return marketplaceFeePayment + primarySalePayment;
+        uint256 marketplaceFeePayment = _calcMarketplaceFee(
+            _amount,
+            _marketplacePercentage
+        );
+        if (_hasPrimarySaleFee) {
+            uint256 primarySalePayment = _amount
+                .mul(originContractPrimarySaleFee[_originContract])
+                .div(100);
+            return marketplaceFeePayment.add(primarySalePayment);
         }
         return marketplaceFeePayment;
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // _calcRoyaltyPayment
+    // _calcRoyaltyPaymentAndGetCreator
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Internal function to calculate royalty payment.
-     *      If primary sale: 0
-     *      otherwise:       artist royalty.
+     * @dev Internal function to calculate royalty payment and get the creator.
+     *      If primary sale: 0, null address
+     *      If no royalty percentage for the contract: 0, null address
+     *      otherwise: royalty in wei, creator address
+     * @param _hasPrimarySaleFee bool of whether there's a primary sale fee
      * @param _amount uint256 value to be split
      * @param _originContract address of the token contract
      * @param _tokenId id of the token
+     * @return (uint256 wei value of royalty, address of token creator)
      */
-    function _calcRoyaltyPayment(
+    function _calcRoyaltyPaymentAndGetCreator(
+        bool _hasPrimarySaleFee,
         uint256 _amount,
         address _originContract,
         uint256 _tokenId
-    ) internal view returns (uint256) {
-        bool isPrimarySale = !tokenSolds[_originContract][_tokenId];
-        if (isPrimarySale) {
-            return 0;
+    ) internal view returns (uint256, address) {
+        if (_hasPrimarySaleFee) {
+            return (0, address(0));
         }
-        uint256 royaltyFee = getERC721ContractRoyaltyFee(_originContract);
-        return _amount.mul(royaltyFee).div(100);
+
+
+            RoyaltySettings memory rs
+         = originContractRoyaltySettings[_originContract];
+        if (rs.percentage == 0) {
+            return (0, address(0));
+        }
+        return (
+            _amount.mul(rs.percentage).div(100),
+            rs.iErc721CreatorContract.tokenCreator(_tokenId)
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -657,27 +787,31 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     /**
      * @dev Internal function to calculate seller payment.
      *      If primary sale: _amount - split with marketplace,
-     *      otherwise:       _amount - artist royalty.
+     *      otherwise:       _amount - creator royalty.
+     * @param _hasPrimarySaleFee bool of whether there's a primary sale fee
      * @param _amount uint256 value to be split
      * @param _originContract address of the token contract
      * @param _tokenId id of the token
      */
     function _calcSellerPayment(
+        bool _hasPrimarySaleFee,
         uint256 _amount,
         address _originContract,
         uint256 _tokenId
     ) internal view returns (uint256) {
-        bool isPrimarySale = !tokenSolds[_originContract][_tokenId];
-        if (isPrimarySale) {
-            uint256 primarySalePayment = _amount.mul(primarySaleFee).div(100);
-            return _amount - primarySalePayment;
+        if (_hasPrimarySaleFee) {
+            uint256 primarySalePayment = _amount
+                .mul(originContractPrimarySaleFee[_originContract])
+                .div(100);
+            return _amount.sub(primarySalePayment);
         }
-        uint256 royaltyPayment = _calcRoyaltyPayment(
+        (uint256 royaltyPayment, address _) = _calcRoyaltyPaymentAndGetCreator(
+            _hasPrimarySaleFee,
             _amount,
             _originContract,
             _tokenId
         );
-        return _amount - royaltyPayment;
+        return _amount.sub(royaltyPayment);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -685,15 +819,16 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Internal function calculate marketplace fee for a given amount.
-     *      f(_amount) =  _amount * (fee % / 100)
+     *      f(_amount, _fee) =  _amount * (_fee / 100)
      * @param _amount uint256 value to be split.
+     * @param _marketplacePercentage uint256 marketplace percentage.
+     * @return uint256 marketplace fee.
      */
-    function _calcMarketplaceFee(uint256 _amount)
-        internal
-        view
-        returns (uint256)
-    {
-        return _amount.mul(marketplaceFee).div(100);
+    function _calcMarketplaceFee(
+        uint256 _amount,
+        uint256 _marketplacePercentage
+    ) internal pure returns (uint256) {
+        return _amount.mul(_marketplacePercentage).div(100);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -717,15 +852,14 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
     // _resetTokenPrice
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Internal function to set token price to 0 for a give contract.
+     * @dev Internal function to set token price to 0 for a given contract.
      * @param _originContract address of ERC721 contract.
      * @param _tokenId uin256 id of the token.
      */
     function _resetTokenPrice(address _originContract, uint256 _tokenId)
         internal
     {
-        tokenPrices[_originContract][_tokenId] = 0;
-        priceSetters[_originContract][_tokenId] = address(0);
+        tokenPrices[_originContract][_tokenId] = SalePrice(address(0), 0);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -742,7 +876,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         address _originContract,
         uint256 _tokenId
     ) internal view returns (bool) {
-        return tokenCurrentBidders[_originContract][_tokenId] == _bidder;
+        return tokenCurrentBids[_originContract][_tokenId].bidder == _bidder;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -758,7 +892,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         view
         returns (bool)
     {
-        return tokenCurrentBidders[_originContract][_tokenId] != address(0);
+        return tokenCurrentBids[_originContract][_tokenId].bidder != address(0);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -771,14 +905,17 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _tokenId uin256 id of the token.
      */
     function _refundBid(address _originContract, uint256 _tokenId) internal {
-        address currentBidder = tokenCurrentBidders[_originContract][_tokenId];
-        uint256 currentBid = tokenCurrentBids[_originContract][_tokenId];
-        uint256 valueToReturn = currentBid + _calcMarketplaceFee(currentBid);
-        if (currentBidder == address(0)) {
+
+            ActiveBid memory currentBid
+         = tokenCurrentBids[_originContract][_tokenId];
+        if (currentBid.bidder == address(0)) {
             return;
         }
+        uint256 valueToReturn = currentBid.amount.add(
+            _calcMarketplaceFee(currentBid.amount, currentBid.marketplaceFee)
+        );
         _resetBid(_originContract, _tokenId);
-        sendValueOrEscrow(_makePayable(currentBidder), valueToReturn);
+        sendValueOrEscrow(currentBid.bidder, valueToReturn);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -790,8 +927,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      * @param _tokenId uin256 id of the token.
      */
     function _resetBid(address _originContract, uint256 _tokenId) internal {
-        tokenCurrentBidders[_originContract][_tokenId] = address(0);
-        tokenCurrentBids[_originContract][_tokenId] = 0;
+        tokenCurrentBids[_originContract][_tokenId] = ActiveBid(
+            address(0),
+            0,
+            0
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -806,7 +946,7 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
      */
     function _setBid(
         uint256 _amount,
-        address _bidder,
+        address payable _bidder,
         address _originContract,
         uint256 _tokenId
     ) internal {
@@ -814,8 +954,11 @@ contract SuperRareMarketAuctionV2 is Ownable, SendValueOrEscrow {
         require(_bidder != address(0), "Bidder cannot be 0 address.");
 
         // Set bid.
-        tokenCurrentBidders[_originContract][_tokenId] = _bidder;
-        tokenCurrentBids[_originContract][_tokenId] = _amount;
+        tokenCurrentBids[_originContract][_tokenId] = ActiveBid(
+            _bidder,
+            marketplaceFee,
+            _amount
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
