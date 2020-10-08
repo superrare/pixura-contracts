@@ -1,8 +1,14 @@
 pragma solidity 0.6.12;
 
 import "openzeppelin-solidity-solc6/contracts/token/ERC721/IERC721.sol";
+import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
+import "./IERC721CreatorRoyalty.sol";
+import "./IMarketplaceSettings.sol";
 
-contract SuperRareAuctionHouse {
+contract SuperRareAuctionHouse is Ownable {
+    using SafeMath for uint256;
+
     /////////////////////////////////////////////////////////////////////////
     // Constants
     /////////////////////////////////////////////////////////////////////////
@@ -11,6 +17,7 @@ contract SuperRareAuctionHouse {
     /////////////////////////////////////////////////////////////////////////
     // Structs
     /////////////////////////////////////////////////////////////////////////
+    // A reserve auction.
     struct ReserveAuction {
         address auctionCreator;
         uint16 lengthOfAuction;
@@ -18,6 +25,7 @@ contract SuperRareAuctionHouse {
         uint256 reservePrice;
     }
 
+    // A scheduled auction.
     struct ScheduledAuction {
         address auctionCreator;
         uint16 lengthOfAuction;
@@ -25,6 +33,7 @@ contract SuperRareAuctionHouse {
         uint256 minimumBid;
     }
 
+    // The active bid for a given token, contains the bidder, the marketplace fee at the time of the bid, and the amount of wei placed on the token
     struct ActiveBid {
         address payable bidder;
         uint256 marketplaceFee;
@@ -34,6 +43,8 @@ contract SuperRareAuctionHouse {
     /////////////////////////////////////////////////////////////////////////
     // State Variables
     /////////////////////////////////////////////////////////////////////////
+    IMarketplaceSettings public marketSettings;
+
     // Mapping from ERC721 contract to mapping of tokenId to Reserve Auctions.
     mapping(address => mapping(uint256 => ReserveAuction))
         private reserveAuctions;
@@ -396,6 +407,27 @@ contract SuperRareAuctionHouse {
         );
 
         _refundBid(_contractAddress, _tokenId);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // _refundBid
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Internal function to return an existing bid on a token to the
+     *      bidder and reset bid.
+     * @param _contractAddress address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
+    function _refundBid(address _contractAddress, uint256 _tokenId) internal {
+        ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
+        if (currentBid.bidder == address(0)) {
+            return;
+        }
+        uint256 valueToReturn = currentBid.amount.add(
+            _calcMarketplaceFee(currentBid.amount, currentBid.marketplaceFee)
+        );
+        _resetBid(_contractAddress, _tokenId);
+        sendValueOrEscrow(currentBid.bidder, valueToReturn);
     }
 
     /////////////////////////////////////////////////////////////////////////
