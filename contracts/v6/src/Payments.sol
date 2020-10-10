@@ -4,10 +4,44 @@ import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
 import "./SendValueOrEscrow.sol";
 
 /**
- * @title Payment contract for NFT .
+ * @title Payments contract for NFT .
  */
-abstract contract Payment {
+contract Payments is SendValueOrEscrow {
     using SafeMath for uint256;
+
+    /////////////////////////////////////////////////////////////////////////
+    // refund
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Internal function to refund an address. Typically for canceled bids or offers.
+
+     * Requirements:
+     *
+     *  - _payee cannot be the zero address
+     *
+     * @param _marketplacePercentage uint8 percentage of the fee for the marketplace.
+     * @param _amount uint256 value to be split.
+     * @param _payee address seller of the token.
+     */
+    function refund(
+        uint8 _marketplacePercentage,
+        address payable _payee,
+        uint256 _amount
+    ) internal {
+        require(
+            _payee != address(0),
+            "payout::no payees can be the zero address"
+        );
+
+        if (_amount > 0) {
+            SendValueOrEscrow.sendValueOrEscrow(
+                _payee,
+                _amount.add(
+                    calcPercentagePayment(_amount, _marketplacePercentage)
+                )
+            );
+        }
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // payout
@@ -16,9 +50,9 @@ abstract contract Payment {
      * @dev Internal function to pay the seller, creator, and maintainer.
 
      * Requirements:
-     * 
-     *  -  _marketplacePercentage + _royaltyPercentage + _primarySalePercentage <= 100
-     *  - _payee cannot be the zero address
+     *
+     *  - _marketplacePercentage + _royaltyPercentage + _primarySalePercentage <= 100
+     *  - no payees can be the zero address
      *
      * @param _amount uint256 value to be split.
      * @param _isPrimarySale bool of whether this is a primary sale.
@@ -48,19 +82,32 @@ abstract contract Payment {
                 100,
             "payout::percentages cannot go beyond 100"
         );
+        require(
+            _payee != address(0) &&
+                _primarySalePayee != address(0) &&
+                _marketplacePayee != address(0) &&
+                _royaltyPayee != address(0),
+            "payout::no payees can be the zero address"
+        );
 
-        uint256 marketplacePayment = _calcMarketplacePayment(
+        uint256 marketplacePayment = calcPercentagePayment(
             _amount,
             _marketplacePercentage
         );
 
-        uint256 royaltyPayment = _calcRoyaltyPayment(
+        uint256 royaltyPayment = calcRoyaltyPayment(
             _isPrimarySale,
             _amount,
             _royaltyPercentage
         );
 
-        uint256 payeePayment = amount.sub(royaltyPayment).sub(
+        uint256 primarySalePayment = calcPrimarySalePayment(
+            _isPrimarySale,
+            _amount,
+            _primarySalePercentage
+        );
+
+        uint256 payeePayment = _amount.sub(royaltyPayment).sub(
             primarySalePayment
         );
 
@@ -70,63 +117,84 @@ abstract contract Payment {
                 marketplacePayment
             );
         }
-        if (sellerPayment > 0) {
-            SendValueOrEscrow.sendValueOrEscrow(_, sellerPayment);
-        }
         if (royaltyPayment > 0) {
+            SendValueOrEscrow.sendValueOrEscrow(_royaltyPayee, royaltyPayment);
+        }
+        if (primarySalePayment > 0) {
             SendValueOrEscrow.sendValueOrEscrow(
-                _makePayable(creator),
-                royaltyPayment
+                _primarySalePayee,
+                primarySalePayment
             );
+        }
+        if (payeePayment > 0) {
+            SendValueOrEscrow.sendValueOrEscrow(_payee, payeePayment);
         }
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // calcMarketplacePayment
+    // calcRoyaltyPayment
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Private function to calculate Royalty amount.
+     *      If primary sale: 0
+     *      If no royalty percentage: 0
+     *      otherwise: royalty in wei
+     * @param _isPrimarySale bool of whether this is a primary sale
+     * @param _amount uint256 value to be split
+     * @param _percentage uint8 royalty percentage
+     * @return uint256 wei value owed the marketplace owner
+     */
+    function calcRoyaltyPayment(
+        bool _isPrimarySale,
+        uint256 _amount,
+        uint8 _percentage
+    ) private pure returns (uint256) {
+        if (_isPrimarySale) {
+            return 0;
+        }
+        return calcPercentagePayment(_amount, _percentage);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // calcPrimarySalePayment
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Private function to calculate PrimarySale amount.
+     *      If primary sale: 0
+     *      If no royalty percentage: 0
+     *      otherwise: royalty in wei
+     * @param _isPrimarySale bool of whether this is a primary sale
+     * @param _amount uint256 value to be split
+     * @param _percentage uint8 royalty percentage
+     * @return uint256 wei value owed the marketplace owner
+     */
+    function calcPrimarySalePayment(
+        bool _isPrimarySale,
+        uint256 _amount,
+        uint8 _percentage
+    ) private pure returns (uint256) {
+        if (_isPrimarySale) {
+            return calcPercentagePayment(_amount, _percentage);
+        }
+        return 0;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // calcPercentagePayment
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Internal function to calculate Marketplace fees.
      *      If primary sale:  fee + split with seller
             otherwise:        just fee.
-     * @param _hasPrimarySaleFee bool of whether there's a primary sale fee
      * @param _amount uint256 value to be split
-     * @param _marketplacePercentage uint256 marketplace fee percentage
-     * @param _originContract address of the token contract
+     * @param _percentage uint8  percentage
      * @return uint256 wei value owed the marketplace owner
      */
-    function calcMarketplacePayment(
-        bool _hasPrimarySaleFee,
-        uint256 _amount,
-        uint256 _marketplacePercentage,
-        address _originContract
-    ) internal view returns (uint256) {
-        uint256 marketplaceFeePayment = _calcMarketplaceFee(
-            _amount,
-            _marketplacePercentage
-        );
-        if (_hasPrimarySaleFee) {
-            uint256 primarySalePayment = _amount
-                .mul(originContractPrimarySaleFee[_originContract])
-                .div(100);
-            return marketplaceFeePayment.add(primarySalePayment);
-        }
-        return marketplaceFeePayment;
-    }
-
-    /////////////////////////////////////////////////////////////////////////
-    // _calcMarketplaceFee
-    /////////////////////////////////////////////////////////////////////////
-    /**
-     * @dev Private function calculate marketplace fee for a given amount.
-     *      f(_amount, _fee) =  _amount * (_fee / 100)
-     * @param _amount uint256 value to be split.
-     * @param _marketplacePercentage uint256 marketplace percentage.
-     * @return uint256 marketplace fee.
-     */
-    function _calcMarketplaceFee(
-        uint256 _amount,
-        uint256 _marketplacePercentage
-    ) private pure returns (uint256) {
-        return _amount.mul(_marketplacePercentage).div(100);
+    function calcPercentagePayment(uint256 _amount, uint8 _percentage)
+        internal
+        pure
+        returns (uint256)
+    {
+        return _amount.mul(_percentage).div(100);
     }
 }

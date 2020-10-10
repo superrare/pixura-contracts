@@ -5,8 +5,9 @@ import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
 import "./IERC721CreatorRoyalty.sol";
 import "./IMarketplaceSettings.sol";
+import "./Payments.sol";
 
-contract SuperRareAuctionHouse is Ownable {
+contract SuperRareAuctionHouse is Ownable, Payments {
     using SafeMath for uint256;
 
     /////////////////////////////////////////////////////////////////////////
@@ -36,14 +37,18 @@ contract SuperRareAuctionHouse is Ownable {
     // The active bid for a given token, contains the bidder, the marketplace fee at the time of the bid, and the amount of wei placed on the token
     struct ActiveBid {
         address payable bidder;
-        uint256 marketplaceFee;
+        uint8 marketplaceFee;
         uint256 amount;
     }
 
     /////////////////////////////////////////////////////////////////////////
     // State Variables
     /////////////////////////////////////////////////////////////////////////
+    // Marketplace settings contract
     IMarketplaceSettings public marketSettings;
+
+    // Creator Royalty Interace
+    IERC721CreatorRoyalty public iERC721CreatorRoyalty;
 
     // Mapping from ERC721 contract to mapping of tokenId to Reserve Auctions.
     mapping(address => mapping(uint256 => ReserveAuction))
@@ -52,6 +57,9 @@ contract SuperRareAuctionHouse is Ownable {
     // Mapping from ERC721 contract to mapping of tokenId to Scheduled Auctions.
     mapping(address => mapping(uint256 => ScheduledAuction))
         private scheduledAuctions;
+
+    // Mapping of ERC721 contract to mapping of token ID to the current bid amount.
+    mapping(address => mapping(uint256 => ActiveBid)) private currentBids;
 
     /////////////////////////////////////////////////////////////////////////
     // Events
@@ -69,6 +77,22 @@ contract SuperRareAuctionHouse is Ownable {
         uint256 indexed _tokenId,
         address indexed _auctionCreator,
         uint256 _reservePrice,
+        uint16 _lengthOfAuction
+    );
+
+    event ReserveAuctionCancelBid(
+        address indexed _bidder,
+        address indexed _contractAddress,
+        uint256 indexed _tokenId,
+        uint256 _amount
+    );
+
+    event NewScheduledAuction(
+        address indexed _contractAddress,
+        uint256 indexed _tokenId,
+        address indexed _auctionCreator,
+        uint256 _startingBlock,
+        uint256 _minimumBid,
         uint16 _lengthOfAuction
     );
 
@@ -108,12 +132,11 @@ contract SuperRareAuctionHouse is Ownable {
         );
 
         // Create the auction
-        _createReserveAuction(
-            _contractAddress,
+        reserveAuctions[_contractAddress][_tokenId] = ReserveAuction(
             msg.sender,
-            _tokenId,
-            _reservePrice,
-            _lengthOfAuction
+            _lengthOfAuction,
+            0,
+            _reservePrice
         );
 
         emit NewReserveAuction(
@@ -164,24 +187,47 @@ contract SuperRareAuctionHouse is Ownable {
             reserveAuctions[_contractAddress][_tokenId].reservePrice,
             reserveAuctions[_contractAddress][_tokenId].lengthOfAuction
         );
-
-        // _refundBid(_contractAddress, _tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // withdrawBid
+    // cancelBid
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Withdraw a bid
      * Rules:
      * - Auction cannot have started
+     * - Must reserve auction
      * - Must have the current bid on the token
      * - Must return outstanding bid
      * - Must be the bidder
      * @param _contractAddress address of ERC721 contract.
      * @param _tokenId uint256 id of the token.
      */
-    function withdrawBid(address _contractAddress, uint256 _tokenId) external {}
+    function cancelBid(address _contractAddress, uint256 _tokenId) external {
+        require(
+            _hasReserveAuction(_contractAddress, _tokenId),
+            "cancelBid::must have a reserve auction"
+        );
+        require(
+            reserveAuctions[_contractAddress][_tokenId].startedBlock == 0,
+            "cancelBid::auction cannot be started"
+        );
+        require(
+            currentBids[_contractAddress][_tokenId].bidder == msg.sender,
+            "cancelBid::must be the current bidder"
+        );
+
+        ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
+
+        _refundBid(_contractAddress, _tokenId);
+
+        emit ReserveAuctionCancelBid(
+            currentBid.bidder,
+            _contractAddress,
+            _tokenId,
+            currentBid.amount
+        );
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // createScheduledAuction
@@ -197,19 +243,42 @@ contract SuperRareAuctionHouse is Ownable {
      * - Cannot have a current auction going for this token
      * @param _contractAddress address of ERC721 contract.
      * @param _tokenId uint256 id of the token.
-     * @param _minBid uint256 Wei value of the reserve price.
+     * @param _minimumBid uint256 Wei value of the reserve price.
      * @param _lengthOfAuction uint16 length of auction in blocks.
      * @param _startingBlock uint256 block number to start the auction on.
      */
     function createScheduledAuction(
         address _contractAddress,
         uint256 _tokenId,
-        uint256 _minBid,
+        uint256 _minimumBid,
         uint16 _lengthOfAuction,
         uint256 _startingBlock
     ) external {
-        // Implementation:
-        // take custody of token
+        require(
+            _lengthOfAuction > 0,
+            "createScheduledAuction::_lengthOfAuction must be greater than 0"
+        );
+        require(
+            _startingBlock > block.number,
+            "createScheduledAuction::_startingBlock must be greater than block.number"
+        );
+        _requireOwnerApproval(_contractAddress, _tokenId);
+        _requireOwnerAsSender(_contractAddress, _tokenId);
+        _requireNoCurrentAuction(_contractAddress, _tokenId);
+
+        // Create the scheduled auction.
+        scheduledAuctions[_contractAddress][_tokenId] = ScheduledAuction(
+            msg.sender,
+            _lengthOfAuction,
+            _startingBlock,
+            _minimumBid
+        );
+
+        // Transfer the token to this contract to act as escrow.
+        IERC721 erc721 = IERC721(_contractAddress);
+        erc721.transferFrom(msg.sender, _contractAddress);
+
+        emit 
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -364,30 +433,6 @@ contract SuperRareAuctionHouse is Ownable {
     }
 
     //////////////////////////////////////////////////////////////////////////
-    // _createReserveAuction
-    /////////////////////////////////////////////////////////////////////////
-    /**
-     * @dev Create a reserve auction.
-     * @param _contractAddress address of ERC721 contract.
-     * @param _tokenId uint256 id of the token.
-     */
-
-    function _createReserveAuction(
-        address _contractAddress,
-        address _auctionCreator,
-        uint256 _tokenId,
-        uint256 _reservePrice,
-        uint16 _lengthOfAuction
-    ) internal {
-        reserveAuctions[_contractAddress][_tokenId] = ReserveAuction(
-            _auctionCreator,
-            _lengthOfAuction,
-            0,
-            _reservePrice
-        );
-    }
-
-    //////////////////////////////////////////////////////////////////////////
     // _cancelReserveAuction
     /////////////////////////////////////////////////////////////////////////
     /**
@@ -423,31 +468,13 @@ contract SuperRareAuctionHouse is Ownable {
         if (currentBid.bidder == address(0)) {
             return;
         }
-        uint256 valueToReturn = currentBid.amount.add(
-            _calcMarketplaceFee(currentBid.amount, currentBid.marketplaceFee)
-        );
-        _resetBid(_contractAddress, _tokenId);
-        sendValueOrEscrow(currentBid.bidder, valueToReturn);
-    }
 
-    /////////////////////////////////////////////////////////////////////////
-    // _refundBid
-    /////////////////////////////////////////////////////////////////////////
-    /**
-     * @dev Internal function to return an existing bid on a token to the
-     *      bidder and reset bid.
-     * @param _contractAddress address of ERC721 contract.
-     * @param _tokenId uin256 id of the token.
-     */
-    function _refundBid(address _contractAddress, uint256 _tokenId) internal {
-        ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
-        if (currentBid.bidder == address(0)) {
-            return;
-        }
-        uint256 valueToReturn = currentBid.amount.add(
-            _calcMarketplaceFee(currentBid.amount, currentBid.marketplaceFee)
+        currentBids[_contractAddress][_tokenId] = ActiveBid(address(0), 0, 0);
+
+        // refund the bidder
+        Payments.refund(
+            currentBid.marketplaceFee,
+            currentBid.bidder,
+            currentBid.amount
         );
-        _resetBid(_contractAddress, _tokenId);
-        sendValueOrEscrow(currentBid.bidder, valueToReturn);
     }
-}
