@@ -5,6 +5,21 @@ pragma solidity 0.6.12;
  */
 interface IMarketplaceSettings {
     /////////////////////////////////////////////////////////////////////////
+    // Marketplace Min and Max Values
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Get the max value to be used with the marketplace.
+     * @return uint256 wei value.
+     */
+    function getMarketplaceMaxValue() external view returns (uint256);
+
+    /**
+     * @dev Get the max value to be used with the marketplace.
+     * @return uint256 wei value.
+     */
+    function getMarketplaceMinValue() external view returns (uint256);
+
+    /////////////////////////////////////////////////////////////////////////
     // Marketplace Fee
     /////////////////////////////////////////////////////////////////////////
     /**

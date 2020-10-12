@@ -87,6 +87,14 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _amount
     );
 
+    event ReserveAuctionBegun(
+        address indexed _bidder,
+        address indexed _contractAddress,
+        uint256 indexed _tokenId,
+        uint256 _initialBidAmount,
+        uint256 _startingBlock
+    );
+
     event NewScheduledAuction(
         address indexed _contractAddress,
         uint256 indexed _tokenId,
@@ -94,6 +102,13 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _startingBlock,
         uint256 _minimumBid,
         uint16 _lengthOfAuction
+    );
+
+    event TimedAuctionBid(
+        address indexed _originContract,
+        address indexed _bidder,
+        uint256 indexed _tokenId,
+        uint256 _amount
     );
 
     /////////////////////////////////////////////////////////////////////////
@@ -129,6 +144,10 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         require(
             _reservePrice >= 0,
             "createReserveAuction::_reservePrice must be >= 0"
+        );
+        require(
+            _reservePrice <= marketSettings.getMarketplaceMaxValue(),
+            "createReserveAuction::Cannot set reserve price higher than max value"
         );
 
         // Create the auction
@@ -262,6 +281,10 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             _startingBlock > block.number,
             "createScheduledAuction::_startingBlock must be greater than block.number"
         );
+        require(
+            _minimumBid <= marketSettings.getMarketplaceMaxValue(),
+            "createScheduledAuction::Cannot set minimum bid higher than max value"
+        );
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
         _requireNoCurrentAuction(_contractAddress, _tokenId);
@@ -276,34 +299,83 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Transfer the token to this contract to act as escrow.
         IERC721 erc721 = IERC721(_contractAddress);
-        erc721.transferFrom(msg.sender, _contractAddress);
+        erc721.transferFrom(msg.sender, _contractAddress, _tokenId);
 
-        emit 
+        emit NewScheduledAuction(
+            _contractAddress,
+            _tokenId,
+            msg.sender,
+            _startingBlock,
+            _minimumBid,
+            _lengthOfAuction
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // placeBid
+    // bid
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Bid on artwork with price and token id
+     * @dev Bid on artwork.
      * Rules:
      * - There must be a running auction or a reserve price auction for the token
      * - bid > 0
-     * - bid >= minimum bid
      * - Auction creator != bidder
+     * - If scheduled auction: bid >= minimum bid
      * - bid > current bid
      * - if previous bid then returned
      * @param _contractAddress address of ERC721 contract.
      * @param _tokenId uint256 id of the token.
-     * @param _bid uint256 Wei value of the reserve price.
+     * @param _amount uint256 Wei value of the bid.
      */
-    function placeBid(
+    function bid(
         address _contractAddress,
         uint256 _tokenId,
-        uint256 _bid
-    ) external {
-        // Implementation
-        // if reserve auction price met, take custody of token
+        uint256 _amount
+    ) external payable {
+        // Check that bid is greater than 0.
+        require(_amount > 0, "bid::Cannot bid 0 Wei.");
+
+        // Check that bid is less than max value.
+        require(
+            _amount <= marketSettings.getMarketplaceMaxValue(),
+            "bid::Cannot bid higher than max value"
+        );
+
+        // Check that bid is larger than min value.
+        require(
+            _amount >= marketSettings.getMarketplaceMinValue(),
+            "bid::Cannot bid lower than min value"
+        );
+
+        // Check that enough ether was sent.
+        uint256 requiredCost = _amount.add(
+            marketSettings.calculateMarketplaceFee(_amount)
+        );
+        require(requiredCost == msg.value, "bid::Must bid the correct amount.");
+
+        ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
+
+        // Must bid higher than current bid.
+        require(
+            _amount > currentBid.amount,
+            "bid::must bid higher than previous bid"
+        );
+
+        // Return previous bid
+        // We do this hear because it clears the bid for the refund. This makes is safe from reentrence.
+        if (currentBid.amount != 0) {
+            _refundBid(_contractAddress, _tokenId);
+        }
+
+        if (_hasReserveAuction(_contractAddress, _tokenId)) {
+            _placeReserveAuctionBid(_contractAddress, _tokenId, _amount);
+        } else if (_hasRunningScheduledAuction(_contractAddress, _tokenId)) {
+            _placeScheduledAuctionBid(_contractAddress, _tokenId, _amount);
+        } else {
+            require(false, "bid::must have an auction");
+        }
+
+        emit TimedAuctionBid(_contractAddress, msg.sender, _tokenId, _amount);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -334,6 +406,20 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _tokenId uint256 id of the token.
      */
     function getAuctionDetails(address _contractAddress, uint256 _tokenId)
+        external
+    {}
+
+    /////////////////////////////////////////////////////////////////////////
+    // getCurrentBid
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Get the current bid
+     * Rules:
+     * - Return empty when there's no bid
+     * @param _contractAddress address of ERC721 contract.
+     * @param _tokenId uint256 id of the token.
+     */
+    function getCurrentBid(address _contractAddress, uint256 _tokenId)
         external
     {}
 
@@ -432,6 +518,25 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             address(0);
     }
 
+    /////////////////////////////////////////////////////////////////////////
+    // _hasRunningScheduledAuction
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Returns whether there is a running scheduled auction for the token.
+     * @param _contractAddress address of ERC721 contract.
+     * @param _tokenId uint256 id of the token.
+     */
+    function _hasRunningScheduledAuction(
+        address _contractAddress,
+        uint256 _tokenId
+    ) internal view returns (bool) {
+        return
+            scheduledAuctions[_contractAddress][_tokenId].auctionCreator !=
+            address(0) &&
+            scheduledAuctions[_contractAddress][_tokenId].startingBlock >
+            block.number;
+    }
+
     //////////////////////////////////////////////////////////////////////////
     // _cancelReserveAuction
     /////////////////////////////////////////////////////////////////////////
@@ -478,3 +583,82 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             currentBid.amount
         );
     }
+
+    /////////////////////////////////////////////////////////////////////////
+    // _placeReserveAuctionBid
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Internal function to place a reserve auction bid. If the bid is greater than the reserve then the auction begins.
+     * Rules:
+     * - There must be a running auction or a reserve price auction for the token
+     * - Auction creator != bidder
+     * - If scheduled auction: bid >= minimum bid
+     * @param _contractAddress address of ERC721 contract.
+     * @param _tokenId uint256 id of the token.
+     * @param _amount uint256 Wei value of the bid.
+     */
+    function _placeReserveAuctionBid(
+        address _contractAddress,
+        uint256 _tokenId,
+        uint256 _amount
+    ) internal {
+        require(
+            reserveAuctions[_contractAddress][_tokenId].auctionCreator !=
+                msg.sender,
+            "_placeReserveAuctionBid::Cannot place a bid on auction created by you"
+        );
+        currentBids[_contractAddress][_tokenId] = ActiveBid(
+            msg.sender,
+            marketSettings.getMarketplaceFeePercentage(),
+            _amount
+        );
+        // if the reserve price is met, then the auction has begun.
+        if (
+            _amount >= reserveAuctions[_contractAddress][_tokenId].reservePrice
+        ) {
+            reserveAuctions[_contractAddress][_tokenId].startedBlock = block
+                .number;
+            emit ReserveAuctionBegun(
+                msg.sender,
+                _contractAddress,
+                _tokenId,
+                _amount,
+                block.number
+            );
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // _placeScheduledAuctionBid
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Internal function to place a reserve auction bid. If the bid is greater than the reserve then the auction begins.
+     * Rules:
+     * - There must be a running auction or a reserve price auction for the token
+     * - Auction creator != bidder
+     * - If scheduled auction: bid >= minimum bid
+     * @param _contractAddress address of ERC721 contract.
+     * @param _tokenId uint256 id of the token.
+     * @param _amount uint256 Wei value of the bid.
+     */
+    function _placeScheduledAuctionBid(
+        address _contractAddress,
+        uint256 _tokenId,
+        uint256 _amount
+    ) internal {
+        require(
+            scheduledAuctions[_contractAddress][_tokenId].auctionCreator !=
+                msg.sender,
+            "_placeScheduledAuctionBid::Cannot place a bid on auction created by you"
+        );
+        require(
+            scheduledAuctions[_contractAddress][_tokenId].minimumBid <= _amount,
+            "_placeScheduledAuctionBid::Must place bid at least as large as minimum bid"
+        );
+        currentBids[_contractAddress][_tokenId] = ActiveBid(
+            msg.sender,
+            marketSettings.getMarketplaceFeePercentage(),
+            _amount
+        );
+    }
+}
