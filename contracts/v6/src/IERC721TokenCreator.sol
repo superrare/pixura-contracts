@@ -13,5 +13,5 @@ interface IERC721TokenCreator {
     function tokenCreator(address _contractAddress, uint256 _tokenId)
         external
         view
-        returns (address);
+        returns (payable address);
 }
