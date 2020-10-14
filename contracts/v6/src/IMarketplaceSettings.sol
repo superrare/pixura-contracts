@@ -79,11 +79,14 @@ interface IMarketplaceSettings {
      * Requirements:
      *
      * - `_contractAddress` cannot be the zero address.
-     * - token must exist
 
      * @param _contractAddress address ERC721Contract address.
      * @param _tokenId uint256 token ID.
+     * @param _hasSold bool of whether the token should be marked sold or not.
      */
-    function markERC721TokenAsSold(address _contractAddress, uint256 _tokenId)
-        external;
+    function markERC721Token(
+        address _contractAddress,
+        uint256 _tokenId,
+        bool _hasSold
+    ) external;
 }

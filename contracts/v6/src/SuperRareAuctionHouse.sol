@@ -44,7 +44,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     // State Variables
     /////////////////////////////////////////////////////////////////////////
     // Marketplace settings contract
-    IMarketplaceSettings public marketSettings;
+    IMarketplaceSettings public iMarketSettings;
 
     // Creator Royalty Interace
     IERC721CreatorRoyalty public iERC721CreatorRoyalty;
@@ -112,6 +112,34 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     );
 
     /////////////////////////////////////////////////////////////////////////
+    // updateIMarketplaceSettings
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to update the marketplace settings.
+     * Rules:
+     * - only owner
+     * - _address != address(0)
+     * @param _address address of the IMarketplaceSettings.
+     */
+    function updateMarketplaceSettings(address _address) public onlyOwner {
+        iMarketSettings = IMarketplaceSettings(_address);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // updateIERC721CreatorRoyalty
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to update the IERC721CreatorRoyalty.
+     * Rules:
+     * - only owner
+     * - _address != address(0)
+     * @param _address address of the IERC721CreatorRoyalty.
+     */
+    function updateIERC721CreatorRoyalty(address _address) public onlyOwner {
+        iERC721CreatorRoyalty = IERC721CreatorRoyalty(_address);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // createReserveAuction
     /////////////////////////////////////////////////////////////////////////
     /**
@@ -149,7 +177,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "createReserveAuction::_reservePrice must be >= 0"
         );
         require(
-            _reservePrice <= marketSettings.getMarketplaceMaxValue(),
+            _reservePrice <= iMarketSettings.getMarketplaceMaxValue(),
             "createReserveAuction::Cannot set reserve price higher than max value"
         );
 
@@ -293,7 +321,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "createScheduledAuction::_startingBlock must be greater than block.number"
         );
         require(
-            _minimumBid <= marketSettings.getMarketplaceMaxValue(),
+            _minimumBid <= iMarketSettings.getMarketplaceMaxValue(),
             "createScheduledAuction::Cannot set minimum bid higher than max value"
         );
         _requireOwnerApproval(_contractAddress, _tokenId);
@@ -355,19 +383,19 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Check that bid is less than max value.
         require(
-            _amount <= marketSettings.getMarketplaceMaxValue(),
+            _amount <= iMarketSettings.getMarketplaceMaxValue(),
             "bid::Cannot bid higher than max value"
         );
 
         // Check that bid is larger than min value.
         require(
-            _amount >= marketSettings.getMarketplaceMinValue(),
+            _amount >= iMarketSettings.getMarketplaceMinValue(),
             "bid::Cannot bid lower than min value"
         );
 
         // Check that enough ether was sent.
         uint256 requiredCost = _amount.add(
-            marketSettings.calculateMarketplaceFee(_amount)
+            iMarketSettings.calculateMarketplaceFee(_amount)
         );
         require(requiredCost == msg.value, "bid::Must bid the correct amount.");
 
@@ -395,7 +423,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         // Set the new bid
         currentBids[_contractAddress][_tokenId] = ActiveBid(
             msg.sender,
-            marketSettings.getMarketplaceFeePercentage(),
+            iMarketSettings.getMarketplaceFeePercentage(),
             _amount
         );
 
@@ -455,20 +483,40 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             0,
             NO_AUCTION
         );
-
-        // Transfer the token to this contract to act as escrow.
         IERC721 erc721 = IERC721(_contractAddress);
+
+        // If there were no bids then end the auction and return the token to its original owner.
+        if (currentBid.bidder == address(0)) {
+            // Transfer the token to back to original owner.
+            erc721.transferFrom(
+                _contractAddress,
+                auction.auctionCreator,
+                _tokenId
+            );
+            emit AuctionSettled(
+                _contractAddress,
+                address(0),
+                auction.auctionCreator,
+                _tokenId,
+                0
+            );
+            return;
+        }
+
+        // Transfer the token to the winner of the auction.
         erc721.transferFrom(_contractAddress, currentBid.bidder, _tokenId);
+
+        iMarketSettings.markERC721Token(_contractAddress, _tokenId, true);
         address payable owner = _makePayable(owner());
         Payments.payout(
             currentBid.amount,
-            marketSettings.hasERC721TokenSold(_contractAddress, _tokenId),
+            iMarketSettings.hasERC721TokenSold(_contractAddress, _tokenId),
             currentBid.marketplaceFee,
             iERC721CreatorRoyalty.getERC721TokenRoyaltyPercentage(
                 _contractAddress,
                 _tokenId
             ),
-            marketSettings.getERC721ContractPrimarySaleFeePercentage(
+            iMarketSettings.getERC721ContractPrimarySaleFeePercentage(
                 _contractAddress
             ),
             auction.auctionCreator,
