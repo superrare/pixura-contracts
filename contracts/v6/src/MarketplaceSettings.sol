@@ -7,6 +7,28 @@ import "./IMarketplaceSettings.sol";
  */
 contract MarketplaceSettings is IMarketplaceSettings {
     /////////////////////////////////////////////////////////////////////////
+    // getMarketplaceMaxValue
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Get the max value to be used with the marketplace.
+     * @return uint256 wei value.
+     */
+    function getMarketplaceMaxValue() external override view returns (uint256) {
+        return 1;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // getMarketplaceMinValue
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Get the max value to be used with the marketplace.
+     * @return uint256 wei value.
+     */
+    function getMarketplaceMinValue() external override view returns (uint256) {
+        return 1;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // getMarketplaceFeePercentage
     /////////////////////////////////////////////////////////////////////////
     /**
@@ -34,7 +56,9 @@ contract MarketplaceSettings is IMarketplaceSettings {
 
      * @param _percentage uint8 percentage fee.
      */
-    function setMarketplaceFeePercentage(uint8 _percentage) external {}
+    function setMarketplaceFeePercentage(uint8 _percentage) external {
+        return;
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // calculateMarketplaceFee
@@ -87,7 +111,9 @@ contract MarketplaceSettings is IMarketplaceSettings {
     function setERC721ContractPrimarySaleFeePercentage(
         address _contractAddress,
         uint8 _percentage
-    ) external {}
+    ) external {
+        return;
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // calculatePrimarySaleFee
@@ -142,5 +168,7 @@ contract MarketplaceSettings is IMarketplaceSettings {
     function markERC721TokenAsSold(address _contractAddress, uint256 _tokenId)
         external
         override
-    {}
+    {
+        return;
+    }
 }

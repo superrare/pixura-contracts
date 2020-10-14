@@ -103,6 +103,14 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _amount
     );
 
+    event AuctionSettled(
+        address indexed _contractAddress,
+        address indexed _bidder,
+        address _seller,
+        uint256 indexed _tokenId,
+        uint256 _amount
+    );
+
     /////////////////////////////////////////////////////////////////////////
     // createReserveAuction
     /////////////////////////////////////////////////////////////////////////
@@ -428,8 +436,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         Auction memory auction = auctions[_contractAddress][_tokenId];
 
         require(
-            auction.auctionType != NO_AUCTION,
-            "settleAuction::Must have a current auction"
+            auction.auctionType != NO_AUCTION && auction.startingBlock != 0,
+            "settleAuction::Must have a current auction that has started"
         );
         require(
             block.number > auction.startingBlock.add(auction.lengthOfAuction),
@@ -468,6 +476,13 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             iERC721CreatorRoyalty.tokenCreator(_contractAddress, _tokenId),
             owner
         );
+        emit AuctionSettled(
+            _contractAddress,
+            currentBid.bidder,
+            auction.auctionCreator,
+            _tokenId,
+            currentBid.amount
+        );
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -490,7 +505,15 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             uint256 startingBlock,
             uint256 minimumBid
         )
-    {}
+    {
+        return (
+            auctions[_contractAddress][_tokenId].auctionType,
+            auctions[_contractAddress][_tokenId].auctionCreator,
+            auctions[_contractAddress][_tokenId].lengthOfAuction,
+            auctions[_contractAddress][_tokenId].startingBlock,
+            auctions[_contractAddress][_tokenId].minimumBid
+        );
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // getCurrentBid
@@ -504,7 +527,14 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      */
     function getCurrentBid(address _contractAddress, uint256 _tokenId)
         external
-    {}
+        view
+        returns (address, uint256)
+    {
+        return (
+            currentBids[_contractAddress][_tokenId].bidder,
+            currentBids[_contractAddress][_tokenId].amount
+        );
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // _requireOwnerApproval
