@@ -13,7 +13,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     /////////////////////////////////////////////////////////////////////////
     // Constants
     /////////////////////////////////////////////////////////////////////////
-    uint16 constant maxLength = 10000; // TODO: Is this the correct value?
+    uint256 constant maxLength = 10000; // TODO: Is this the correct value?
 
     // Types of Auctions
     bytes32 constant RESERVE_AUCTION = "RESERVE_AUCTION";
@@ -26,7 +26,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     // A reserve auction.
     struct Auction {
         address payable auctionCreator;
-        uint16 lengthOfAuction;
+        uint256 lengthOfAuction;
         uint256 startingBlock;
         uint256 reservePrice;
         uint256 minimumBid;
@@ -43,10 +43,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     /////////////////////////////////////////////////////////////////////////
     // State Variables
     /////////////////////////////////////////////////////////////////////////
-    // Marketplace settings contract
+
+    // Marketplace Settings Interface
     IMarketplaceSettings public iMarketSettings;
 
-    // Creator Royalty Interace
+    // Creator Royalty Interface
     IERC721CreatorRoyalty public iERC721CreatorRoyalty;
 
     // Mapping from ERC721 contract to mapping of tokenId to Auctions.
@@ -55,6 +56,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     // Mapping of ERC721 contract to mapping of token ID to the current bid amount.
     mapping(address => mapping(uint256 => ActiveBid)) private currentBids;
 
+    // Number of blocks to begin refreshing auction lengths
+    uint256 public auctionLengthExtension;
     /////////////////////////////////////////////////////////////////////////
     // Events
     /////////////////////////////////////////////////////////////////////////
@@ -63,7 +66,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 indexed _tokenId,
         address indexed _auctionCreator,
         uint256 _reservePrice,
-        uint16 _lengthOfAuction
+        uint256 _lengthOfAuction
     );
 
     event CancelAuction(
@@ -93,7 +96,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         address indexed _auctionCreator,
         uint256 _startingBlock,
         uint256 _minimumBid,
-        uint16 _lengthOfAuction
+        uint256 _lengthOfAuction
     );
 
     event AuctionBid(
@@ -101,6 +104,12 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         address indexed _bidder,
         uint256 indexed _tokenId,
         uint256 _amount
+    );
+
+    event AuctionExtended(
+        address indexed _contractAddress,
+        uint256 indexed _tokenId,
+        uint256 _newAuctionLength
     );
 
     event AuctionSettled(
@@ -147,23 +156,28 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * Rules:
      * - Cannot create an auction if contract isn't approved by owner
      * - lengthOfAuction (in blocks) > 0
+     * - lengthOfAuction (in blocks) <= maxLength
      * - Reserve price must be >= 0
      * - Must be owner of the token
      * - Cannot have a current auction going
      * @param _contractAddress address of ERC721 contract.
      * @param _tokenId uint256 id of the token.
      * @param _reservePrice uint256 Wei value of the reserve price.
-     * @param _lengthOfAuction uint16 length of auction in blocks.
+     * @param _lengthOfAuction uint256 length of auction in blocks.
      */
     function createReserveAuction(
         address _contractAddress,
         uint256 _tokenId,
         uint256 _reservePrice,
-        uint16 _lengthOfAuction
+        uint256 _lengthOfAuction
     ) public {
         // Rules
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
+        require(
+            _lengthOfAuction <= maxLength,
+            "createReserveAuction::Cannot have auction longer than maxLength"
+        );
         require(
             auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION,
             "createReserveAuction::Cannot have a current auction"
@@ -302,19 +316,23 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _contractAddress address of ERC721 contract.
      * @param _tokenId uint256 id of the token.
      * @param _minimumBid uint256 Wei value of the reserve price.
-     * @param _lengthOfAuction uint16 length of auction in blocks.
+     * @param _lengthOfAuction uint256 length of auction in blocks.
      * @param _startingBlock uint256 block number to start the auction on.
      */
     function createScheduledAuction(
         address _contractAddress,
         uint256 _tokenId,
         uint256 _minimumBid,
-        uint16 _lengthOfAuction,
+        uint256 _lengthOfAuction,
         uint256 _startingBlock
     ) external {
         require(
             _lengthOfAuction > 0,
             "createScheduledAuction::_lengthOfAuction must be greater than 0"
+        );
+        require(
+            _lengthOfAuction <= maxLength,
+            "createScheduledAuction::Cannot have auction longer than maxLength"
         );
         require(
             _startingBlock > block.number,
@@ -364,8 +382,10 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * - if auction creator is still owner, owner must have contract approved
      * - There must be a running auction or a reserve price auction for the token
      * - bid > 0
+     * - if startingBlock - block.number < auctionLengthExtension
+     * -    then auctionLength = Starting block - (currentBlock + extension)
      * - Auction creator != bidder
-     * - If scheduled auction: bid >= minimum bid
+     * - bid >= minimum bid
      * - block.number < startingBlock + lengthOfAuction
      * - bid > current bid
      * - if previous bid then returned
@@ -393,13 +413,28 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "bid::Cannot bid lower than min value"
         );
 
+        // Must have an auction going.
+        require(
+            auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
+            "cancelAuction::Must have a current auction"
+        );
+
+        // Auction cannot have ended.
+        require(
+            block.number <
+                auctions[_contractAddress][_tokenId].startingBlock.add(
+                    auctions[_contractAddress][_tokenId].lengthOfAuction
+                ),
+            "settleAuction::Can only settle unsettled auctions"
+        );
+
         // Check that enough ether was sent.
         uint256 requiredCost = _amount.add(
             iMarketSettings.calculateMarketplaceFee(_amount)
         );
         require(requiredCost == msg.value, "bid::Must bid the correct amount.");
 
-        // If owner is of token is auction creator make sure they have contract approved
+        // If owner of token is auction creator make sure they have contract approved
         IERC721 erc721 = IERC721(_contractAddress);
         address owner = erc721.ownerOf(_tokenId);
         if (auctions[_contractAddress][_tokenId].auctionCreator == owner) {
@@ -441,6 +476,21 @@ contract SuperRareAuctionHouse is Ownable, Payments {
                 _tokenId,
                 _amount,
                 block.number
+            );
+        }
+
+        // If the time left for the auction is less than the extension limit bump the length of the auction.
+        if (
+            block.number - auctions[_contractAddress][_tokenId].startingBlock <
+            auctionLengthExtension
+        ) {
+            auctions[_contractAddress][_tokenId].lengthOfAuction =
+                (block.number + auctionLengthExtension) -
+                auctions[_contractAddress][_tokenId].startingBlock;
+            emit AuctionExtended(
+                _contractAddress,
+                _tokenId,
+                auctions[_contractAddress][_tokenId].lengthOfAuction
             );
         }
     }
@@ -549,7 +599,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         returns (
             bytes32 auctionType,
             address auctionCreator,
-            uint16 lengthOfAuction,
+            uint256 lengthOfAuction,
             uint256 startingBlock,
             uint256 minimumBid
         )
