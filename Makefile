@@ -16,6 +16,10 @@ help: ## Ask for help!
 
 clean: ## clean stack
 	stack clean
+	rm -rf node_modules \
+		output \
+		.spago
+
 
 hlint: ## hlint all
 	find ./libs -name "*.hs" | xargs hlint "--ignore=Parse error" ;
@@ -25,9 +29,6 @@ stylish: ## stylish all
 
 init: ## install node files
 	yarn && \
-	[ -d contracts/v4/node_modules ] || ( cp -r node_modules contracts/v4/node_modules ) && \
-	[ -d contracts/v5/node_modules ] || ( cp -r node_modules contracts/v5/node_modules ) && \
-	[ -d contracts/v6/node_modules ] || ( cp -r node_modules contracts/v6/node_modules ) && \
 	yarn spago install && \
 	yarn spago build -d
 
@@ -41,7 +42,7 @@ compile-contracts-v5: ## compiles contracts solc v5
 	yarn chanterelle -r contracts/v5 compile
 
 compile-contracts-v6: ## compiles contracts solc v6
-	yarn chanterelle -r contracts/v6 compile
+	yarn chanterelle compile
 
 
 compile-contracts: ## compiles contracts 
@@ -56,7 +57,7 @@ purs-contract-gen-v5: ## Generate purscript libraries for solc v5 smart contract
 	yarn chanterelle -r contracts/v5 codegen
 
 purs-contract-gen-v6: ## Generate purscript libraries for solc v6 smart contracts
-	yarn chanterelle -r contracts/v6 codegen
+	yarn chanterelle codegen
 
 purs-contract-gen: ## Generate purscript libraries for smart contracts
 	make purs-contract-gen-v4 && \

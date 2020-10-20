@@ -3,11 +3,11 @@ module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.V5.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, getERC721ContractPrimarySaleFee, getERC721ContractRoyaltySettings, hasTokenBeenSold, markTokensAsSold, marketplaceFee, payments, safeAcceptBid, safeBuy, setERC721ContractRoyaltySettings, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
-import Contracts.V5.TestAssertFailOnPay as TestAssertFailOnPay
-import Contracts.V5.TestExpensiveWallet as TestExpensiveWallet
-import Contracts.V5.TestRequireFailOnPay as TestRequireFailOnPay
-import Contracts.V5.TestRevertOnPay as TestRevertFailOnPay
+import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken,  payments, safeAcceptBid, safeBuy, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.TestAssertFailOnPay as TestAssertFailOnPay
+import Contracts.TestExpensiveWallet as TestExpensiveWallet
+import Contracts.TestRequireFailOnPay as TestRequireFailOnPay
+import Contracts.TestRevertOnPay as TestRevertFailOnPay
 import Control.Monad.Error.Class (class MonadError, catchError, throwError)
 import Data.Array (filter, length, zipWith)
 import Data.Array.Partial (head)

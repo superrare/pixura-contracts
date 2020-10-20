@@ -9,4 +9,4 @@ module Pixura.Contracts.ZeroX.Exchange where
 
 import           Network.Ethereum.Contract.TH
 
-[abiFrom|contracts/abis/Exchange.json|]
+[abiFrom|contracts/tuple-abis/Exchange.json|]
