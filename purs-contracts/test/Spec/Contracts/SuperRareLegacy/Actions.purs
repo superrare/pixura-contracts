@@ -162,7 +162,7 @@ setApprovalForAll tenv owner operator approved = do
           # _to
           ?~ deployAddress
       )
-      { approved, to: operator }
+      { approved, operator }
   awaitTxSuccessWeb3 txHash
   pure txHash
 

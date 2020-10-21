@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Deploy (deployContract)
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (ContractConfig, DeployConfig(..), DeployM)
-import Contracts.V4.SuperRareV2 as SuperRareV2
+import Contracts.SuperRareV2 as SuperRareV2
 import Control.Monad.Reader.Class (ask)
 import Data.Lens ((?~))
 import Data.Maybe (fromJust)

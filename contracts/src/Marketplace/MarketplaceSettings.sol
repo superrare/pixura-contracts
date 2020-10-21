@@ -39,6 +39,10 @@ contract MarketplaceSettings is Ownable, AccessControl, IMarketplaceSettings {
     /////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Initializes the contract maxValue, minValues, and marketplaceFeePercentage to default settings.
+     *      Also, sets the roles for the contract to the owner.
+     */
     constructor() public {
         maxValue = 2**254; // 2 ^ 254 is max amount, prevents any overflow issues.
 

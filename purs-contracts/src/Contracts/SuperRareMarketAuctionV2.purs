@@ -15,13 +15,26 @@ import Data.Lens ((.~))
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy)
-import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, sendTx)
+import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, deployContract, sendTx)
 import Network.Ethereum.Web3.Contract.Internal (uncurryFields)
 import Network.Ethereum.Web3.Solidity (D2, D5, D6, DOne, Tuple0(..), Tuple1(..), Tuple2(..), Tuple3(..), UIntN, class IndexedEvent, unTuple1)
 import Network.Ethereum.Web3.Solidity.Size (type (:&))
 import Network.Ethereum.Web3.Types (Address, CallError, ChainCursor, HexString, NoPay, TransactionOptions, Web3, defaultFilter, mkHexString)
 import Network.Ethereum.Web3.Types.TokenUnit (MinorUnit)
 import Partial.Unsafe (unsafePartial)
+--------------------------------------------------------------------------------
+-- | ConstructorFn
+--------------------------------------------------------------------------------
+
+
+type ConstructorFn = Tagged (SProxy "constructor(address,address)") (Tuple2 (Tagged (SProxy "_iMarketSettings") Address) (Tagged (SProxy "_iERC721CreatorRoyalty") Address))
+
+constructor :: TransactionOptions NoPay -> HexString -> { _iMarketSettings :: Address, _iERC721CreatorRoyalty :: Address } -> Web3 HexString
+constructor x0 bc r = uncurryFields  r $ constructor' x0 bc
+   where
+    constructor' :: TransactionOptions NoPay -> HexString -> (Tagged (SProxy "_iMarketSettings") Address) -> (Tagged (SProxy "_iERC721CreatorRoyalty") Address) -> Web3 HexString
+    constructor' y0 bc' y2 y3 = deployContract y0 bc' ((tagged $ Tuple2 y2 y3) :: ConstructorFn)
+
 --------------------------------------------------------------------------------
 -- | AcceptBid
 --------------------------------------------------------------------------------
@@ -340,6 +353,32 @@ safeBuy x0 r = uncurryFields  r $ safeBuy' x0
    where
     safeBuy' :: TransactionOptions MinorUnit -> (Tagged (SProxy "_originContract") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
     safeBuy' y0 y1 y2 y3 = sendTx y0 ((tagged $ Tuple3 y1 y2 y3) :: SafeBuyFn)
+
+--------------------------------------------------------------------------------
+-- | SetIERC721CreatorRoyaltyFn
+--------------------------------------------------------------------------------
+
+
+type SetIERC721CreatorRoyaltyFn = Tagged (SProxy "setIERC721CreatorRoyalty(address)") (Tuple1 (Tagged (SProxy "_address") Address))
+
+setIERC721CreatorRoyalty :: TransactionOptions NoPay -> { _address :: Address } -> Web3 HexString
+setIERC721CreatorRoyalty x0 r = uncurryFields  r $ setIERC721CreatorRoyalty' x0
+   where
+    setIERC721CreatorRoyalty' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
+    setIERC721CreatorRoyalty' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetIERC721CreatorRoyaltyFn)
+
+--------------------------------------------------------------------------------
+-- | SetMarketplaceSettingsFn
+--------------------------------------------------------------------------------
+
+
+type SetMarketplaceSettingsFn = Tagged (SProxy "setMarketplaceSettings(address)") (Tuple1 (Tagged (SProxy "_address") Address))
+
+setMarketplaceSettings :: TransactionOptions NoPay -> { _address :: Address } -> Web3 HexString
+setMarketplaceSettings x0 r = uncurryFields  r $ setMarketplaceSettings' x0
+   where
+    setMarketplaceSettings' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
+    setMarketplaceSettings' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetMarketplaceSettingsFn)
 
 --------------------------------------------------------------------------------
 -- | SetSalePriceFn

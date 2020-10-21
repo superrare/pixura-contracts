@@ -125,6 +125,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     /////////////////////////////////////////////////////////////////////////
     // Constructor
     /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Initializes the contract setting the market settings and creator royalty interfaces.
+     * @param _iMarketSettings address to set as iMarketSettings.
+     * @param _iERC721CreatorRoyalty address to set as iERC721CreatorRoyalty.
+     */
     constructor(address _iMarketSettings, address _iERC721CreatorRoyalty)
         public
     {

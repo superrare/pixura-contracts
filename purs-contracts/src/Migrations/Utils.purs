@@ -1,20 +1,21 @@
 module Migrations.Utils where
 
 import Prelude
+
 import Chanterelle.Deploy (deployWithProvider)
 import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (DeployM)
-import Control.Monad.Error.Class (class MonadError)
+import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Nullable (null)
 import Deploy.Utils (GasSettings(..))
 import Effect (Effect)
-import Effect.Aff (Aff, Milliseconds(..), delay, try)
+import Effect.Aff (Aff, Milliseconds(..), delay, try, Error, error)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (throw)
-import Network.Ethereum.Web3 (Provider, httpProvider)
+import Network.Ethereum.Web3 (CallError, Provider, httpProvider)
 import Network.Ethereum.Web3.Types.HdWalletProvider (hdWalletProvider, unHdWalletProvider)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
@@ -79,3 +80,10 @@ attempt n f = do
         log Warn $ "Errored with " <> show (n - 1) <> "attempts left.\n" <> show err
         attempt (n - 1) f
     Right v -> pure v
+
+throwOnCallError :: forall a m. MonadThrow Error m => m (Either CallError a) -> m a
+throwOnCallError f =
+  f
+    >>= case _ of
+        Left cerr -> throwError $ error $ show cerr
+        Right x -> pure x

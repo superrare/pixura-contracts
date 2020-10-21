@@ -15,13 +15,26 @@ import Data.Lens ((.~))
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy)
-import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, sendTx)
+import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, deployContract, sendTx)
 import Network.Ethereum.Web3.Contract.Internal (uncurryFields)
 import Network.Ethereum.Web3.Solidity (BytesN, D2, D3, D5, D6, DOne, Tuple0(..), Tuple1(..), Tuple2(..), Tuple3(..), Tuple4(..), Tuple5(..), UIntN, class IndexedEvent, unTuple1)
 import Network.Ethereum.Web3.Solidity.Size (type (:&))
 import Network.Ethereum.Web3.Types (Address, CallError, ChainCursor, HexString, NoPay, TransactionOptions, Web3, defaultFilter, mkHexString)
 import Network.Ethereum.Web3.Types.TokenUnit (MinorUnit)
 import Partial.Unsafe (unsafePartial)
+--------------------------------------------------------------------------------
+-- | ConstructorFn
+--------------------------------------------------------------------------------
+
+
+type ConstructorFn = Tagged (SProxy "constructor(address,address)") (Tuple2 (Tagged (SProxy "_iMarketSettings") Address) (Tagged (SProxy "_iERC721CreatorRoyalty") Address))
+
+constructor :: TransactionOptions NoPay -> HexString -> { _iMarketSettings :: Address, _iERC721CreatorRoyalty :: Address } -> Web3 HexString
+constructor x0 bc r = uncurryFields  r $ constructor' x0 bc
+   where
+    constructor' :: TransactionOptions NoPay -> HexString -> (Tagged (SProxy "_iMarketSettings") Address) -> (Tagged (SProxy "_iERC721CreatorRoyalty") Address) -> Web3 HexString
+    constructor' y0 bc' y2 y3 = deployContract y0 bc' ((tagged $ Tuple2 y2 y3) :: ConstructorFn)
+
 --------------------------------------------------------------------------------
 -- | AuctionBid
 --------------------------------------------------------------------------------
@@ -148,28 +161,53 @@ instance eventGenericCancelAuctioneq :: Eq CancelAuction where
   eq = genericEq
 
 --------------------------------------------------------------------------------
--- | NewReserveAuction
+-- | ColdieAuctionBegun
 --------------------------------------------------------------------------------
 
 
-newtype NewReserveAuction = NewReserveAuction {_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_auctionCreator :: Address,_reservePrice :: (UIntN (D2 :& D5 :& DOne D6)),_lengthOfAuction :: (UIntN (D2 :& D5 :& DOne D6))}
+newtype ColdieAuctionBegun = ColdieAuctionBegun {_bidder :: Address,_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_initialBidAmount :: (UIntN (D2 :& D5 :& DOne D6)),_startingBlock :: (UIntN (D2 :& D5 :& DOne D6))}
 
-derive instance newtypeNewReserveAuction :: Newtype NewReserveAuction _
+derive instance newtypeColdieAuctionBegun :: Newtype ColdieAuctionBegun _
 
-instance eventFilterNewReserveAuction :: EventFilter NewReserveAuction where
+instance eventFilterColdieAuctionBegun :: EventFilter ColdieAuctionBegun where
   eventFilter _ addr = defaultFilter
     # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "a894cf0c1ec29b0e0aa747b4d14d8f0678fa9d3c695ff3d6fa953eb7449cfd2a"),Nothing,Nothing,Nothing]
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "0686f030efb3419af0300644e95ff05ae08252fd8963da878611d83ee9a67be5"),Nothing,Nothing,Nothing]
 
-instance indexedEventNewReserveAuction :: IndexedEvent (Tuple3 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_auctionCreator") Address)) (Tuple2 (Tagged (SProxy "_reservePrice") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_lengthOfAuction") (UIntN (D2 :& D5 :& DOne D6)))) NewReserveAuction where
+instance indexedEventColdieAuctionBegun :: IndexedEvent (Tuple3 (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple2 (Tagged (SProxy "_initialBidAmount") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_startingBlock") (UIntN (D2 :& D5 :& DOne D6)))) ColdieAuctionBegun where
   isAnonymous _ = false
 
-derive instance genericNewReserveAuction :: Generic NewReserveAuction _
+derive instance genericColdieAuctionBegun :: Generic ColdieAuctionBegun _
 
-instance eventGenericNewReserveAuctionShow :: Show NewReserveAuction where
+instance eventGenericColdieAuctionBegunShow :: Show ColdieAuctionBegun where
   show = genericShow
 
-instance eventGenericNewReserveAuctioneq :: Eq NewReserveAuction where
+instance eventGenericColdieAuctionBeguneq :: Eq ColdieAuctionBegun where
+  eq = genericEq
+
+--------------------------------------------------------------------------------
+-- | NewColdieAuction
+--------------------------------------------------------------------------------
+
+
+newtype NewColdieAuction = NewColdieAuction {_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_auctionCreator :: Address,_reservePrice :: (UIntN (D2 :& D5 :& DOne D6)),_lengthOfAuction :: (UIntN (D2 :& D5 :& DOne D6))}
+
+derive instance newtypeNewColdieAuction :: Newtype NewColdieAuction _
+
+instance eventFilterNewColdieAuction :: EventFilter NewColdieAuction where
+  eventFilter _ addr = defaultFilter
+    # _address .~ Just addr
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "51d3615735f04b7ff33bfd9f5eb857d899bf9b848d3858cba7db855bc69fb914"),Nothing,Nothing,Nothing]
+
+instance indexedEventNewColdieAuction :: IndexedEvent (Tuple3 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_auctionCreator") Address)) (Tuple2 (Tagged (SProxy "_reservePrice") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_lengthOfAuction") (UIntN (D2 :& D5 :& DOne D6)))) NewColdieAuction where
+  isAnonymous _ = false
+
+derive instance genericNewColdieAuction :: Generic NewColdieAuction _
+
+instance eventGenericNewColdieAuctionShow :: Show NewColdieAuction where
+  show = genericShow
+
+instance eventGenericNewColdieAuctioneq :: Eq NewColdieAuction where
   eq = genericEq
 
 --------------------------------------------------------------------------------
@@ -220,31 +258,6 @@ instance eventGenericOwnershipTransferredShow :: Show OwnershipTransferred where
   show = genericShow
 
 instance eventGenericOwnershipTransferredeq :: Eq OwnershipTransferred where
-  eq = genericEq
-
---------------------------------------------------------------------------------
--- | ReserveAuctionBegun
---------------------------------------------------------------------------------
-
-
-newtype ReserveAuctionBegun = ReserveAuctionBegun {_bidder :: Address,_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_initialBidAmount :: (UIntN (D2 :& D5 :& DOne D6)),_startingBlock :: (UIntN (D2 :& D5 :& DOne D6))}
-
-derive instance newtypeReserveAuctionBegun :: Newtype ReserveAuctionBegun _
-
-instance eventFilterReserveAuctionBegun :: EventFilter ReserveAuctionBegun where
-  eventFilter _ addr = defaultFilter
-    # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "622cfd18cb9f4edc91fba16e2961eb58a2b74c237a4c508b08fca04990bbf18a"),Nothing,Nothing,Nothing]
-
-instance indexedEventReserveAuctionBegun :: IndexedEvent (Tuple3 (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple2 (Tagged (SProxy "_initialBidAmount") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_startingBlock") (UIntN (D2 :& D5 :& DOne D6)))) ReserveAuctionBegun where
-  isAnonymous _ = false
-
-derive instance genericReserveAuctionBegun :: Generic ReserveAuctionBegun _
-
-instance eventGenericReserveAuctionBegunShow :: Show ReserveAuctionBegun where
-  show = genericShow
-
-instance eventGenericReserveAuctionBeguneq :: Eq ReserveAuctionBegun where
   eq = genericEq
 
 --------------------------------------------------------------------------------
@@ -322,17 +335,17 @@ cancelBid x0 r = uncurryFields  r $ cancelBid' x0
     cancelBid' y0 y1 y2 = sendTx y0 ((tagged $ Tuple2 y1 y2) :: CancelBidFn)
 
 --------------------------------------------------------------------------------
--- | CreateReserveAuctionFn
+-- | CreateColdieAuctionFn
 --------------------------------------------------------------------------------
 
 
-type CreateReserveAuctionFn = Tagged (SProxy "createReserveAuction(address,uint256,uint256,uint256)") (Tuple4 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_reservePrice") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_lengthOfAuction") (UIntN (D2 :& D5 :& DOne D6))))
+type CreateColdieAuctionFn = Tagged (SProxy "createColdieAuction(address,uint256,uint256,uint256)") (Tuple4 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_reservePrice") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_lengthOfAuction") (UIntN (D2 :& D5 :& DOne D6))))
 
-createReserveAuction :: TransactionOptions NoPay -> { _contractAddress :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)), _reservePrice :: (UIntN (D2 :& D5 :& DOne D6)), _lengthOfAuction :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
-createReserveAuction x0 r = uncurryFields  r $ createReserveAuction' x0
+createColdieAuction :: TransactionOptions NoPay -> { _contractAddress :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)), _reservePrice :: (UIntN (D2 :& D5 :& DOne D6)), _lengthOfAuction :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+createColdieAuction x0 r = uncurryFields  r $ createColdieAuction' x0
    where
-    createReserveAuction' :: TransactionOptions NoPay -> (Tagged (SProxy "_contractAddress") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_reservePrice") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_lengthOfAuction") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    createReserveAuction' y0 y1 y2 y3 y4 = sendTx y0 ((tagged $ Tuple4 y1 y2 y3 y4) :: CreateReserveAuctionFn)
+    createColdieAuction' :: TransactionOptions NoPay -> (Tagged (SProxy "_contractAddress") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_reservePrice") (UIntN (D2 :& D5 :& DOne D6))) -> (Tagged (SProxy "_lengthOfAuction") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    createColdieAuction' y0 y1 y2 y3 y4 = sendTx y0 ((tagged $ Tuple4 y1 y2 y3 y4) :: CreateColdieAuctionFn)
 
 --------------------------------------------------------------------------------
 -- | CreateScheduledAuctionFn
@@ -394,6 +407,16 @@ iMarketSettings :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallE
 iMarketSettings x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: IMarketSettingsFn)
 
 --------------------------------------------------------------------------------
+-- | MaxLengthFn
+--------------------------------------------------------------------------------
+
+
+type MaxLengthFn = Tagged (SProxy "maxLength()") (Tuple0 )
+
+maxLength :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (D2 :& D5 :& DOne D6)))
+maxLength x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: MaxLengthFn)
+
+--------------------------------------------------------------------------------
 -- | OwnerFn
 --------------------------------------------------------------------------------
 
@@ -427,6 +450,58 @@ renounceOwnership :: TransactionOptions NoPay -> Web3 HexString
 renounceOwnership x0 = sendTx x0 ((tagged $ Tuple0 ) :: RenounceOwnershipFn)
 
 --------------------------------------------------------------------------------
+-- | SetAuctionLengthExtensionFn
+--------------------------------------------------------------------------------
+
+
+type SetAuctionLengthExtensionFn = Tagged (SProxy "setAuctionLengthExtension(uint256)") (Tuple1 (Tagged (SProxy "_auctionLengthExtension") (UIntN (D2 :& D5 :& DOne D6))))
+
+setAuctionLengthExtension :: TransactionOptions NoPay -> { _auctionLengthExtension :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+setAuctionLengthExtension x0 r = uncurryFields  r $ setAuctionLengthExtension' x0
+   where
+    setAuctionLengthExtension' :: TransactionOptions NoPay -> (Tagged (SProxy "_auctionLengthExtension") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    setAuctionLengthExtension' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetAuctionLengthExtensionFn)
+
+--------------------------------------------------------------------------------
+-- | SetIERC721CreatorRoyaltyFn
+--------------------------------------------------------------------------------
+
+
+type SetIERC721CreatorRoyaltyFn = Tagged (SProxy "setIERC721CreatorRoyalty(address)") (Tuple1 (Tagged (SProxy "_address") Address))
+
+setIERC721CreatorRoyalty :: TransactionOptions NoPay -> { _address :: Address } -> Web3 HexString
+setIERC721CreatorRoyalty x0 r = uncurryFields  r $ setIERC721CreatorRoyalty' x0
+   where
+    setIERC721CreatorRoyalty' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
+    setIERC721CreatorRoyalty' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetIERC721CreatorRoyaltyFn)
+
+--------------------------------------------------------------------------------
+-- | SetMarketplaceSettingsFn
+--------------------------------------------------------------------------------
+
+
+type SetMarketplaceSettingsFn = Tagged (SProxy "setMarketplaceSettings(address)") (Tuple1 (Tagged (SProxy "_address") Address))
+
+setMarketplaceSettings :: TransactionOptions NoPay -> { _address :: Address } -> Web3 HexString
+setMarketplaceSettings x0 r = uncurryFields  r $ setMarketplaceSettings' x0
+   where
+    setMarketplaceSettings' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
+    setMarketplaceSettings' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetMarketplaceSettingsFn)
+
+--------------------------------------------------------------------------------
+-- | SetMaxLengthFn
+--------------------------------------------------------------------------------
+
+
+type SetMaxLengthFn = Tagged (SProxy "setMaxLength(uint256)") (Tuple1 (Tagged (SProxy "_maxLength") (UIntN (D2 :& D5 :& DOne D6))))
+
+setMaxLength :: TransactionOptions NoPay -> { _maxLength :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
+setMaxLength x0 r = uncurryFields  r $ setMaxLength' x0
+   where
+    setMaxLength' :: TransactionOptions NoPay -> (Tagged (SProxy "_maxLength") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
+    setMaxLength' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetMaxLengthFn)
+
+--------------------------------------------------------------------------------
 -- | SettleAuctionFn
 --------------------------------------------------------------------------------
 
@@ -451,32 +526,6 @@ transferOwnership x0 r = uncurryFields  r $ transferOwnership' x0
    where
     transferOwnership' :: TransactionOptions NoPay -> (Tagged (SProxy "newOwner") Address) -> Web3 HexString
     transferOwnership' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: TransferOwnershipFn)
-
---------------------------------------------------------------------------------
--- | UpdateIERC721CreatorRoyaltyFn
---------------------------------------------------------------------------------
-
-
-type UpdateIERC721CreatorRoyaltyFn = Tagged (SProxy "updateIERC721CreatorRoyalty(address)") (Tuple1 (Tagged (SProxy "_address") Address))
-
-updateIERC721CreatorRoyalty :: TransactionOptions NoPay -> { _address :: Address } -> Web3 HexString
-updateIERC721CreatorRoyalty x0 r = uncurryFields  r $ updateIERC721CreatorRoyalty' x0
-   where
-    updateIERC721CreatorRoyalty' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
-    updateIERC721CreatorRoyalty' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: UpdateIERC721CreatorRoyaltyFn)
-
---------------------------------------------------------------------------------
--- | UpdateMarketplaceSettingsFn
---------------------------------------------------------------------------------
-
-
-type UpdateMarketplaceSettingsFn = Tagged (SProxy "updateMarketplaceSettings(address)") (Tuple1 (Tagged (SProxy "_address") Address))
-
-updateMarketplaceSettings :: TransactionOptions NoPay -> { _address :: Address } -> Web3 HexString
-updateMarketplaceSettings x0 r = uncurryFields  r $ updateMarketplaceSettings' x0
-   where
-    updateMarketplaceSettings' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
-    updateMarketplaceSettings' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: UpdateMarketplaceSettingsFn)
 
 --------------------------------------------------------------------------------
 -- | WithdrawPaymentsFn

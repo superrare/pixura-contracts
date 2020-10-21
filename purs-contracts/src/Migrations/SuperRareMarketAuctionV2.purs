@@ -1,9 +1,11 @@
 module Migrations.SuperRareMarketAuctionV2 where
 
 import Prelude
+
 import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (DeployConfig(..), throwDeploy)
-import Contracts.V5.SuperRareMarketAuctionV2 (markTokensAsSold)
+import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
+import Contracts.SuperRareMarketAuctionV2 as SuperRareMarketAuctionV2
 import Control.Monad.Reader (ask)
 import Data.Array (catMaybes, concat, drop, elem, filter, nub, take, (:))
 import Data.Either (Either(..), either)
@@ -18,9 +20,9 @@ import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (throw, throwException)
-import Migrations.Utils (attempt, emptyGasSettings, runMigration)
+import Migrations.Utils (attempt, emptyGasSettings, runMigration, throwOnCallError)
 import Network.Ethereum.Core.HexString (HexString, nullWord, toAscii)
-import Network.Ethereum.Web3 (Address, BigNumber, Provider, TransactionOptions, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber, unAddress, unUIntN)
+import Network.Ethereum.Web3 (Address, BigNumber, ChainCursor(..), Provider, TransactionOptions, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber, unAddress, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Network.Ethereum.Web3.Types (NoPay)
 import Node.Encoding (Encoding(..))
@@ -177,10 +179,15 @@ batchMarkSold cfg batchSize deployAddress _originContract upgradedOriginContract
           tokenAndAddrs = concat $ md.successfulTransactions <#> \{ tokens } -> tokens
 
           filteredTokens = filter (\tid -> not $ elem { tokenId: unUIntN tid, contractAddress: upgradedOriginContract } tokenAndAddrs) _tokenIds
+        
+        ims <- throwOnCallError $ SuperRareMarketAuctionV2.iMarketplaceSettings
+              (txOpts # _to ?~ deployAddress)
+              Latest
+
         txHash <-
           attempt 3
-            $ markTokensAsSold
-                (txOpts # _to ?~ deployAddress)
+          $ MarketplaceSettings.markTokensAsSold
+              (txOpts # _to ?~ ims)
                 { _originContract, _tokenIds: filteredTokens }
         log Info $ "Batch marking tokens sold: " <> show _tokenIds
         log Info $ "Polling for markTokensAsSold transaction receipt: " <> show txHash

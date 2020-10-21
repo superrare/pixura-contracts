@@ -13,7 +13,6 @@ import Deploy.Contracts.SupeRare (deployScript) as SupeRare
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class.Console (logShow)
 import Network.Ethereum.Core.BigNumber (unsafeToInt)
 import Network.Ethereum.Web3 (Address, ChainCursor(..), HexString, Provider, UIntN, Web3, _to, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
@@ -42,7 +41,7 @@ spec =
             void
               $ for (zipWith ({ acc: _, _uri: _ }) accounts tokenUris)
                   (\{ acc, _uri } -> addNewToken tenv acc _uri)
-            owners <- for tokenIds (ownerOf tenv)
+            owners <- for tokenIds (ownerOf tenv :: S1)
             owners `shouldEqual` accounts
             uris <- for tokenIds (tokenURI tenv)
             uris `shouldEqual` tokenUris

@@ -86,6 +86,62 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     );
 
     /////////////////////////////////////////////////////////////////////////
+    // Constructor
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Initializes the contract setting the market settings and creator royalty interfaces.
+     * @param _iMarketSettings address to set as iMarketplaceSettings.
+     * @param _iERC721CreatorRoyalty address to set as iERC721CreatorRoyalty.
+     */
+    constructor(address _iMarketSettings, address _iERC721CreatorRoyalty)
+        public
+    {
+        require(
+            _iMarketSettings != address(0),
+            "constructor::Cannot have null address for _iMarketSettings"
+        );
+
+        require(
+            _iERC721CreatorRoyalty != address(0),
+            "constructor::Cannot have null address for _iERC721CreatorRoyalty"
+        );
+
+        // Set iMarketSettings
+        iMarketplaceSettings = IMarketplaceSettings(_iMarketSettings);
+
+        // Set iERC721CreatorRoyalty
+        iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setIMarketplaceSettings
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to set the marketplace settings.
+     * Rules:
+     * - only owner
+     * - _address != address(0)
+     * @param _address address of the IMarketplaceSettings.
+     */
+    function setMarketplaceSettings(address _address) public onlyOwner {
+        iMarketplaceSettings = IMarketplaceSettings(_address);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setIERC721CreatorRoyalty
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to set the IERC721CreatorRoyalty.
+     * Rules:
+     * - only owner
+     * - _address != address(0)
+     * @param _address address of the IERC721CreatorRoyalty.
+     */
+    function setIERC721CreatorRoyalty(address _address) public onlyOwner {
+        iERC721CreatorRoyalty = IERC721CreatorRoyalty(_address);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // Modifiers (as functions)
     /////////////////////////////////////////////////////////////////////////
     /**

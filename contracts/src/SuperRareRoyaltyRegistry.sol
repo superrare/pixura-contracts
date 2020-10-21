@@ -15,7 +15,7 @@ contract SuperRareRoyaltyRegistry is Ownable, IERC721CreatorRoyalty {
     // State Variables
     /////////////////////////////////////////////////////////////////////////
 
-    // Mapping of ERC721 contract to royalty percentage for all NFTs 3 == 3%
+    // Mapping of ERC721 contract to royalty percentage for all NFTs,  3 == 3%
     mapping(address => uint8) private contractRoyaltyPercentage;
 
     // Mapping of ERC721 creator to royalty percentage for all NFTs.
@@ -26,6 +26,36 @@ contract SuperRareRoyaltyRegistry is Ownable, IERC721CreatorRoyalty {
         private tokenRoyaltyPercentage;
 
     IERC721TokenCreator public iERC721TokenCreator;
+
+    /////////////////////////////////////////////////////////////////////////
+    // Constructor
+    /////////////////////////////////////////////////////////////////////////
+    constructor(address _iERC721TokenCreator) public {
+        require(
+            _iERC721TokenCreator != address(0),
+            "constructor::Cannot set the null address as an _iERC721TokenCreator"
+        );
+        iERC721TokenCreator = IERC721TokenCreator(_iERC721TokenCreator);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setIERC721TokenCreator
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Set an address as an IERC721TokenCreator
+     * @param _contractAddress address of the IERC721TokenCreator contract
+     */
+    function setIERC721TokenCreator(address _contractAddress)
+        external
+        onlyOwner
+    {
+        require(
+            _contractAddress != address(0),
+            "setIERC721TokenCreator::_contractAddress cannot be null"
+        );
+
+        iERC721TokenCreator = IERC721TokenCreator(_contractAddress);
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // getERC721TokenRoyaltyPercentage
