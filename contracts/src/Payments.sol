@@ -4,7 +4,7 @@ import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
 import "./SendValueOrEscrow.sol";
 
 /**
- * @title Payments contract for NFT .
+ * @title Payments contract for SuperRare Marketplaces.
  */
 contract Payments is SendValueOrEscrow {
     using SafeMath for uint256;

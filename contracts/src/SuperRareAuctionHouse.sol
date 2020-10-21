@@ -13,7 +13,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     /////////////////////////////////////////////////////////////////////////
     // Constants
     /////////////////////////////////////////////////////////////////////////
-    uint256 constant maxLength = 10000; // TODO: Is this the correct value?
 
     // Types of Auctions
     bytes32 constant RESERVE_AUCTION = "RESERVE_AUCTION";
@@ -58,10 +57,13 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
     // Number of blocks to begin refreshing auction lengths
     uint256 public auctionLengthExtension;
+
+    // Max Length that an auction can be
+    uint256 public maxLength;
     /////////////////////////////////////////////////////////////////////////
     // Events
     /////////////////////////////////////////////////////////////////////////
-    event NewReserveAuction(
+    event NewColdieAuction(
         address indexed _contractAddress,
         uint256 indexed _tokenId,
         address indexed _auctionCreator,
@@ -82,7 +84,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _amount
     );
 
-    event ReserveAuctionBegun(
+    event ColdieAuctionBegun(
         address indexed _bidder,
         address indexed _contractAddress,
         uint256 indexed _tokenId,
@@ -121,35 +123,92 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     );
 
     /////////////////////////////////////////////////////////////////////////
-    // updateIMarketplaceSettings
+    // Constructor
+    /////////////////////////////////////////////////////////////////////////
+    constructor(address _iMarketSettings, address _iERC721CreatorRoyalty)
+        public
+    {
+        maxLength = 43200; // ~ 7 days == 7 days * 24 hours * 3600s / 14s per block
+        auctionLengthExtension = 65; // ~ 15 min == 15 min * 60s / 14s per block
+
+        require(
+            _iMarketSettings != address(0),
+            "constructor::Cannot have null address for _iMarketSettings"
+        );
+
+        require(
+            _iERC721CreatorRoyalty != address(0),
+            "constructor::Cannot have null address for _iERC721CreatorRoyalty"
+        );
+
+        // Set iMarketSettings
+        iMarketSettings = IMarketplaceSettings(_iMarketSettings);
+
+        // Set iERC721CreatorRoyalty
+        iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setIMarketplaceSettings
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Admin function to update the marketplace settings.
+     * @dev Admin function to set the marketplace settings.
      * Rules:
      * - only owner
      * - _address != address(0)
      * @param _address address of the IMarketplaceSettings.
      */
-    function updateMarketplaceSettings(address _address) public onlyOwner {
+    function setMarketplaceSettings(address _address) public onlyOwner {
         iMarketSettings = IMarketplaceSettings(_address);
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // updateIERC721CreatorRoyalty
+    // setIERC721CreatorRoyalty
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Admin function to update the IERC721CreatorRoyalty.
+     * @dev Admin function to set the IERC721CreatorRoyalty.
      * Rules:
      * - only owner
      * - _address != address(0)
      * @param _address address of the IERC721CreatorRoyalty.
      */
-    function updateIERC721CreatorRoyalty(address _address) public onlyOwner {
+    function setIERC721CreatorRoyalty(address _address) public onlyOwner {
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_address);
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // createReserveAuction
+    // setMaxLength
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to set the maxLength of an auction.
+     * Rules:
+     * - only owner
+     * - _maxLangth > 0
+     * @param _maxLength uint256 max length of an auction.
+     */
+    function setMaxLength(uint256 _maxLength) public onlyOwner {
+        maxLength = _maxLength;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setAuctionLengthExtension
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to set the auctionLengthExtension of an auction.
+     * Rules:
+     * - only owner
+     * - _maxLangth > 0
+     * @param _auctionLengthExtension uint256 max length of an auction.
+     */
+    function setAuctionLengthExtension(uint256 _auctionLengthExtension)
+        public
+        onlyOwner
+    {
+        auctionLengthExtension = _auctionLengthExtension;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // createColdieAuction
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev create a reserve auction token contract address, token id, price
@@ -165,7 +224,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _reservePrice uint256 Wei value of the reserve price.
      * @param _lengthOfAuction uint256 length of auction in blocks.
      */
-    function createReserveAuction(
+    function createColdieAuction(
         address _contractAddress,
         uint256 _tokenId,
         uint256 _reservePrice,
@@ -176,23 +235,23 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         _requireOwnerAsSender(_contractAddress, _tokenId);
         require(
             _lengthOfAuction <= maxLength,
-            "createReserveAuction::Cannot have auction longer than maxLength"
+            "createColdieAuction::Cannot have auction longer than maxLength"
         );
         require(
             auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION,
-            "createReserveAuction::Cannot have a current auction"
+            "createColdieAuction::Cannot have a current auction"
         );
         require(
             _lengthOfAuction > 0,
-            "createReserveAuction::_lengthOfAuction must be > 0"
+            "createColdieAuction::_lengthOfAuction must be > 0"
         );
         require(
             _reservePrice >= 0,
-            "createReserveAuction::_reservePrice must be >= 0"
+            "createColdieAuction::_reservePrice must be >= 0"
         );
         require(
             _reservePrice <= iMarketSettings.getMarketplaceMaxValue(),
-            "createReserveAuction::Cannot set reserve price higher than max value"
+            "createColdieAuction::Cannot set reserve price higher than max value"
         );
 
         // Create the auction
@@ -205,7 +264,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             RESERVE_AUCTION
         );
 
-        emit NewReserveAuction(
+        emit NewColdieAuction(
             _contractAddress,
             _tokenId,
             msg.sender,
@@ -346,7 +405,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         _requireOwnerAsSender(_contractAddress, _tokenId);
         require(
             auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION,
-            "createReserveAuction::Cannot have a current auction"
+            "createColdieAuction::Cannot have a current auction"
         );
 
         // Create the scheduled auction.
@@ -470,7 +529,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             _amount >= auctions[_contractAddress][_tokenId].reservePrice
         ) {
             auctions[_contractAddress][_tokenId].startingBlock = block.number;
-            emit ReserveAuctionBegun(
+            emit ColdieAuctionBegun(
                 msg.sender,
                 _contractAddress,
                 _tokenId,

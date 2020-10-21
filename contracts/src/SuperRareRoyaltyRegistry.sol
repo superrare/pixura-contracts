@@ -2,6 +2,7 @@ pragma solidity 0.6.12;
 
 import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
+import "openzeppelin-solidity-solc6/contracts/access/AccessControl.sol";
 import "./IERC721CreatorRoyalty.sol";
 
 /**

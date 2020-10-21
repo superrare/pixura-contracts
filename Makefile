@@ -35,39 +35,15 @@ init: ## install node files
 ######################################################
 #### Smart Contract / Solidity related commands
 ######################################################
-compile-contracts-v4: ## compiles contracts solc v4
-	yarn chanterelle -r contracts/v4 compile
-
-compile-contracts-v5: ## compiles contracts solc v5
-	yarn chanterelle -r contracts/v5 compile
-
-compile-contracts-v6: ## compiles contracts solc v6
+compile-contracts: ## compiles contracts 
 	yarn chanterelle compile
 
-
-compile-contracts: ## compiles contracts 
-	make compile-contracts-v4 && \
-	make compile-contracts-v5 && \
-	make compile-contracts-v6
-
-purs-contract-gen-v4: ## Generate purscript libraries for solc v4 smart contracts
-	yarn chanterelle -r contracts/v4 codegen
-
-purs-contract-gen-v5: ## Generate purscript libraries for solc v5 smart contracts
-	yarn chanterelle -r contracts/v5 codegen
-
-purs-contract-gen-v6: ## Generate purscript libraries for solc v6 smart contracts
-	yarn chanterelle codegen
-
 purs-contract-gen: ## Generate purscript libraries for smart contracts
-	make purs-contract-gen-v4 && \
-	make purs-contract-gen-v5 && \
-	make purs-contract-gen-v6
+	yarn chanterelle codegen
 
 ######################################################
 #### Build
 ######################################################
-
 hs-build: ## Build haskell bindings
 	make compile-contracts && \
 	stack build;

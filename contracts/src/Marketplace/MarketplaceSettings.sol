@@ -3,12 +3,19 @@ pragma solidity 0.6.12;
 import "./IMarketplaceSettings.sol";
 import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
+import "openzeppelin-solidity-solc6/contracts/access/AccessControl.sol";
 
 /**
  * @title MarketplaceSettings Settings governing the marketplace fees.
  */
-contract MarketplaceSettings is Ownable, IMarketplaceSettings {
+contract MarketplaceSettings is Ownable, AccessControl, IMarketplaceSettings {
     using SafeMath for uint256;
+
+    /////////////////////////////////////////////////////////////////////////
+    // Constants
+    /////////////////////////////////////////////////////////////////////////
+
+    bytes32 public constant TOKEN_MARK_ROLE = "TOKEN_MARK_ROLE";
 
     /////////////////////////////////////////////////////////////////////////
     // State Variables
@@ -28,6 +35,35 @@ contract MarketplaceSettings is Ownable, IMarketplaceSettings {
 
     // Mapping of ERC721 contract to mapping of token ID to whether the token has been sold before.
     mapping(address => mapping(uint256 => bool)) private soldTokens;
+
+    /////////////////////////////////////////////////////////////////////////
+    // Constructor
+    /////////////////////////////////////////////////////////////////////////
+    constructor() public {
+        maxValue = 2**254; // 2 ^ 254 is max amount, prevents any overflow issues.
+
+        minValue = 1000; // all amounts must be greater than 1000 Wei.
+
+        marketplaceFeePercentage = 3; // 3% marketplace fee on all txs.
+
+        _setupRole(AccessControl.DEFAULT_ADMIN_ROLE, owner());
+        grantRole(TOKEN_MARK_ROLE, owner());
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // grantMarketplaceMarkTokenAccess
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Grants a marketplace contract access to marke
+     * @param _account address of the account that can perform the token mark role.
+     */
+    function grantMarketplaceAccess(address _account) external {
+        require(
+            hasRole(AccessControl.DEFAULT_ADMIN_ROLE, msg.sender),
+            "grantMarketplaceAccess::Must be admin to call method"
+        );
+        grantRole(TOKEN_MARK_ROLE, _account);
+    }
 
     /////////////////////////////////////////////////////////////////////////
     // getMarketplaceMaxValue
@@ -198,7 +234,11 @@ contract MarketplaceSettings is Ownable, IMarketplaceSettings {
         address _contractAddress,
         uint256 _tokenId,
         bool _hasSold
-    ) external override onlyOwner {
+    ) external override {
+        require(
+            hasRole(TOKEN_MARK_ROLE, msg.sender),
+            "markERC721Token::Must have TOKEN_MARK_ROLE role to call method"
+        );
         soldTokens[_contractAddress][_tokenId] = _hasSold;
     }
 
@@ -213,7 +253,11 @@ contract MarketplaceSettings is Ownable, IMarketplaceSettings {
     function markTokensAsSold(
         address _originContract,
         uint256[] calldata _tokenIds
-    ) external onlyOwner {
+    ) external {
+        require(
+            hasRole(TOKEN_MARK_ROLE, msg.sender),
+            "markERC721Token::Must have TOKEN_MARK_ROLE role to call method"
+        );
         // limit to batches of 2000
         require(
             _tokenIds.length <= 2000,
