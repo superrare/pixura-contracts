@@ -11,7 +11,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
-import Effect.Aff (Aff, try)
+import Effect.Aff (Aff, error, throwError, try)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (_to, embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
@@ -604,86 +604,85 @@ spec =
                   owedPayment <- unUIntN <$> payments tenv revertfailOnPayAddr
                   checkEthDifference buyer (embed 0) purchaseTxHash
                   owedPayment `shouldEqual` (price + buyerFee)
-      -- it "can modify the royalty percentage and accept a bid with appropriate royalty" \tenv@{ provider } ->
-      --   web3Test provider do
-      --     tokenDetails <- mkSuperRareTokens tenv 1
-      --     newPerencetage <- genPercentageLessThan 20
-      --     prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
-      --     let
-      --       { accounts
-      --       , v2Marketplace: { deployAddress: marketAddr }
-      --       , v2SuperRare: { deployAddress: _originContract }
-      --       } = tenv
 
-      --       tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
-      --     void $ setERC721ContractRoyaltySettings tenv _originContract _originContract newPerencetage
-      --     bidRess <- for tokensAndBids (placeBid tenv)
-      --     acceptRess <-
-      --       for bidRess \abPayload ->
-      --         assertWithContext abPayload do
-      --           txHash <- acceptBid tenv abPayload
-      --           pure abPayload { purchaseTxHash = txHash }
-      --     pricesSec <- map unUIntN <$> genTokenPrices (length acceptRess)
-      --     let
-      --       tokensAndBidsSec =
-      --         zipWith
-      --           (\price { buyer, tokenId, uri, contractAddress } -> { price, owner: buyer, tokenId, uri, contractAddress })
-      --           pricesSec
-      --           acceptRess
-      --     bidRessSec <- for tokensAndBidsSec (placeBid tenv)
-      --     acceptRessSec <-
-      --       for bidRessSec \abPayload ->
-      --         assertWithContext abPayload do
-      --           txHash <- acceptBid tenv abPayload
-      --           pure abPayload { purchaseTxHash = txHash }
-      --     void
-      --       $ for acceptRessSec \pd@{ owner, sellerFee, purchaseTxHash, price } ->
-      --           assertWithContext pd do
-      --             checkNewOwnerStatus tenv pd
-      --             checkEthDifference owner (price - sellerFee) purchaseTxHash
-      -- it "should place bid on token before being upgraded, have it upgrade, and then have bid be accepted" \tenv@{ provider } ->
-      --   web3Test provider do
-      --     let
-      --       { accounts
-      --       , superRareLegacy: { deployAddress: legacyAddr }
-      --       , v2Marketplace:
-      --           { deployAddress: marketAddr
-      --           }
-      --       } = tenv
-
-      --       legacyCallArgs =
-      --         ( defaultTxOpts legacyAddr
-      --             # _to
-      --             ?~ legacyAddr
-      --         )
-
-      --       tid = intToUInt256 2
-      --     uri <- SupeRare.tokenURI tenv tid
-      --     owner <- SupeRare.ownerOf tenv tid
-      --     prices <- map unUIntN <$> genTokenPrices 1
-      --     let
-      --       tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices [ { owner, uri, tokenId: tid, contractAddress: legacyAddr } ]
-      --     bidRess <- for tokensAndBids (placeBid tenv)
-      --     void $ SuperRareLegacy.setApprovalForAll tenv owner marketAddr true
-      --     void $ for bidRess $ \{ tokenId, owner: owner' } -> SuperRareLegacy.upgrade tenv owner' tokenId
-      --     void
-      --       $ for bidRess \abPayload ->
-      --           assertWithContext abPayload do
-      --             txHash <- safeAcceptBid tenv abPayload
-      --             pure abPayload { purchaseTxHash = txHash }
-
+-- it "can modify the royalty percentage and accept a bid with appropriate royalty" \tenv@{ provider } ->
+--   web3Test provider do
+--     tokenDetails <- mkSuperRareTokens tenv 1
+--     newPerencetage <- genPercentageLessThan 20
+--     prices <- map unUIntN <$> genTokenPrices (length tokenDetails)
+--     let
+--       { accounts
+--       , v2Marketplace: { deployAddress: marketAddr }
+--       , v2SuperRare: { deployAddress: _originContract }
+--       } = tenv
+--       tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices tokenDetails
+--     void $ setERC721ContractRoyaltySettings tenv _originContract _originContract newPerencetage
+--     bidRess <- for tokensAndBids (placeBid tenv)
+--     acceptRess <-
+--       for bidRess \abPayload ->
+--         assertWithContext abPayload do
+--           txHash <- acceptBid tenv abPayload
+--           pure abPayload { purchaseTxHash = txHash }
+--     pricesSec <- map unUIntN <$> genTokenPrices (length acceptRess)
+--     let
+--       tokensAndBidsSec =
+--         zipWith
+--           (\price { buyer, tokenId, uri, contractAddress } -> { price, owner: buyer, tokenId, uri, contractAddress })
+--           pricesSec
+--           acceptRess
+--     bidRessSec <- for tokensAndBidsSec (placeBid tenv)
+--     acceptRessSec <-
+--       for bidRessSec \abPayload ->
+--         assertWithContext abPayload do
+--           txHash <- acceptBid tenv abPayload
+--           pure abPayload { purchaseTxHash = txHash }
+--     void
+--       $ for acceptRessSec \pd@{ owner, sellerFee, purchaseTxHash, price } ->
+--           assertWithContext pd do
+--             checkNewOwnerStatus tenv pd
+--             checkEthDifference owner (price - sellerFee) purchaseTxHash
+-- it "should place bid on token before being upgraded, have it upgrade, and then have bid be accepted" \tenv@{ provider } ->
+--   web3Test provider do
+--     let
+--       { accounts
+--       , superRareLegacy: { deployAddress: legacyAddr }
+--       , v2Marketplace:
+--           { deployAddress: marketAddr
+--           }
+--       } = tenv
+--       legacyCallArgs =
+--         ( defaultTxOpts legacyAddr
+--             # _to
+--             ?~ legacyAddr
+--         )
+--       tid = intToUInt256 2
+--     uri <- SupeRare.tokenURI tenv tid
+--     owner <- SupeRare.ownerOf tenv tid
+--     prices <- map unUIntN <$> genTokenPrices 1
+--     let
+--       tokensAndBids = zipWith (Record.insert (SProxy :: _ "price")) prices [ { owner, uri, tokenId: tid, contractAddress: legacyAddr } ]
+--     bidRess <- for tokensAndBids (placeBid tenv)
+--     void $ SuperRareLegacy.setApprovalForAll tenv owner marketAddr true
+--     void $ for bidRess $ \{ tokenId, owner: owner' } -> SuperRareLegacy.upgrade tenv owner' tokenId
+--     void
+--       $ for bidRess \abPayload ->
+--           assertWithContext abPayload do
+--             txHash <- safeAcceptBid tenv abPayload
+--             pure abPayload { purchaseTxHash = txHash }
 -----------------------------------------------------------------------------
 -- | Init
 -----------------------------------------------------------------------------
 init :: Aff (TestEnv ())
 init = do
   tenv@{ provider, supeRare, accounts, primaryAccount } <- initSupeRareV2
+  when true $ throwError (error "Not implemented")
   let
     srTenv = { supeRare, provider, accounts, primaryAccount }
   { superRareLegacy, numOldSuperRareTokens } <- initSupeRareLegacy srTenv
   { superRareMarketAuctionV2 } <-
     buildTestConfig "http://localhost:8545" 60
-      SuperRareMarketAuctionV2.deployScript
+      $ SuperRareMarketAuctionV2.deployScript
+          { _iERC721CreatorRoyalty: primaryAccount, _iMarketSettings: primaryAccount }
   { testAssertFailOnPay
   , testExpensiveWallet
   , testRequireFailOnPay

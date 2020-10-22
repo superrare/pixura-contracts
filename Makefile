@@ -6,6 +6,7 @@
 ######################################################
 MARKETPLACEV2_CONFIG ?= "./deploy-configs/marketplacev2.json"
 SUPERRARE_LEGACY_CONFIG ?= "./deploy-configs/superrareLegacy.json"
+SUPERRARE_AUCTION_HOUSE_CONFIG ?= "./deploy-configs/superrareAuctionHouse.json"
 
 ######################################################
 #### Utils
@@ -67,6 +68,10 @@ migrate-marketplaceV2:  ## Deploy test environment and run contract tests
 migrate-legacy:  ## Deploy test environment and run contract tests
 	CONFIG=$(SUPERRARE_LEGACY_CONFIG) \
 	yarn spago run --main Migrations.SuperRareLegacy
+
+migrate-auction-house:  ## Migration for Auction House
+	CONFIG=$(SUPERRARE_AUCTION_HOUSE_CONFIG) \
+	yarn spago run --main Migrations.SuperRareAuctionHouse
 
 ######################################################
 #### Test

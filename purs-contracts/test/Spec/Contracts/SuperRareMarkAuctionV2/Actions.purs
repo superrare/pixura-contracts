@@ -1,7 +1,6 @@
 module Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions where
 
 import Prelude
-
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Contracts.Marketplace.IMarketplaceSettings as IMarketplaceSettings
@@ -21,6 +20,7 @@ import Data.Ord (abs)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
+import Deploy.Contracts.SuperRareMarketAuctionV2 (SuperRareMarketAuctionV2)
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff.Class (class MonadAff)
@@ -49,7 +49,7 @@ type TestEnv r
     , accounts :: Array Address
     , primaryAccount :: Address
     , v2SuperRare :: DeployReceipt SuperRareV2.SuperRareV2
-    , v2Marketplace :: DeployReceipt NoArgs
+    , v2Marketplace :: DeployReceipt SuperRareMarketAuctionV2
     , superRareLegacy :: DeployReceipt SuperRareLegacy
     , numOldSuperRareTokens :: Int
     , testAssertFailOnPay :: DeployReceipt NoArgs
@@ -282,9 +282,11 @@ marketplaceFee tenv = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <- throwOnCallError $ SuperRareMarketAuctionV2.iMarketplaceSettings 
-        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-        Latest
+  ims <-
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.iMarketplaceSettings
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
   throwOnCallError
     $ IMarketplaceSettings.getMarketplaceFeePercentage
         (defaultTxOpts primaryAccount # _to ?~ ims)
@@ -312,17 +314,17 @@ currentBidDetailsOfToken tenv _originContract _tokenId = do
 -- | getTokenRoyaltyPercentage
 -----------------------------------------------------------------------------
 getTokenRoyaltyPercentage ::
-  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 (UIntN S8 )
+  forall r. TestEnv r -> Address -> UIntN S256 -> Web3 (UIntN S8)
 getTokenRoyaltyPercentage tenv _contractAddress _tokenId = do
   let
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
   throwOnCallError
-      $ getERC721TokenRoyaltyPercentage
-          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-          Latest
-          { _contractAddress, _tokenId }
+    $ getERC721TokenRoyaltyPercentage
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { _contractAddress, _tokenId }
 
 -----------------------------------------------------------------------------
 -- | getERC721ContractPrimarySaleFee
@@ -334,13 +336,16 @@ getERC721ContractPrimarySaleFee tenv _contractAddress = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <- throwOnCallError $ SuperRareMarketAuctionV2.iMarketplaceSettings 
-        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-        Latest
-  throwOnCallError $ IMarketplaceSettings.getERC721ContractPrimarySaleFeePercentage
+  ims <-
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.iMarketplaceSettings
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+  throwOnCallError
+    $ IMarketplaceSettings.getERC721ContractPrimarySaleFeePercentage
         (defaultTxOpts primaryAccount # _to ?~ ims)
         Latest
-        {_contractAddress}
+        { _contractAddress }
 
 -----------------------------------------------------------------------------
 -- | markTokensAsSold
@@ -352,9 +357,11 @@ markTokensAsSold tenv _originContract _tokenIds = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <- throwOnCallError $ SuperRareMarketAuctionV2.iMarketplaceSettings 
-        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-        Latest
+  ims <-
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.iMarketplaceSettings
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
   MarketplaceSettings.markTokensAsSold
     (defaultTxOpts primaryAccount # _to ?~ ims)
     { _originContract, _tokenIds }
@@ -370,13 +377,16 @@ hasTokenBeenSold tenv _contractAddress _tokenId = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <- throwOnCallError $ SuperRareMarketAuctionV2.iMarketplaceSettings 
-    (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-    Latest
-  throwOnCallError $ IMarketplaceSettings.hasERC721TokenSold
-    (defaultTxOpts primaryAccount # _to ?~ ims)
-    Latest
-    { _contractAddress, _tokenId }
+  ims <-
+    throwOnCallError
+      $ SuperRareMarketAuctionV2.iMarketplaceSettings
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+  throwOnCallError
+    $ IMarketplaceSettings.hasERC721TokenSold
+        (defaultTxOpts primaryAccount # _to ?~ ims)
+        Latest
+        { _contractAddress, _tokenId }
 
 -----------------------------------------------------------------------------
 -- | tokenPrice
@@ -454,7 +464,6 @@ mkPurchasePayload tenv td = do
   let
     { tokenId, contractAddress, price, owner } = td
   marketfee <- unUIntN <$> marketplaceFee tenv
-
   royaltyfee <- getTokenRoyaltyPercentage tenv contractAddress tokenId
   primfee <- unUIntN <$> getERC721ContractPrimarySaleFee tenv contractAddress
   sold <- hasTokenBeenSold tenv contractAddress tokenId

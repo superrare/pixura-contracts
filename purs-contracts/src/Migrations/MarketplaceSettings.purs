@@ -84,5 +84,8 @@ migration { migrationArgs, getProgress, gasSettings: mgs, updateProgress } = do
                     awaitTxSuccessAndLogEthStats txHash
                     pure txHash
             case etxHash of
-              Left err -> throwDeploy $ error $ "" <> show err
+              Left err ->
+                throwDeploy $ error
+                  $ "Failed setting SuperRareV2 primary sale percentage with error: "
+                  <> show err
               Right txHash -> updateProgress \prog -> prog { setSuperRareV2PrimarySaleFeeTx = Just txHash }

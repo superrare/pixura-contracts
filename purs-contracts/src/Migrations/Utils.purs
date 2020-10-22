@@ -20,8 +20,9 @@ import Effect.Exception (throw, throwException)
 import Network.Ethereum.Web3 (CallError, Provider, TransactionOptions(..), httpProvider)
 import Network.Ethereum.Web3.Types.HdWalletProvider (hdWalletProvider, unHdWalletProvider)
 import Node.Encoding (Encoding(..))
-import Node.FS.Aff (readTextFile, writeTextFile)
-import Node.Process (cwd, lookupEnv)
+import Node.FS.Aff (readTextFile, writeTextFile, realpath)
+import Node.FS.Aff as FS
+import Node.Process (cwd, exit, lookupEnv)
 import Simple.JSON as JSON
 
 runMigration ::
@@ -35,23 +36,27 @@ runMigration ::
   ) ->
   Effect Unit
 runMigration emptyMigrationProgress migration =
-  runAff_ (either throwException (const $ log Info "Completed Migration")) do
+  runAff_ (either throwException exitSuccessfully) do
     config@{ migrationArgs, gasSettings, progressFile } <- loadMigrationConfig
     provider <- liftEffect $ mkProvider config
+    progressFilePath <- FS.realpath progressFile
     ep <- try $ readJSONFile progressFile
     let
       migrationProgress = case ep of
         Left _ -> emptyMigrationProgress
         Right mp -> mp
     avMp <- AVar.new migrationProgress
-    emigration <- try $ deployWithProvider provider (60 * 1000) (migration { migrationArgs, gasSettings, getProgress: getAVar avMp, updateProgress: updateAVar progressFile avMp })
-    writeProgressFile progressFile avMp
+    emigration <- try $ deployWithProvider provider (60 * 1000) (migration { migrationArgs, gasSettings, getProgress: getAVar avMp, updateProgress: updateAVar progressFilePath avMp })
     case emigration of
       Left err -> do
         log Error $ "Failed to complete migration with error: " <> show err
         throwError err
       Right _ -> pure unit
   where
+  exitSuccessfully _ = do
+    log Info "Completed Migration"
+    exit 0
+
   writeProgressFile progressFile avMp = do
     mmd <- AVar.tryRead avMp
     case mmd of
@@ -85,7 +90,8 @@ emptyGasSettings :: GasSettings
 emptyGasSettings = GasSettings { gasPrice: Nothing, gasLimit: Nothing }
 
 mkProvider :: forall a. (MigrationConfig (a)) -> Effect Provider
-mkProvider cfg@{ rpcUrl } =
+mkProvider cfg@{ rpcUrl } = do
+  log Info $ "Using rpc from url: " <> rpcUrl
   liftEffect case cfg of
     { mnemonic: Just mnemonic } ->
       unHdWalletProvider

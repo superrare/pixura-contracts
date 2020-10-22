@@ -70,62 +70,54 @@ emptyMigrationDetails =
   }
 
 main :: Effect Unit
-main =
-  runMigration \(args :: { gasSettings :: Maybe GasSettings, migrationArgs :: MigrationArgs }) -> do
-    DeployConfig { provider, primaryAccount } <- ask
-    cwd' <- liftEffect cwd
-    let
-      { migrationArgs
-      , gasSettings: mgs
-      } = args
+main = pure unit
 
-      gasSettings = fromMaybe emptyGasSettings mgs
-
-      { migrationArgs
-      , gasSettings: mgs
-      } = args
-
-      { v2SuperRareAddress
-      , oldSuperRareAddress
-      , legacySuperRareAddress
-      , migrationDetailsFile
-      , pixuraApi: { url, apiKey }
-      } = migrationArgs
-
-      txOpts = txOptsWithGasSettings gasSettings # _from ?~ primaryAccount
-
-      writeFilename = fromMaybe (cwd' <> "/migration-details.json") migrationDetailsFile
-
-      readJSONFile n = do
-        t <- liftAff $ FS.readTextFile UTF8 n
-        case readJSON t of
-          Left err -> throwDeploy (error $ show err)
-          Right v -> pure v
-    migrationDetails <- case migrationDetailsFile of
-      Nothing -> do
-        { superRareMarketAuctionV2: { deployAddress } } <- deployScriptWithGasSettings gasSettings
-        pure $ emptyMigrationDetails deployAddress
-      Just mdf -> readJSONFile mdf
-    avMd <- liftAff $ AVar.new migrationDetails
-    let
-      batchMark =
-        batchMarkSold
-          { url, apiKey, txOpts, migrationDetails: avMd, writeFilename, provider }
-          100
-          migrationDetails.marketContractAddress
-
-      markSolds = [ batchMark v2SuperRareAddress v2SuperRareAddress, batchMark oldSuperRareAddress legacySuperRareAddress ]
-    eres <- liftAff $ try $ sequence markSolds
-    mmd <- liftAff $ AVar.tryRead avMd
-    case mmd of
-      Nothing -> throwDeploy (error "MigrationDetails found to be empty")
-      Just md -> liftAff $ FS.writeTextFile UTF8 writeFilename (writeJSON md)
-    case eres of
-      Left err -> do
-        throwDeploy (error $ show err)
-      _ -> pure unit
-    pure unit
-
+-- runMigration \(args :: { gasSettings :: Maybe GasSettings, migrationArgs :: MigrationArgs }) -> do
+--   DeployConfig { provider, primaryAccount } <- ask
+--   cwd' <- liftEffect cwd
+--   let
+--     { migrationArgs
+--     , gasSettings: mgs
+--     } = args
+--     gasSettings = fromMaybe emptyGasSettings mgs
+--     { migrationArgs
+--     , gasSettings: mgs
+--     } = args
+--     { v2SuperRareAddress
+--     , oldSuperRareAddress
+--     , legacySuperRareAddress
+--     , migrationDetailsFile
+--     , pixuraApi: { url, apiKey }
+--     } = migrationArgs
+--     txOpts = txOptsWithGasSettings gasSettings # _from ?~ primaryAccount
+--     writeFilename = fromMaybe (cwd' <> "/migration-details.json") migrationDetailsFile
+--     readJSONFile n = do
+--       t <- liftAff $ FS.readTextFile UTF8 n
+--       case readJSON t of
+--         Left err -> throwDeploy (error $ show err)
+--         Right v -> pure v
+-- migrationDetails <- case migrationDetailsFile of
+--   Nothing -> do
+--     { superRareMarketAuctionV2: { deployAddress } } <- deployScriptWithGasSettings gasSettings
+--     pure $ emptyMigrationDetails deployAddress
+--   Just mdf -> readJSONFile mdf
+-- avMd <- liftAff $ AVar.new migrationDetails
+-- let
+--   batchMark =
+--     batchMarkSold
+--       { url, apiKey, txOpts, migrationDetails: avMd, writeFilename, provider }
+--       100
+--       migrationDetails.marketContractAddress
+--   markSolds = [ batchMark v2SuperRareAddress v2SuperRareAddress, batchMark oldSuperRareAddress legacySuperRareAddress ]
+-- eres <- liftAff $ try $ sequence markSolds
+-- mmd <- liftAff $ AVar.tryRead avMd
+-- case mmd of
+--   Nothing -> throwDeploy (error "MigrationDetails found to be empty")
+--   Just md -> liftAff $ FS.writeTextFile UTF8 writeFilename (writeJSON md)
+-- case eres of
+--   Left err -> do
+--     throwDeploy (error $ show err)
+--   _ -> pure unit
 -----------------------------------------------------------------------------
 -- | batchMarkSold
 -----------------------------------------------------------------------------
