@@ -6,7 +6,7 @@ import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (ContractConfig, DeployConfig(DeployConfig), DeployM)
 import Chanterelle.Internal.Utils (pollTransactionReceipt)
-import Control.Monad.Error.Class (throwError)
+import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Reader.Class (ask)
 import Data.Either (Either(..))
 import Data.Int (toNumber)
@@ -15,15 +15,22 @@ import Data.List.NonEmpty (singleton)
 import Data.Maybe (Maybe(..), fromJust, maybe)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
-import Effect.Exception (throw)
+import Effect.Exception (Error, error, throw)
 import Foreign (ForeignError(..))
 import Network.Ethereum.Core.BigNumber (decimal, divide, embed, parseBigNumber, pow, unsafeToInt)
 import Network.Ethereum.Core.HexString (HexString, dropHex, toAscii)
-import Network.Ethereum.Web3 (Address, BigNumber, ChainCursor(..), Provider, Transaction(..), TransactionOptions, TransactionReceipt(..), TransactionStatus(..), Web3, _data, _from, _gas, _gasPrice, _nonce, _to, _value, defaultTransactionOptions, runWeb3, unAddress)
+import Network.Ethereum.Web3 (Address, BigNumber, CallError, ChainCursor(..), Provider, Transaction(..), TransactionOptions, TransactionReceipt(..), TransactionStatus(..), Web3, _data, _from, _gas, _gasPrice, _nonce, _to, _value, defaultTransactionOptions, runWeb3, unAddress)
 import Network.Ethereum.Web3.Api (eth_call, eth_getBalance, eth_getTransaction, eth_getTransactionReceipt)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 import Simple.JSON as JSON
+
+throwOnCallError :: forall a m. MonadThrow Error m => m (Either CallError a) -> m a
+throwOnCallError f =
+  f
+    >>= case _ of
+        Left cerr -> throwError $ error $ show cerr
+        Right x -> pure x
 
 defaultTxOptions :: TransactionOptions NoPay
 defaultTxOptions =
@@ -96,6 +103,11 @@ awaitTxSuccess txHash provider = do
 awaitTxSuccessWeb3 :: HexString -> Web3 Unit
 awaitTxSuccessWeb3 txHash = awaitTxSuccess txHash =<< ask
 
+awaitTxSuccessAndLogEthStats :: HexString -> Web3 Unit
+awaitTxSuccessAndLogEthStats txHash = do
+  awaitTxSuccessWeb3 txHash
+  logEthSpentOnTx txHash
+
 deployContractWithConfig ::
   forall a.
   { gasSettings :: GasSettings
@@ -137,11 +149,12 @@ instance gasSettingsReadForeign :: JSON.ReadForeign GasSettings where
 
 logEthSpentOnTx :: HexString -> Web3 Unit
 logEthSpentOnTx txHash = do
-  Transaction { gasPrice } <- eth_getTransaction txHash
+  Transaction { gasPrice, from } <- eth_getTransaction txHash
   TransactionReceipt { gasUsed } <- eth_getTransactionReceipt txHash
   let
     weiSpent = gasPrice * gasUsed
   log Info $ "Eth spent on Tx:" <> show ((toNumber $ unsafeToInt (weiSpent `divide` pow (embed 10) 14)) / 10000.0)
+  logBalanceAndPrint from
 
 logBalanceAndPrint :: Address -> Web3 Unit
 logBalanceAndPrint primAddr = do

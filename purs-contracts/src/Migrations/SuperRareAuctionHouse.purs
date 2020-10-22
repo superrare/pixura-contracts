@@ -1,4 +1,4 @@
-module Migrations.SuperRareMarketAuctionV2 where
+module Migrations.SuperRareAuctionHouse where
 
 import Prelude
 import Chanterelle.Internal.Logging (LogLevel(..), log)

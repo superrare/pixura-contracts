@@ -41,7 +41,7 @@ spec =
             void
               $ for (zipWith ({ acc: _, _uri: _ }) accounts tokenUris)
                   (\{ acc, _uri } -> addNewToken tenv acc _uri)
-            owners <- for tokenIds (ownerOf tenv :: S1)
+            owners <- for tokenIds (ownerOf tenv)
             owners `shouldEqual` accounts
             uris <- for tokenIds (tokenURI tenv)
             uris `shouldEqual` tokenUris

@@ -17,7 +17,7 @@ import Effect.Class.Console (logShow)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Network.Ethereum.Core.BigNumber (BigNumber, decimal, embed, parseBigNumber)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
-import Network.Ethereum.Web3 (Address, CallError, Provider, TransactionOptions, UIntN, Web3, _from, _gas, _gasPrice, defaultTransactionOptions, mkAddress, runWeb3, uIntNFromBigNumber)
+import Network.Ethereum.Web3 (class KnownSize, Address, CallError, DLProxy(..), Provider, TransactionOptions, UIntN, Web3, _from, _gas, _gasPrice, defaultTransactionOptions, mkAddress, runWeb3, uIntNFromBigNumber)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafePartial)
@@ -53,6 +53,14 @@ uInt256FromBigNumber n = case uIntNFromBigNumber s256 n of
 
 intToUInt256 :: Int -> UIntN S256
 intToUInt256 = uInt256FromBigNumber <<< embed
+
+unSafeUIntNFromBigNumber :: forall n. KnownSize n => DLProxy n -> BigNumber -> UIntN n
+unSafeUIntNFromBigNumber s n = case uIntNFromBigNumber s n of
+  Nothing -> (unsafeThrow $ "Invalid BigNumber " <> show n <> " to build UIntN")
+  Just n' -> n'
+
+intToUIntN :: forall n. KnownSize n => DLProxy n -> Int -> UIntN n
+intToUIntN s = unSafeUIntNFromBigNumber s <<< embed
 
 web3Test ::
   forall m.

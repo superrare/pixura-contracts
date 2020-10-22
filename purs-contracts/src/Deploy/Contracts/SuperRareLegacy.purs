@@ -30,7 +30,7 @@ type SuperRareLegacy
 
 makeSuperRareLegacyConfig :: Record SuperRareLegacy -> ContractConfig SuperRareLegacy
 makeSuperRareLegacyConfig { _name, _symbol, _oldSuperRare } =
-  { filepath: "./contracts/v5/build/SuperRareLegacy.json"
+  { filepath: "./contracts/build/SuperRareLegacy.json"
   , name: "SuperRareLegacy"
   , constructor: SuperRareLegacy.constructor
   , unvalidatedArgs: pure { _name, _symbol, _oldSuperRare }
