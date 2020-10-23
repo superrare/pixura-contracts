@@ -45,6 +45,7 @@ migration { migrationArgs, getProgress, gasSettings: mgs, updateProgress } = do
   let
     gasSettings = fromMaybe emptyGasSettings mgs
   deployContract gasSettings
+  setAuctionHouseRoleForMarkingSold gasSettings
   where
   -- Get the Auction House address
   getSuperRareAuctionHouse = getProgress >>= \{ superRareAuctionHouse } -> pure $ unsafePartial fromJust superRareAuctionHouse

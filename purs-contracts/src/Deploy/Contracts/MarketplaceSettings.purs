@@ -8,7 +8,7 @@ import Migrations.Utils (emptyGasSettings)
 
 makeMarketplaceSettingsConfig :: ContractConfig NoArgs
 makeMarketplaceSettingsConfig =
-  { filepath: "./contracts/build/MarketplaceSettings.json"
+  { filepath: "./contracts/build/Marketplace/MarketplaceSettings.json"
   , name: "MarketplaceSettings"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs

@@ -10,7 +10,7 @@ import Deploy.Utils (GasSettings, awaitTxSuccessAndLogEthStats, throwOnCallError
 import Effect.Aff.Class (liftAff)
 import Effect.Exception (error)
 import Network.Ethereum.Core.Signatures (Address)
-import Network.Ethereum.Web3 (ChainCursor(..), HexString, _to, runWeb3)
+import Network.Ethereum.Web3 (ChainCursor(..), HexString, _from, _to, runWeb3)
 
 setMarketplaceWithTokenMarkRole :: GasSettings -> Address -> Address -> DeployM HexString
 setMarketplaceWithTokenMarkRole gs settingsAddress granteeAddress = do
@@ -20,7 +20,13 @@ setMarketplaceWithTokenMarkRole gs settingsAddress granteeAddress = do
       $ runWeb3 provider do
           tokenMarkRole <- throwOnCallError $ MarketplaceSettings.tOKEN_MARK_ROLE (txOptsWithGasSettings gs # _to ?~ settingsAddress) Latest
           txHash <-
-            MarketplaceSettings.grantRole (txOptsWithGasSettings gs # _to ?~ settingsAddress)
+            MarketplaceSettings.grantRole
+              ( txOptsWithGasSettings gs
+                  # _from
+                  ?~ primaryAccount
+                  # _to
+                  ?~ settingsAddress
+              )
               { account: granteeAddress, role: tokenMarkRole }
           awaitTxSuccessAndLogEthStats txHash
           pure txHash

@@ -39,14 +39,13 @@ runMigration emptyMigrationProgress migration =
   runAff_ (either throwException exitSuccessfully) do
     config@{ migrationArgs, gasSettings, progressFile } <- loadMigrationConfig
     provider <- liftEffect $ mkProvider config
-    progressFilePath <- FS.realpath progressFile
     ep <- try $ readJSONFile progressFile
     let
       migrationProgress = case ep of
         Left _ -> emptyMigrationProgress
         Right mp -> mp
     avMp <- AVar.new migrationProgress
-    emigration <- try $ deployWithProvider provider (60 * 1000) (migration { migrationArgs, gasSettings, getProgress: getAVar avMp, updateProgress: updateAVar progressFilePath avMp })
+    emigration <- try $ deployWithProvider provider (60 * 1000) (migration { migrationArgs, gasSettings, getProgress: getAVar avMp, updateProgress: updateAVar progressFile avMp })
     case emigration of
       Left err -> do
         log Error $ "Failed to complete migration with error: " <> show err

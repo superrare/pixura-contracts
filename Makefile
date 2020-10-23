@@ -7,6 +7,9 @@
 MARKETPLACEV2_CONFIG ?= "./deploy-configs/marketplacev2.json"
 SUPERRARE_LEGACY_CONFIG ?= "./deploy-configs/superrareLegacy.json"
 SUPERRARE_AUCTION_HOUSE_CONFIG ?= "./deploy-configs/superrareAuctionHouse.json"
+SUPERRARE_TOKEN_CREATOR_REGISTRY_CONFIG ?= "./deploy-configs/superrareTokenCreatorRegistry.json"
+SUPERRARE_ROYALTY_REGISTRY_CONFIG ?= "./deploy-configs/superrareRoyaltyRegistry.json"
+MARKETPLACE_SETTINGS_CONFIG ?= "./deploy-configs/marketplaceSettings.json"
 
 ######################################################
 #### Utils
@@ -72,6 +75,18 @@ migrate-legacy:  ## Deploy test environment and run contract tests
 migrate-auction-house:  ## Migration for Auction House
 	CONFIG=$(SUPERRARE_AUCTION_HOUSE_CONFIG) \
 	yarn spago run --main Migrations.SuperRareAuctionHouse
+
+migrate-token-creator-registry:  ## Migration for token creator registry
+	CONFIG=$(SUPERRARE_TOKEN_CREATOR_REGISTRY_CONFIG) \
+	yarn spago run --main Migrations.SuperRareTokenCreatorRegistry
+
+migrate-royalty-registry:  ## Migration for royalty registry
+	CONFIG=$(SUPERRARE_ROYALTY_REGISTRY_CONFIG) \
+	yarn spago run --main Migrations.SuperRareRoyaltyRegistry
+
+migrate-marketplace-settings:  ## Migration for marketplace settings
+	CONFIG=$(MARKETPLACE_SETTINGS_CONFIG) \
+	yarn spago run --main Migrations.MarketplaceSettings
 
 ######################################################
 #### Test
