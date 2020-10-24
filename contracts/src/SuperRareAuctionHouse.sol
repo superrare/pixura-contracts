@@ -15,7 +15,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     /////////////////////////////////////////////////////////////////////////
 
     // Types of Auctions
-    bytes32 constant RESERVE_AUCTION = "RESERVE_AUCTION";
+    bytes32 constant COLDIE_AUCTION = "COLDIE_AUCTION";
     bytes32 constant SCHEDULED_AUCTION = "SCHEDULED_AUCTION";
     bytes32 constant NO_AUCTION = bytes32(0);
 
@@ -266,7 +266,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             0,
             _reservePrice,
             0,
-            RESERVE_AUCTION
+            COLDIE_AUCTION
         );
 
         emit NewColdieAuction(
