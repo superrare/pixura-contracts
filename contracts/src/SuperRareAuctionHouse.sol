@@ -15,9 +15,9 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     /////////////////////////////////////////////////////////////////////////
 
     // Types of Auctions
-    bytes32 constant COLDIE_AUCTION = "COLDIE_AUCTION";
-    bytes32 constant SCHEDULED_AUCTION = "SCHEDULED_AUCTION";
-    bytes32 constant NO_AUCTION = bytes32(0);
+    bytes32 public constant COLDIE_AUCTION = "COLDIE_AUCTION";
+    bytes32 public constant SCHEDULED_AUCTION = "SCHEDULED_AUCTION";
+    bytes32 public constant NO_AUCTION = bytes32(0);
 
     /////////////////////////////////////////////////////////////////////////
     // Structs
@@ -25,6 +25,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     // A reserve auction.
     struct Auction {
         address payable auctionCreator;
+        uint256 creationBlockNumber;
         uint256 lengthOfAuction;
         uint256 startingBlock;
         uint256 reservePrice;
@@ -243,7 +244,9 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "createColdieAuction::Cannot have auction longer than maxLength"
         );
         require(
-            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION,
+            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
+                (msg.sender !=
+                    auctions[_contractAddress][_tokenId].auctionCreator),
             "createColdieAuction::Cannot have a current auction"
         );
         require(
@@ -262,12 +265,15 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         // Create the auction
         auctions[_contractAddress][_tokenId] = Auction(
             msg.sender,
+            block.number,
             _lengthOfAuction,
             0,
             _reservePrice,
             0,
             COLDIE_AUCTION
         );
+
+        _refundBid(_contractAddress, _tokenId);
 
         emit NewColdieAuction(
             _contractAddress,
@@ -311,6 +317,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         auctions[_contractAddress][_tokenId] = Auction(
             address(0),
+            0,
             0,
             0,
             0,
@@ -409,19 +416,24 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
         require(
-            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION,
-            "createColdieAuction::Cannot have a current auction"
+            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
+                (msg.sender !=
+                    auctions[_contractAddress][_tokenId].auctionCreator),
+            "createScheduledAuction::Cannot have a current auction"
         );
 
         // Create the scheduled auction.
         auctions[_contractAddress][_tokenId] = Auction(
             msg.sender,
+            block.number,
             _lengthOfAuction,
             _startingBlock,
             0,
             _minimumBid,
             SCHEDULED_AUCTION
         );
+
+        _refundBid(_contractAddress, _tokenId);
 
         // Transfer the token to this contract to act as escrow.
         IERC721 erc721 = IERC721(_contractAddress);
@@ -501,6 +513,14 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         // If owner of token is auction creator make sure they have contract approved
         IERC721 erc721 = IERC721(_contractAddress);
         address owner = erc721.ownerOf(_tokenId);
+
+        // Check that token is owned by creator or by this contract
+        require(
+            auctions[_contractAddress][_tokenId].auctionCreator == owner ||
+                owner == address(this),
+            "bid::Cannot bid on auction if auction creator is no longer owner."
+        );
+
         if (auctions[_contractAddress][_tokenId].auctionCreator == owner) {
             _requireOwnerApproval(_contractAddress, _tokenId);
         }
@@ -595,6 +615,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             0,
             0,
             0,
+            0,
             NO_AUCTION
         );
         IERC721 erc721 = IERC721(_contractAddress);
@@ -668,6 +689,20 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             uint256 minimumBid
         )
     {
+        IERC721 erc721 = IERC721(_contractAddress);
+        address owner = erc721.ownerOf(_tokenId);
+
+        // If auction creator is still owner, make sure they have the auction house approved
+        if (auctions[_contractAddress][_tokenId].auctionCreator == owner) {
+            _requireOwnerApproval(_contractAddress, _tokenId);
+        }
+        // Check that token is owned by creator or by this contract
+        require(
+            auctions[_contractAddress][_tokenId].auctionCreator == owner ||
+                owner == address(this),
+            "getAuctionDetails::Auction."
+        );
+
         return (
             auctions[_contractAddress][_tokenId].auctionType,
             auctions[_contractAddress][_tokenId].auctionCreator,

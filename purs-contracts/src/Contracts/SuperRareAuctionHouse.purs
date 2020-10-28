@@ -286,6 +286,36 @@ instance eventGenericSendValueeq :: Eq SendValue where
   eq = genericEq
 
 --------------------------------------------------------------------------------
+-- | COLDIE_AUCTIONFn
+--------------------------------------------------------------------------------
+
+
+type COLDIE_AUCTIONFn = Tagged (SProxy "COLDIE_AUCTION()") (Tuple0 )
+
+cOLDIE_AUCTION :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (BytesN (D3 :& DOne D2)))
+cOLDIE_AUCTION x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: COLDIE_AUCTIONFn)
+
+--------------------------------------------------------------------------------
+-- | NO_AUCTIONFn
+--------------------------------------------------------------------------------
+
+
+type NO_AUCTIONFn = Tagged (SProxy "NO_AUCTION()") (Tuple0 )
+
+nO_AUCTION :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (BytesN (D3 :& DOne D2)))
+nO_AUCTION x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: NO_AUCTIONFn)
+
+--------------------------------------------------------------------------------
+-- | SCHEDULED_AUCTIONFn
+--------------------------------------------------------------------------------
+
+
+type SCHEDULED_AUCTIONFn = Tagged (SProxy "SCHEDULED_AUCTION()") (Tuple0 )
+
+sCHEDULED_AUCTION :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (BytesN (D3 :& DOne D2)))
+sCHEDULED_AUCTION x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: SCHEDULED_AUCTIONFn)
+
+--------------------------------------------------------------------------------
 -- | AuctionLengthExtensionFn
 --------------------------------------------------------------------------------
 
