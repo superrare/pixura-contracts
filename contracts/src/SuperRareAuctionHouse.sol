@@ -25,7 +25,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     // A reserve auction.
     struct Auction {
         address payable auctionCreator;
-        uint256 creationBlockNumber;
+        uint256 creationBlock;
         uint256 lengthOfAuction;
         uint256 startingBlock;
         uint256 reservePrice;
@@ -679,32 +679,35 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _tokenId uint256 id of the token.
      */
     function getAuctionDetails(address _contractAddress, uint256 _tokenId)
-        public
+        external
         view
         returns (
             bytes32 auctionType,
+            uint256 creationBlock,
             address auctionCreator,
             uint256 lengthOfAuction,
             uint256 startingBlock,
             uint256 minimumBid
         )
     {
-        IERC721 erc721 = IERC721(_contractAddress);
-        address owner = erc721.ownerOf(_tokenId);
-
         // If auction creator is still owner, make sure they have the auction house approved
-        if (auctions[_contractAddress][_tokenId].auctionCreator == owner) {
+        if (
+            auctions[_contractAddress][_tokenId].auctionCreator ==
+            IERC721(_contractAddress).ownerOf(_tokenId)
+        ) {
             _requireOwnerApproval(_contractAddress, _tokenId);
         }
         // Check that token is owned by creator or by this contract
         require(
-            auctions[_contractAddress][_tokenId].auctionCreator == owner ||
-                owner == address(this),
+            auctions[_contractAddress][_tokenId].auctionCreator ==
+                IERC721(_contractAddress).ownerOf(_tokenId) ||
+                IERC721(_contractAddress).ownerOf(_tokenId) == address(this),
             "getAuctionDetails::Auction."
         );
 
         return (
             auctions[_contractAddress][_tokenId].auctionType,
+            auctions[_contractAddress][_tokenId].creationBlock,
             auctions[_contractAddress][_tokenId].auctionCreator,
             auctions[_contractAddress][_tokenId].lengthOfAuction,
             auctions[_contractAddress][_tokenId].startingBlock,
