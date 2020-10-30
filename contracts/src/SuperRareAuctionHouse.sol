@@ -692,17 +692,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         )
     {
         Auction memory auction = auctions[_contractAddress][_tokenId];
-        address owner = IERC721(_contractAddress).ownerOf(_tokenId);
-
-        // If auction creator is still owner, make sure they have the auction house approved
-        if (auction.auctionCreator == owner) {
-            _requireOwnerApproval(_contractAddress, _tokenId);
-        }
-        // Check that token is owned by creator or by this contract
-        require(
-            auction.auctionCreator == owner || owner == address(this),
-            "getAuctionDetails::Auction must be owned by creator or auction contract."
-        );
 
         return (
             auction.auctionType,
