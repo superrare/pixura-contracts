@@ -682,36 +682,36 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         external
         view
         returns (
-            bytes32 auctionType,
-            uint256 creationBlock,
-            address auctionCreator,
-            uint256 lengthOfAuction,
-            uint256 startingBlock,
-            uint256 minimumBid
+            bytes32,
+            uint256,
+            address,
+            uint256,
+            uint256,
+            uint256,
+            uint256
         )
     {
+        Auction memory auction = auctions[_contractAddress][_tokenId];
+        address owner = IERC721(_contractAddress).ownerOf(_tokenId);
+
         // If auction creator is still owner, make sure they have the auction house approved
-        if (
-            auctions[_contractAddress][_tokenId].auctionCreator ==
-            IERC721(_contractAddress).ownerOf(_tokenId)
-        ) {
+        if (auction.auctionCreator == owner) {
             _requireOwnerApproval(_contractAddress, _tokenId);
         }
         // Check that token is owned by creator or by this contract
         require(
-            auctions[_contractAddress][_tokenId].auctionCreator ==
-                IERC721(_contractAddress).ownerOf(_tokenId) ||
-                IERC721(_contractAddress).ownerOf(_tokenId) == address(this),
-            "getAuctionDetails::Auction."
+            auction.auctionCreator == owner || owner == address(this),
+            "getAuctionDetails::Auction must be owned by creator or auction contract."
         );
 
         return (
-            auctions[_contractAddress][_tokenId].auctionType,
-            auctions[_contractAddress][_tokenId].creationBlock,
-            auctions[_contractAddress][_tokenId].auctionCreator,
-            auctions[_contractAddress][_tokenId].lengthOfAuction,
-            auctions[_contractAddress][_tokenId].startingBlock,
-            auctions[_contractAddress][_tokenId].minimumBid
+            auction.auctionType,
+            auction.creationBlock,
+            auction.auctionCreator,
+            auction.lengthOfAuction,
+            auction.startingBlock,
+            auction.minimumBid,
+            auction.reservePrice
         );
     }
 
