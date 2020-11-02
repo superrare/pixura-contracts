@@ -437,7 +437,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Transfer the token to this contract to act as escrow.
         IERC721 erc721 = IERC721(_contractAddress);
-        erc721.transferFrom(msg.sender, _contractAddress, _tokenId);
+        erc721.transferFrom(msg.sender, address(this), _tokenId);
 
         emit NewScheduledAuction(
             _contractAddress,
@@ -624,7 +624,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         if (currentBid.bidder == address(0)) {
             // Transfer the token to back to original owner.
             erc721.transferFrom(
-                _contractAddress,
+                address(this),
                 auction.auctionCreator,
                 _tokenId
             );
@@ -639,7 +639,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         }
 
         // Transfer the token to the winner of the auction.
-        erc721.transferFrom(_contractAddress, currentBid.bidder, _tokenId);
+        erc721.transferFrom(address(this), currentBid.bidder, _tokenId);
 
         iMarketSettings.markERC721Token(_contractAddress, _tokenId, true);
         address payable owner = _makePayable(owner());
