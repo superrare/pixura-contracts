@@ -474,6 +474,20 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _tokenId,
         uint256 _amount
     ) external payable {
+        // Must have existing auction.
+        require(
+            auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
+            "bid::Must have existing auction"
+        );
+
+        // Must have pending coldie auction or running auction.
+        require(
+            auctions[_contractAddress][_tokenId].startingBlock <=
+                block.number ||
+                auctions[_contractAddress][_tokenId].startingBlock == 0,
+            "bid::Must have a running auction or pending coldie auction"
+        );
+
         // Check that bid is greater than 0.
         require(_amount > 0, "bid::Cannot bid 0 Wei.");
 
@@ -489,12 +503,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "bid::Cannot bid lower than min value"
         );
 
-        // Must have an auction going.
-        require(
-            auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
-            "bid::Must have a current auction"
-        );
-
         // Auction cannot have ended.
         require(
             block.number <
@@ -502,13 +510,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
                     auctions[_contractAddress][_tokenId].lengthOfAuction
                 ),
             "bid::Cannot have ended"
-        );
-
-        // Must have an auction going.
-        require(
-            auctions[_contractAddress][_tokenId].startingBlock > block.number ||
-                auctions[_contractAddress][_tokenId].startingBlock == 0,
-            "bid::Must have a running auction or pending coldie auction"
         );
 
         // Check that enough ether was sent.
