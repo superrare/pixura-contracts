@@ -492,7 +492,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         // Must have an auction going.
         require(
             auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
-            "cancelAuction::Must have a current auction"
+            "bid::Must have a current auction"
         );
 
         // Auction cannot have ended.
@@ -501,7 +501,14 @@ contract SuperRareAuctionHouse is Ownable, Payments {
                 auctions[_contractAddress][_tokenId].startingBlock.add(
                     auctions[_contractAddress][_tokenId].lengthOfAuction
                 ),
-            "settleAuction::Can only settle unsettled auctions"
+            "bid::Cannot have ended"
+        );
+
+        // Must have an auction going.
+        require(
+            auctions[_contractAddress][_tokenId].startingBlock > block.number ||
+                auctions[_contractAddress][_tokenId].startingBlock == 0,
+            "bid::Must have a running auction or pending coldie auction"
         );
 
         // Check that enough ether was sent.
