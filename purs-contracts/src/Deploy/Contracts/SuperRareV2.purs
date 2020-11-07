@@ -17,7 +17,7 @@ type SuperRareV2
 
 makeSuperRareV2Config :: Record SuperRareV2 -> ContractConfig SuperRareV2
 makeSuperRareV2Config { _name, _symbol, _oldSuperRare } =
-  { filepath: "./contracts/v4/build/SuperRareV2.json"
+  { filepath: "./contracts/abis/SuperRareV2.json"
   , name: "SuperRareV2"
   , constructor: SuperRareV2.constructor
   , unvalidatedArgs: pure { _name, _symbol, _oldSuperRare }

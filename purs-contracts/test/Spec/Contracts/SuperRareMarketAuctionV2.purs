@@ -10,6 +10,8 @@ import Data.Maybe (Maybe(..), fromJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
+import Deploy.Contracts.SuperRareRoyaltyRegistry as SuperRareRoyaltyRegistry
+import Deploy.Contracts.MarketplaceSettings as MarketplaceSettings
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
 import Effect.Aff (Aff, error, throwError, try)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
@@ -716,3 +718,7 @@ init = do
   approveMarketplace tenv@{ accounts } marketplace =
     void
       $ for accounts (\acc -> SuperRareV2Spec.setApprovalForAll tenv acc marketplace true)
+
+  deployRoyaltyRegistry = SuperRareRoyaltyRegistry.deployScript
+
+  deployMarketplaceSettings = MarketplaceSettings.deployScript

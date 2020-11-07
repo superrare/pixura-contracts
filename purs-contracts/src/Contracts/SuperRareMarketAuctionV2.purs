@@ -17,7 +17,7 @@ import Data.Newtype (class Newtype)
 import Data.Symbol (SProxy)
 import Network.Ethereum.Web3 (_address, _topics, call, class EventFilter, deployContract, sendTx)
 import Network.Ethereum.Web3.Contract.Internal (uncurryFields)
-import Network.Ethereum.Web3.Solidity (D2, D5, D6, DOne, Tuple0(..), Tuple1(..), Tuple2(..), Tuple3(..), UIntN, class IndexedEvent, unTuple1)
+import Network.Ethereum.Web3.Solidity (D2, D5, D6, D8, DOne, Tuple0(..), Tuple1(..), Tuple2(..), Tuple3(..), UIntN, class IndexedEvent, unTuple1)
 import Network.Ethereum.Web3.Solidity.Size (type (:&))
 import Network.Ethereum.Web3.Types (Address, CallError, ChainCursor, HexString, NoPay, TransactionOptions, Web3, defaultFilter, mkHexString)
 import Network.Ethereum.Web3.Types.TokenUnit (MinorUnit)
@@ -296,6 +296,16 @@ iMarketplaceSettings :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either 
 iMarketplaceSettings x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: IMarketplaceSettingsFn)
 
 --------------------------------------------------------------------------------
+-- | MinimumBidIncreasePercentageFn
+--------------------------------------------------------------------------------
+
+
+type MinimumBidIncreasePercentageFn = Tagged (SProxy "minimumBidIncreasePercentage()") (Tuple0 )
+
+minimumBidIncreasePercentage :: TransactionOptions NoPay -> ChainCursor -> Web3 (Either CallError (UIntN (DOne D8)))
+minimumBidIncreasePercentage x0 cm = map unTuple1 <$> call x0 cm ((tagged $ Tuple0 ) :: MinimumBidIncreasePercentageFn)
+
+--------------------------------------------------------------------------------
 -- | OwnerFn
 --------------------------------------------------------------------------------
 
@@ -379,6 +389,19 @@ setMarketplaceSettings x0 r = uncurryFields  r $ setMarketplaceSettings' x0
    where
     setMarketplaceSettings' :: TransactionOptions NoPay -> (Tagged (SProxy "_address") Address) -> Web3 HexString
     setMarketplaceSettings' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetMarketplaceSettingsFn)
+
+--------------------------------------------------------------------------------
+-- | SetMinimumBidIncreasePercentageFn
+--------------------------------------------------------------------------------
+
+
+type SetMinimumBidIncreasePercentageFn = Tagged (SProxy "setMinimumBidIncreasePercentage(uint8)") (Tuple1 (Tagged (SProxy "_percentage") (UIntN (DOne D8))))
+
+setMinimumBidIncreasePercentage :: TransactionOptions NoPay -> { _percentage :: (UIntN (DOne D8)) } -> Web3 HexString
+setMinimumBidIncreasePercentage x0 r = uncurryFields  r $ setMinimumBidIncreasePercentage' x0
+   where
+    setMinimumBidIncreasePercentage' :: TransactionOptions NoPay -> (Tagged (SProxy "_percentage") (UIntN (DOne D8))) -> Web3 HexString
+    setMinimumBidIncreasePercentage' y0 y1 = sendTx y0 ((tagged $ Tuple1 y1) :: SetMinimumBidIncreasePercentageFn)
 
 --------------------------------------------------------------------------------
 -- | SetSalePriceFn

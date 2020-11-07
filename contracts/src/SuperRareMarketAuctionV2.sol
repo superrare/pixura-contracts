@@ -46,6 +46,9 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     // Mapping of ERC721 contract to mapping of token ID to the current bid amount.
     mapping(address => mapping(uint256 => ActiveBid)) private tokenCurrentBids;
 
+    // A minimum increase in bid amount when out bidding someone.
+    uint8 public minimumBidIncreasePercentage; // 10 = 10%
+
     /////////////////////////////////////////////////////////////////////////////
     // Events
     /////////////////////////////////////////////////////////////////////////////
@@ -111,6 +114,8 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
 
         // Set iERC721CreatorRoyalty
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
+
+        minimumBidIncreasePercentage = 10;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -139,6 +144,22 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      */
     function setIERC721CreatorRoyalty(address _address) public onlyOwner {
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_address);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setMinimumBidIncreasePercentage
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to set the minimum bid increase percentage.
+     * Rules:
+     * - only owner
+     * @param _percentage uint8 to set as the new percentage.
+     */
+    function setMinimumBidIncreasePercentage(uint8 _percentage)
+        public
+        onlyOwner
+    {
+        minimumBidIncreasePercentage = _percentage;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -374,8 +395,11 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         uint256 currentBidAmount = tokenCurrentBids[_originContract][_tokenId]
             .amount;
         require(
-            _newBidAmount > currentBidAmount,
-            "bid::Must place higher bid than existing bid."
+            _newBidAmount >
+                currentBidAmount.add(
+                    currentBidAmount.mul(minimumBidIncreasePercentage).div(100)
+                ),
+            "bid::Must place higher bid than existing bid + minimum percentage."
         );
 
         // Check that enough ether was sent.
