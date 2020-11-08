@@ -8,6 +8,7 @@ import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacy
 import Test.Spec.Contracts.SuperRareMarketAuctionV2 as SuperRareMarketAuctionV2
 import Test.Spec.Contracts.SuperRareTokenCreatorRegistry as SuperRareTokenCreatorRegistry
+import Test.Spec.Contracts.SuperRareRoyaltyRegistry as SuperRareRoyaltyRegistry
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpecT, defaultConfig)
@@ -25,3 +26,4 @@ main =
               SuperRareLegacy.spec
               SuperRareMarketAuctionV2.spec
               SuperRareTokenCreatorRegistry.spec
+              SuperRareRoyaltyRegistry.spec
