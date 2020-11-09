@@ -2,27 +2,24 @@ module Test.Spec.Contracts.Utils where
 
 import Prelude
 import Control.Monad.Error.Class (class MonadThrow, throwError)
-import Data.Array (length, zipWith)
-import Data.Array.NonEmpty (NonEmptyArray, fromArray, toNonEmpty)
+import Data.Array (replicate, zipWith)
+import Data.Array.NonEmpty (fromArray, toNonEmpty)
 import Data.Either (Either(..))
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromJust)
-import Data.NonEmpty (NonEmpty(..))
 import Data.Traversable (for)
 import Effect.Aff (Error, error)
 import Effect.Aff.AVar (AVar, tryRead)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
-import Effect.Class.Console (logShow)
 import Effect.Exception.Unsafe (unsafeThrow)
 import Network.Ethereum.Core.BigNumber (BigNumber, decimal, embed, parseBigNumber)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
-import Network.Ethereum.Web3 (class KnownSize, Address, CallError, DLProxy(..), Provider, TransactionOptions, UIntN, Web3, _from, _gas, _gasPrice, defaultTransactionOptions, mkAddress, runWeb3, uIntNFromBigNumber)
+import Network.Ethereum.Web3 (class KnownSize, Address, CallError, DLProxy, Provider, TransactionOptions, UIntN, Web3, _from, _gas, _gasPrice, defaultTransactionOptions, mkAddress, runWeb3, uIntNFromBigNumber)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Network.Ethereum.Web3.Types (NoPay)
 import Partial.Unsafe (unsafePartial)
-import Test.QuickCheck (arbitrary)
-import Test.QuickCheck.Gen (Gen, elements, randomSample')
+import Test.QuickCheck.Gen (elements, randomSample')
 import Test.Spec.Assertions (shouldEqual)
 
 readOrFail :: forall m a. (MonadAff m) => AVar a -> m a
@@ -31,7 +28,7 @@ readOrFail x = do
   pure $ unsafePartial $ fromJust mx
 
 mkTokenUris :: forall m. MonadEffect m => Int -> m (Array String)
-mkTokenUris n = map (map show) $ liftEffect $ randomSample' n (arbitrary :: Gen Int)
+mkTokenUris n = pure $ replicate n "https://ipfs.pixura.io/ipfs/QmWG33vM4Arv5NEydJQxsWcjyLQdccDck1gPtagddckPzR/metadata.json"
 
 defaultTxOpts :: Address -> TransactionOptions NoPay
 defaultTxOpts primaryAccount =

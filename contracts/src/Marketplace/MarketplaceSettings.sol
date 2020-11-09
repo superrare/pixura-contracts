@@ -81,6 +81,17 @@ contract MarketplaceSettings is Ownable, AccessControl, IMarketplaceSettings {
     }
 
     /////////////////////////////////////////////////////////////////////////
+    // setMarketplaceMaxValue
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Set the maximum value of the marketplace settings.
+     * @param _maxValue uint256 maximum wei value.
+     */
+    function setMarketplaceMaxValue(uint256 _maxValue) external onlyOwner {
+        maxValue = _maxValue;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
     // getMarketplaceMinValue
     /////////////////////////////////////////////////////////////////////////
     /**
@@ -89,6 +100,17 @@ contract MarketplaceSettings is Ownable, AccessControl, IMarketplaceSettings {
      */
     function getMarketplaceMinValue() external override view returns (uint256) {
         return minValue;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setMarketplaceMinValue
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Set the minimum value of the marketplace settings.
+     * @param _minValue uint256 minimum wei value.
+     */
+    function setMarketplaceMinValue(uint256 _minValue) external onlyOwner {
+        minValue = _minValue;
     }
 
     /////////////////////////////////////////////////////////////////////////

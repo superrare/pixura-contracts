@@ -6,20 +6,21 @@ import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
 import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
 import Control.Monad.Error.Class (class MonadThrow)
-import Data.Array (filter)
+import Data.Array (drop, filter, take)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
+import Data.Maybe (fromJust)
 import Data.Traversable (for)
 import Deploy.Contracts.MarketplaceSettings (deployScript) as MarketplaceSettings
 import Deploy.Contracts.SuperRareV2 as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3, throwOnCallError)
 import Effect.Aff (Aff, Error)
 import Effect.Aff.Class (class MonadAff)
-import Network.Ethereum.Web3 (Address, ChainCursor(..), Provider, UIntN, Web3, _to)
-import Network.Ethereum.Web3.Solidity.Sizes (S256)
+import Network.Ethereum.Web3 (Address, ChainCursor(..), Provider, UIntN, Web3, _to, embed, uIntNFromBigNumber)
+import Network.Ethereum.Web3.Solidity.Sizes (S256, S8, s256, s8)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, it)
+import Test.Spec (SpecT, beforeAll, describe, describeOnly, it, itOnly)
 import Test.Spec.Assertions (shouldEqual, shouldNotEqual)
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, web3Test)
@@ -30,102 +31,130 @@ import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, web3T
 spec :: SpecT Aff Unit Aff Unit
 spec =
   beforeAll init do
-    describe "MarketplaceSettings" do
-      it "should get the creator for a token using the IERC721Creator loaded initially"
-        getCreatorUsingIERC721CreatorContract
-      it "should override creator by setting creator for token"
-        overrideCreatorBySettingCreator
+    describeOnly "MarketplaceSettings" do
+      it "should get and set marketplace percentage"
+        shouldGetAndSetMarketplacePercentage
+      it "should get and set max wei marketplace"
+        shouldGetAndSetMaxValue
+      it "should get and set min wei marketplace"
+        shouldGetAndSetMinValue
 
 -----------------------------------------------------------------------------
---- | getCreatorUsingIERC721CreatorContract
+--- | shouldGetAndSetMarketplacePercentage
 -----------------------------------------------------------------------------
-getCreatorUsingIERC721CreatorContract ::
+shouldGetAndSetMarketplacePercentage ::
   forall m r.
   MonadAff m =>
   MonadThrow Error m =>
   TestEnv r ->
   m Unit
-getCreatorUsingIERC721CreatorContract tenv@{ provider } =
-  web3Test provider do
-    tokenDetails <- createTokensWithFunction tenv 1 (SuperRareV2Spec.addNewToken tenv)
-    void
-      $ for tokenDetails \{ tokenId, contractAddress } -> do
-          expectedCreator <- SuperRareV2Spec.tokenCreator tenv tokenId
-          creator <- tokenCreator tenv contractAddress tokenId
-          creator `shouldEqual` expectedCreator
-
------------------------------------------------------------------------------
---- | overrideCreatorBySettingCreator
------------------------------------------------------------------------------
-overrideCreatorBySettingCreator ::
-  forall m r.
-  MonadAff m =>
-  MonadThrow Error m =>
-  TestEnv r ->
-  m Unit
-overrideCreatorBySettingCreator tenv@{ provider } =
+shouldGetAndSetMarketplacePercentage tenv@{ provider } =
   web3Test provider do
     let
-      { v2SuperRare: { deployAddress: v2SuperRare }, accounts } = tenv
-    tokenDetails <- createTokensWithFunction tenv 1 (SuperRareV2Spec.addNewToken tenv)
-    void
-      $ for tokenDetails \{ tokenId, contractAddress } -> do
-          initialCreator <- tokenCreator tenv contractAddress tokenId
-          let
-            newCreator = unsafePartial head $ filter ((/=) initialCreator) accounts
-          setTokenCreator tenv contractAddress tokenId newCreator
-          onChainCreator <- tokenCreator tenv contractAddress tokenId
-          initialCreator `shouldNotEqual` onChainCreator
-          newCreator `shouldEqual` onChainCreator
+      expectedPercentageInitial = unsafePartial fromJust $ uIntNFromBigNumber (s8) (embed 3)
+
+      expectedPercentageNew = unsafePartial fromJust $ uIntNFromBigNumber (s8) (embed 10)
+    percentage <- getMarketplaceFeePercentage tenv
+    percentage `shouldEqual` expectedPercentageInitial
+    setMarketplaceFeePercentage tenv expectedPercentageNew
+    percentageNew <- getMarketplaceFeePercentage tenv
+    percentageNew `shouldEqual` expectedPercentageNew
+
+-----------------------------------------------------------------------------
+--- | shouldGetAndSetMaxValue
+-----------------------------------------------------------------------------
+shouldGetAndSetMaxValue ::
+  forall m r.
+  MonadAff m =>
+  MonadThrow Error m =>
+  TestEnv r ->
+  m Unit
+shouldGetAndSetMaxValue tenv@{ provider } =
+  web3Test provider do
+    let
+      expectedMaxValue = unsafePartial fromJust $ uIntNFromBigNumber (s256) (embed 1000000)
+    setMarketplaceMaxValue tenv expectedMaxValue
+    maxValue <- getMarketplaceMaxValue tenv
+    maxValue `shouldEqual` expectedMaxValue
+
+-----------------------------------------------------------------------------
+--- | shouldGetAndSetMinValue
+-----------------------------------------------------------------------------
+shouldGetAndSetMinValue ::
+  forall m r.
+  MonadAff m =>
+  MonadThrow Error m =>
+  TestEnv r ->
+  m Unit
+shouldGetAndSetMinValue tenv@{ provider } =
+  web3Test provider do
+    let
+      expectedMinValue = unsafePartial fromJust $ uIntNFromBigNumber (s256) (embed 10)
+    setMarketplaceMinValue tenv expectedMinValue
+    minValue <- getMarketplaceMinValue tenv
+    minValue `shouldEqual` expectedMinValue
 
 -----------------------------------------------------------------------------
 --- | Init
 -----------------------------------------------------------------------------
 type TestEnv r
-  = { supeRare :: DeployReceipt NoArgs
-    , provider :: Provider
+  = { provider :: Provider
     , accounts :: Array Address
     , primaryAccount :: Address
-    , v2SuperRare :: DeployReceipt SuperRareV2.SuperRareV2
-    , srTokenCreatorRegistry :: DeployReceipt MarketplaceSettings.MarketplaceSettings
+    , marketplaceSettings :: DeployReceipt NoArgs
     | r
     }
 
 init :: Aff (TestEnv ())
 init = do
-  tenv@{ provider, v2SuperRare: { deployAddress: v2SuperRare }, accounts, primaryAccount } <- initSupeRareV2
-  { superRareTokenCreatorRegistry } <-
-    buildTestConfig "http://localhost:8545" 60
-      $ MarketplaceSettings.deployScript
-          { _iERC721Creators: [ v2SuperRare ] }
-  pure
-    $ Record.merge
-        { srTokenCreatorRegistry: superRareTokenCreatorRegistry
-        }
-        tenv
-  where
-  initSupeRareV2 = do
-    tenv@{ accounts, provider } <- SuperRareV2Spec.init
-    web3Test provider $ whitelistAddresses tenv
-    pure tenv
-
-  whitelistAddresses tenv@{ accounts } = void $ for accounts (SuperRareV2Spec.whitelistAddress tenv)
+  { marketplaceSettings, provider, accounts } <-
+    buildTestConfig "http://localhost:8545" 60 MarketplaceSettings.deployScript
+  pure { provider, marketplaceSettings, accounts: take 4 $ drop 2 accounts, primaryAccount: unsafePartial head accounts }
 
 -----------------------------------------------------------------------------
 --- | Contract Functions
 -----------------------------------------------------------------------------
-tokenCreator :: forall r. TestEnv r -> Address -> UIntN S256 -> Web3 Address
-tokenCreator { srTokenCreatorRegistry: { deployAddress }, primaryAccount } _contractAddress _tokenId =
+getMarketplaceFeePercentage :: forall r. TestEnv r -> Web3 (UIntN S8)
+getMarketplaceFeePercentage { marketplaceSettings: { deployAddress }, primaryAccount } =
   throwOnCallError
-    $ MarketplaceSettings.tokenCreator
+    $ MarketplaceSettings.getMarketplaceFeePercentage
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
-        { _contractAddress, _tokenId }
 
-setTokenCreator :: forall r. TestEnv r -> Address -> UIntN S256 -> Address -> Web3 Unit
-setTokenCreator { srTokenCreatorRegistry: { deployAddress }, primaryAccount } _contractAddress _tokenId _creator = do
+setMarketplaceFeePercentage :: forall r. TestEnv r -> UIntN S8 -> Web3 Unit
+setMarketplaceFeePercentage { marketplaceSettings: { deployAddress }, primaryAccount } _percentage = do
   txHash <-
-    MarketplaceSettings.setTokenCreator
+    MarketplaceSettings.setMarketplaceFeePercentage
       (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-      { _contractAddress, _tokenId, _creator }
+      { _percentage }
+  awaitTxSuccessWeb3 txHash
+
+getMarketplaceMaxValue :: forall r. TestEnv r -> Web3 (UIntN S256)
+getMarketplaceMaxValue { marketplaceSettings: { deployAddress }, primaryAccount } =
+  throwOnCallError
+    $ MarketplaceSettings.getMarketplaceMaxValue
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+
+setMarketplaceMaxValue :: forall r. TestEnv r -> UIntN S256 -> Web3 Unit
+setMarketplaceMaxValue { marketplaceSettings: { deployAddress }, primaryAccount } _maxValue = do
+  txHash <-
+    MarketplaceSettings.setMarketplaceMaxValue
+      (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+      { _maxValue }
+  awaitTxSuccessWeb3 txHash
+
+getMarketplaceMinValue :: forall r. TestEnv r -> Web3 (UIntN S256)
+getMarketplaceMinValue { marketplaceSettings: { deployAddress }, primaryAccount } =
+  throwOnCallError
+    $ MarketplaceSettings.getMarketplaceMinValue
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+
+setMarketplaceMinValue :: forall r. TestEnv r -> UIntN S256 -> Web3 Unit
+setMarketplaceMinValue { marketplaceSettings: { deployAddress }, primaryAccount } _minValue = do
+  txHash <-
+    MarketplaceSettings.setMarketplaceMinValue
+      (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+      { _minValue }
   awaitTxSuccessWeb3 txHash
