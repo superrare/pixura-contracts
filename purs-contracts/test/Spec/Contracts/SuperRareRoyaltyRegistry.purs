@@ -7,7 +7,7 @@ import Chanterelle.Test (buildTestConfig)
 import Contracts.SuperRareRoyaltyRegistry (getERC721TokenRoyaltyPercentage, setPercentageForSetERC721ContractRoyalty, setPercentageForSetERC721CreatorRoyalty, setPercentageForSetERC721TokenRoyalty, tokenCreator) as SuperRareRoyaltyRegistry
 import Control.Monad.Error.Class (class MonadThrow)
 import Data.Lens ((?~))
-import Data.Maybe (fromJust)
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareRoyaltyRegistry (SuperRareRoyaltyRegistry, deployScript) as SuperRareRoyaltyRegistry
 import Deploy.Contracts.SuperRareTokenCreatorRegistry (SuperRareTokenCreatorRegistry) as SuperRareTokenCreatorRegistry
@@ -21,7 +21,7 @@ import Partial.Unsafe (unsafePartial)
 import Record as Record
 import Test.Spec (SpecT, beforeAll, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Contracts.SuperRareTokenCreatorRegistry (init) as SuperRareTokenCreatorRegistry
+import Test.Spec.Contracts.SuperRareTokenCreatorRegistry as SuperRareTokenCreatorRegistrySpec
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, web3Test)
 
@@ -30,7 +30,7 @@ import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, web3T
 -----------------------------------------------------------------------------
 spec :: SpecT Aff Unit Aff Unit
 spec =
-  beforeAll init do
+  beforeAll (init Nothing) do
     describe "SuperRareRoyaltyRegistry" do
       it "should default to 0 percent royalty for token"
         defaultRoyaltyShouldBeZero
@@ -166,14 +166,15 @@ type TestEnv r
     | r
     }
 
-init :: Aff (TestEnv ())
-init = do
+init :: Maybe (SuperRareTokenCreatorRegistrySpec.TestEnv ()) -> Aff (TestEnv ())
+init mtenv = do
   tenv@{ provider
   , srTokenCreatorRegistry: { deployAddress: srTokenCreatorRegistry }
   , accounts
   , primaryAccount
-  } <-
-    SuperRareTokenCreatorRegistry.init
+  } <- case mtenv of
+    Nothing -> SuperRareTokenCreatorRegistrySpec.init Nothing
+    Just tenv' -> pure tenv'
   { superRareRoyaltyRegistry } <-
     buildTestConfig "http://localhost:8545" 60
       $ SuperRareRoyaltyRegistry.deployScript

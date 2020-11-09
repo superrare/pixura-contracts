@@ -9,6 +9,7 @@ import Control.Monad.Error.Class (class MonadThrow)
 import Data.Array (filter)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
+import Data.Maybe (Maybe(..))
 import Data.Traversable (for)
 import Deploy.Contracts.SuperRareTokenCreatorRegistry (SuperRareTokenCreatorRegistry, deployScript) as SuperRareTokenCreatorRegistry
 import Deploy.Contracts.SuperRareV2 as SuperRareV2
@@ -29,7 +30,7 @@ import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, web3T
 -----------------------------------------------------------------------------
 spec :: SpecT Aff Unit Aff Unit
 spec =
-  beforeAll init do
+  beforeAll (init Nothing) do
     describe "SuperRareTokenCreatorRegistry" do
       it "should get the creator for a token using the IERC721Creator loaded initially"
         getCreatorUsingIERC721CreatorContract
@@ -91,9 +92,11 @@ type TestEnv r
     | r
     }
 
-init :: Aff (TestEnv ())
-init = do
-  tenv@{ provider, v2SuperRare: { deployAddress: v2SuperRare }, accounts, primaryAccount } <- initSupeRareV2
+init :: Maybe (SuperRareV2Spec.TestEnv ()) -> Aff (TestEnv ())
+init msrv2Tenv = do
+  tenv@{ provider, v2SuperRare: { deployAddress: v2SuperRare }, accounts, primaryAccount } <- case msrv2Tenv of
+    Nothing -> initSupeRareV2
+    Just srt -> pure srt
   { superRareTokenCreatorRegistry } <-
     buildTestConfig "http://localhost:8545" 60
       $ SuperRareTokenCreatorRegistry.deployScript

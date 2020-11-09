@@ -9,21 +9,25 @@ import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Symbol (SProxy(..))
 import Data.Traversable (for)
+import Deploy.Contracts.MarketplaceSettings as MarketplaceSettings
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScript) as SuperRareMarketAuctionV2
 import Deploy.Contracts.SuperRareRoyaltyRegistry as SuperRareRoyaltyRegistry
-import Deploy.Contracts.MarketplaceSettings as MarketplaceSettings
+import Deploy.Contracts.SuperRareTokenCreatorRegistry (SuperRareTokenCreatorRegistry)
 import Deploy.Contracts.TestContracts (deployScript) as TestContracts
 import Effect.Aff (Aff, error, throwError, try)
 import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (_to, embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, it)
+import Test.Spec (SpecT, beforeAll, describe, describeOnly, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
+import Test.Spec.Contracts.MarketplaceSettings as MarketplaceSettingsSpec
 import Test.Spec.Contracts.SupeRare as SupeRare
 import Test.Spec.Contracts.SuperRareLegacy as SuperRareLegacySpec
 import Test.Spec.Contracts.SuperRareLegacy.Actions as SuperRareLegacy
 import Test.Spec.Contracts.SuperRareMarketAuctionV2.Actions (TestEnv, acceptBid, assertFailBid, assertWithContext, bid, buy, cancelBid, checkEthDifference, checkNewOwnerStatus, checkPayout, claimMoneyFromExpensiveWallet, currentBidDetailsOfToken, expensiveWalletBid, genPercentageLessThan, genPriceAndSet, genTokenPrices, hasTokenBeenSold, markTokensAsSold, mkPurchasePayload, mkSuperRareTokens, mkTokensAndSetForSale, payments, placeBid, requireFailBid, revertFailBid, safeAcceptBid, safeBuy, setSalePrice, tokenPrice)
+import Test.Spec.Contracts.SuperRareRoyaltyRegistry as SuperRareRoyaltyRegistrySpec
+import Test.Spec.Contracts.SuperRareTokenCreatorRegistry as SuperRareTokenCreatorRegistrySpec
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2
 import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, uInt256FromBigNumber, web3Test)
@@ -677,7 +681,7 @@ spec =
 init :: Aff (TestEnv ())
 init = do
   tenv@{ provider, supeRare, accounts, primaryAccount } <- initSupeRareV2
-  when true $ throwError (error "Not implemented")
+  { srRoyaltyRegistry, marketplaceSettings } <- initMarketplaceDeps tenv
   let
     srTenv = { supeRare, provider, accounts, primaryAccount }
   { superRareLegacy, numOldSuperRareTokens } <- initSupeRareLegacy srTenv
@@ -703,6 +707,8 @@ init = do
         , testRevertOnPay
         , superRareLegacy
         , numOldSuperRareTokens
+        , srRoyaltyRegistry
+        , marketplaceSettings
         }
         tenv
   where
@@ -710,6 +716,12 @@ init = do
     tenv@{ accounts, provider } <- SuperRareV2Spec.init
     web3Test provider $ whitelistAddresses tenv
     pure tenv
+
+  initMarketplaceDeps srv2Tenv = do
+    srtcTenv <- SuperRareTokenCreatorRegistrySpec.init (Just srv2Tenv)
+    { srRoyaltyRegistry } <- SuperRareRoyaltyRegistrySpec.init (Just srtcTenv)
+    { marketplaceSettings } <- MarketplaceSettingsSpec.init
+    pure { srRoyaltyRegistry, marketplaceSettings }
 
   initSupeRareLegacy = SuperRareLegacySpec.init <<< Just
 

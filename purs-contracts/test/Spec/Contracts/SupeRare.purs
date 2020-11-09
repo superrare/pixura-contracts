@@ -17,7 +17,7 @@ import Network.Ethereum.Core.BigNumber (unsafeToInt)
 import Network.Ethereum.Web3 (Address, ChainCursor(..), HexString, Provider, UIntN, Web3, _to, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
 import Partial.Unsafe (unsafePartial)
-import Test.Spec (SpecT, beforeAll, describe, it)
+import Test.Spec (SpecT, beforeAll, describe, describeOnly, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, mkTokenUris, throwOnCallError, web3Test)
 

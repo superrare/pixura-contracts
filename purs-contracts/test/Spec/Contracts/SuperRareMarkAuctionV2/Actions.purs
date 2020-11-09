@@ -21,6 +21,7 @@ import Data.Symbol (SProxy(..))
 import Data.Traversable (for, traverse)
 import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (SuperRareMarketAuctionV2)
+import Deploy.Contracts.SuperRareRoyaltyRegistry as SuperRareRoyaltyRegistry
 import Deploy.Contracts.SuperRareV2 (SuperRareV2) as SuperRareV2
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff.Class (class MonadAff)
@@ -56,6 +57,8 @@ type TestEnv r
     , testExpensiveWallet :: DeployReceipt NoArgs
     , testRequireFailOnPay :: DeployReceipt NoArgs
     , testRevertOnPay :: DeployReceipt NoArgs
+    , srRoyaltyRegistry :: DeployReceipt SuperRareRoyaltyRegistry.SuperRareRoyaltyRegistry
+    , marketplaceSettings :: DeployReceipt NoArgs
     | r
     }
 

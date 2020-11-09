@@ -31,7 +31,7 @@ import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, web3T
 spec :: SpecT Aff Unit Aff Unit
 spec =
   beforeAll init do
-    describeOnly "MarketplaceSettings" do
+    describe "MarketplaceSettings" do
       it "should get and set marketplace percentage"
         shouldGetAndSetMarketplacePercentage
       it "should get and set max wei marketplace"
