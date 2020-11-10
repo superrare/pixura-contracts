@@ -505,7 +505,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Auction cannot have ended.
         require(
-            block.number <
+            auctions[_contractAddress][_tokenId].startingBlock == 0 ||
+                block.number <
                 auctions[_contractAddress][_tokenId].startingBlock.add(
                     auctions[_contractAddress][_tokenId].lengthOfAuction
                 ),
