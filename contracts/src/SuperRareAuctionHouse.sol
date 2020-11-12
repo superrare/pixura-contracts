@@ -85,14 +85,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _amount
     );
 
-    event ColdieAuctionBegun(
-        address indexed _bidder,
-        address indexed _contractAddress,
-        uint256 indexed _tokenId,
-        uint256 _initialBidAmount,
-        uint256 _startingBlock
-    );
-
     event NewScheduledAuction(
         address indexed _contractAddress,
         uint256 indexed _tokenId,
@@ -106,12 +98,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         address indexed _contractAddress,
         address indexed _bidder,
         uint256 indexed _tokenId,
-        uint256 _amount
-    );
-
-    event AuctionExtended(
-        address indexed _contractAddress,
-        uint256 indexed _tokenId,
+        uint256 _amount,
+        bool _startedAuction,
         uint256 _newAuctionLength
     );
 
@@ -482,9 +470,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Must have pending coldie auction or running auction.
         require(
-            auctions[_contractAddress][_tokenId].startingBlock <=
-                block.number ||
-                auctions[_contractAddress][_tokenId].startingBlock == 0,
+            auctions[_contractAddress][_tokenId].startingBlock <= block.number,
             "bid::Must have a running auction or pending coldie auction"
         );
 
@@ -501,6 +487,12 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         require(
             _amount >= iMarketSettings.getMarketplaceMinValue(),
             "bid::Cannot bid lower than min value"
+        );
+
+        // Check that bid is larger than minimum bid value or the reserve price.
+        require(
+            _amount >= auctions[_contractAddress][_tokenId].reservePrice || _amount >= auctions[_contractAddress][_tokenId].minimumBid,
+            "bid::Cannot bid lower than reserve or minimum bid"
         );
 
         // Auction cannot have ended.
@@ -555,36 +547,29 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             _amount
         );
 
-        emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount);
 
         // if the reserve price is met, then the auction has begun.
         if (
-            auctions[_contractAddress][_tokenId].startingBlock == 0 ||
+            auctions[_contractAddress][_tokenId].startingBlock == 0 &&
             _amount >= auctions[_contractAddress][_tokenId].reservePrice
         ) {
             auctions[_contractAddress][_tokenId].startingBlock = block.number;
-            emit ColdieAuctionBegun(
-                msg.sender,
-                _contractAddress,
-                _tokenId,
-                _amount,
-                block.number
-            );
+            emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, true, 0);
         }
-
         // If the time left for the auction is less than the extension limit bump the length of the auction.
-        if (
-            block.number - auctions[_contractAddress][_tokenId].startingBlock <
+        else if (
+            // TODO: Change to blocks left in auction
+            (block.number - auctions[_contractAddress][_tokenId].startingBlock) <
             auctionLengthExtension
         ) {
             auctions[_contractAddress][_tokenId].lengthOfAuction =
                 (block.number + auctionLengthExtension) -
                 auctions[_contractAddress][_tokenId].startingBlock;
-            emit AuctionExtended(
-                _contractAddress,
-                _tokenId,
-                auctions[_contractAddress][_tokenId].lengthOfAuction
-            );
+            emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, false, auctions[_contractAddress][_tokenId].lengthOfAuction);
+        }
+        // Otherwise, it's a normal bid
+        else {
+            emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, false, 0);
         }
     }
 
