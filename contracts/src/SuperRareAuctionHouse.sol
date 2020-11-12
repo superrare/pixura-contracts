@@ -287,7 +287,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
         require(
             auctions[_contractAddress][_tokenId].startingBlock == 0 ||
-                auctions[_contractAddress][_tokenId].startingBlock <
+                auctions[_contractAddress][_tokenId].startingBlock >
                 block.number,
             "cancelAuction::auction cannot be started"
         );
@@ -491,7 +491,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
 
         // Return previous bid
-        // We do this hear because it clears the bid for the refund. This makes is safe from reentrence.
+        // We do this here because it clears the bid for the refund. This makes it safe from reentrence.
         if (currentBid.amount != 0) {
             _refundBid(_contractAddress, _tokenId);
         }
@@ -514,12 +514,12 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         }
         // If the time left for the auction is less than the extension limit bump the length of the auction.
         else if (
-            (auctions[_contractAddress][_tokenId].startingBlock.add(auctions[_contractAddress][_tokenId].lengthOfAuction)) - block.number <
+            (auctions[_contractAddress][_tokenId].startingBlock.add(auctions[_contractAddress][_tokenId].lengthOfAuction)).subtract(block.number) <
             auctionLengthExtension
         ) {
             auctions[_contractAddress][_tokenId].lengthOfAuction =
-                (block.number + auctionLengthExtension) -
-                auctions[_contractAddress][_tokenId].startingBlock;
+                (block.number.add(auctionLengthExtension))
+                    .subtract(auctions[_contractAddress][_tokenId].startingBlock);
             emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, false, auctions[_contractAddress][_tokenId].lengthOfAuction);
         }
         // Otherwise, it's a normal bid

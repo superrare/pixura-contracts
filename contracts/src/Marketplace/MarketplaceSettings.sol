@@ -24,7 +24,7 @@ contract MarketplaceSettings is Ownable, AccessControl, IMarketplaceSettings {
     // Max wei value within the marketplace
     uint256 private maxValue;
 
-    // Max wei value within the marketplace
+    // Min wei value within the marketplace
     uint256 private minValue;
 
     // Percentage fee for the marketplace, 3 == 3%
