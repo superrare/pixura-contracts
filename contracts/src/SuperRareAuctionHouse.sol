@@ -78,13 +78,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         address indexed _auctionCreator
     );
 
-    event AuctionCancelBid(
-        address indexed _bidder,
-        address indexed _contractAddress,
-        uint256 indexed _tokenId,
-        uint256 _amount
-    );
-
     event NewScheduledAuction(
         address indexed _contractAddress,
         uint256 indexed _tokenId,
@@ -323,44 +316,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // cancelBid
-    /////////////////////////////////////////////////////////////////////////
-    /**
-     * @dev Withdraw a bid from an unstarted auction
-     * Rules:
-     * - Auction cannot have started
-     * - Must have the current bid on the token
-     * - Must return outstanding bid
-     * - Must be the bidder
-     * @param _contractAddress address of ERC721 contract.
-     * @param _tokenId uint256 id of the token.
-     */
-    function cancelBid(address _contractAddress, uint256 _tokenId) external {
-        require(
-            auctions[_contractAddress][_tokenId].startingBlock == 0 ||
-                auctions[_contractAddress][_tokenId].startingBlock <
-                block.number,
-            "cancelBid::auction cannot be started"
-        );
-
-        require(
-            currentBids[_contractAddress][_tokenId].bidder == msg.sender,
-            "cancelBid::must be the current bidder"
-        );
-
-        ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
-
-        _refundBid(_contractAddress, _tokenId);
-
-        emit AuctionCancelBid(
-            currentBid.bidder,
-            _contractAddress,
-            _tokenId,
-            currentBid.amount
-        );
-    }
-
-    /////////////////////////////////////////////////////////////////////////
     // createScheduledAuction
     /////////////////////////////////////////////////////////////////////////
     /**
@@ -450,6 +405,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * -    then auctionLength = Starting block - (currentBlock + extension)
      * - Auction creator != bidder
      * - bid >= minimum bid
+     * - bid >= reserve price
      * - block.number < startingBlock + lengthOfAuction
      * - bid > current bid
      * - if previous bid then returned
@@ -558,8 +514,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         }
         // If the time left for the auction is less than the extension limit bump the length of the auction.
         else if (
-            // TODO: Change to blocks left in auction
-            (block.number - auctions[_contractAddress][_tokenId].startingBlock) <
+            (auctions[_contractAddress][_tokenId].startingBlock.add(auctions[_contractAddress][_tokenId].lengthOfAuction)) - block.number <
             auctionLengthExtension
         ) {
             auctions[_contractAddress][_tokenId].lengthOfAuction =
