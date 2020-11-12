@@ -514,12 +514,12 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         }
         // If the time left for the auction is less than the extension limit bump the length of the auction.
         else if (
-            (auctions[_contractAddress][_tokenId].startingBlock.add(auctions[_contractAddress][_tokenId].lengthOfAuction)).subtract(block.number) <
+            (auctions[_contractAddress][_tokenId].startingBlock.add(auctions[_contractAddress][_tokenId].lengthOfAuction)).sub(block.number) <
             auctionLengthExtension
         ) {
             auctions[_contractAddress][_tokenId].lengthOfAuction =
                 (block.number.add(auctionLengthExtension))
-                    .subtract(auctions[_contractAddress][_tokenId].startingBlock);
+                    .sub(auctions[_contractAddress][_tokenId].startingBlock);
             emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, false, auctions[_contractAddress][_tokenId].lengthOfAuction);
         }
         // Otherwise, it's a normal bid

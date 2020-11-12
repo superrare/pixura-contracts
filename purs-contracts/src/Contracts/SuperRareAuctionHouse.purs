@@ -40,16 +40,16 @@ constructor x0 bc r = uncurryFields  r $ constructor' x0 bc
 --------------------------------------------------------------------------------
 
 
-newtype AuctionBid = AuctionBid {_contractAddress :: Address,_bidder :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_amount :: (UIntN (D2 :& D5 :& DOne D6))}
+newtype AuctionBid = AuctionBid {_contractAddress :: Address,_bidder :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_amount :: (UIntN (D2 :& D5 :& DOne D6)),_startedAuction :: Boolean,_newAuctionLength :: (UIntN (D2 :& D5 :& DOne D6))}
 
 derive instance newtypeAuctionBid :: Newtype AuctionBid _
 
 instance eventFilterAuctionBid :: EventFilter AuctionBid where
   eventFilter _ addr = defaultFilter
     # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "84fd05b88be83fc762b7bb54dc94b107b11b2bd82db6f2d29cf4fc78929877de"),Nothing,Nothing,Nothing]
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "7e432b85bfaf0ee553fd5c83af2e70a255cccbcfe5c82abe858dc3982183f314"),Nothing,Nothing,Nothing]
 
-instance indexedEventAuctionBid :: IndexedEvent (Tuple3 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple1 (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6)))) AuctionBid where
+instance indexedEventAuctionBid :: IndexedEvent (Tuple3 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple3 (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_startedAuction") Boolean) (Tagged (SProxy "_newAuctionLength") (UIntN (D2 :& D5 :& DOne D6)))) AuctionBid where
   isAnonymous _ = false
 
 derive instance genericAuctionBid :: Generic AuctionBid _
@@ -58,56 +58,6 @@ instance eventGenericAuctionBidShow :: Show AuctionBid where
   show = genericShow
 
 instance eventGenericAuctionBideq :: Eq AuctionBid where
-  eq = genericEq
-
---------------------------------------------------------------------------------
--- | AuctionCancelBid
---------------------------------------------------------------------------------
-
-
-newtype AuctionCancelBid = AuctionCancelBid {_bidder :: Address,_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_amount :: (UIntN (D2 :& D5 :& DOne D6))}
-
-derive instance newtypeAuctionCancelBid :: Newtype AuctionCancelBid _
-
-instance eventFilterAuctionCancelBid :: EventFilter AuctionCancelBid where
-  eventFilter _ addr = defaultFilter
-    # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "beef0e0db45c5f09cf59a169dd5ed3ee3efb92eba3d3753520b2d9076ed3e560"),Nothing,Nothing,Nothing]
-
-instance indexedEventAuctionCancelBid :: IndexedEvent (Tuple3 (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple1 (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6)))) AuctionCancelBid where
-  isAnonymous _ = false
-
-derive instance genericAuctionCancelBid :: Generic AuctionCancelBid _
-
-instance eventGenericAuctionCancelBidShow :: Show AuctionCancelBid where
-  show = genericShow
-
-instance eventGenericAuctionCancelBideq :: Eq AuctionCancelBid where
-  eq = genericEq
-
---------------------------------------------------------------------------------
--- | AuctionExtended
---------------------------------------------------------------------------------
-
-
-newtype AuctionExtended = AuctionExtended {_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_newAuctionLength :: (UIntN (D2 :& D5 :& DOne D6))}
-
-derive instance newtypeAuctionExtended :: Newtype AuctionExtended _
-
-instance eventFilterAuctionExtended :: EventFilter AuctionExtended where
-  eventFilter _ addr = defaultFilter
-    # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "2241aa88c881d125cce08ef2a8f6bfd221ca46e27736a38f9353622a4303c705"),Nothing,Nothing]
-
-instance indexedEventAuctionExtended :: IndexedEvent (Tuple2 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple1 (Tagged (SProxy "_newAuctionLength") (UIntN (D2 :& D5 :& DOne D6)))) AuctionExtended where
-  isAnonymous _ = false
-
-derive instance genericAuctionExtended :: Generic AuctionExtended _
-
-instance eventGenericAuctionExtendedShow :: Show AuctionExtended where
-  show = genericShow
-
-instance eventGenericAuctionExtendedeq :: Eq AuctionExtended where
   eq = genericEq
 
 --------------------------------------------------------------------------------
@@ -158,31 +108,6 @@ instance eventGenericCancelAuctionShow :: Show CancelAuction where
   show = genericShow
 
 instance eventGenericCancelAuctioneq :: Eq CancelAuction where
-  eq = genericEq
-
---------------------------------------------------------------------------------
--- | ColdieAuctionBegun
---------------------------------------------------------------------------------
-
-
-newtype ColdieAuctionBegun = ColdieAuctionBegun {_bidder :: Address,_contractAddress :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_initialBidAmount :: (UIntN (D2 :& D5 :& DOne D6)),_startingBlock :: (UIntN (D2 :& D5 :& DOne D6))}
-
-derive instance newtypeColdieAuctionBegun :: Newtype ColdieAuctionBegun _
-
-instance eventFilterColdieAuctionBegun :: EventFilter ColdieAuctionBegun where
-  eventFilter _ addr = defaultFilter
-    # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "0686f030efb3419af0300644e95ff05ae08252fd8963da878611d83ee9a67be5"),Nothing,Nothing,Nothing]
-
-instance indexedEventColdieAuctionBegun :: IndexedEvent (Tuple3 (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple2 (Tagged (SProxy "_initialBidAmount") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_startingBlock") (UIntN (D2 :& D5 :& DOne D6)))) ColdieAuctionBegun where
-  isAnonymous _ = false
-
-derive instance genericColdieAuctionBegun :: Generic ColdieAuctionBegun _
-
-instance eventGenericColdieAuctionBegunShow :: Show ColdieAuctionBegun where
-  show = genericShow
-
-instance eventGenericColdieAuctionBeguneq :: Eq ColdieAuctionBegun where
   eq = genericEq
 
 --------------------------------------------------------------------------------
@@ -350,19 +275,6 @@ cancelAuction x0 r = uncurryFields  r $ cancelAuction' x0
    where
     cancelAuction' :: TransactionOptions NoPay -> (Tagged (SProxy "_contractAddress") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
     cancelAuction' y0 y1 y2 = sendTx y0 ((tagged $ Tuple2 y1 y2) :: CancelAuctionFn)
-
---------------------------------------------------------------------------------
--- | CancelBidFn
---------------------------------------------------------------------------------
-
-
-type CancelBidFn = Tagged (SProxy "cancelBid(address,uint256)") (Tuple2 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))))
-
-cancelBid :: TransactionOptions NoPay -> { _contractAddress :: Address, _tokenId :: (UIntN (D2 :& D5 :& DOne D6)) } -> Web3 HexString
-cancelBid x0 r = uncurryFields  r $ cancelBid' x0
-   where
-    cancelBid' :: TransactionOptions NoPay -> (Tagged (SProxy "_contractAddress") Address) -> (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6))) -> Web3 HexString
-    cancelBid' y0 y1 y2 = sendTx y0 ((tagged $ Tuple2 y1 y2) :: CancelBidFn)
 
 --------------------------------------------------------------------------------
 -- | CreateColdieAuctionFn
