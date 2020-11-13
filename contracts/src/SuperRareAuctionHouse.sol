@@ -274,7 +274,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * - Must have an auction for the token
      * - Auction cannot have started
      * - Must be the creator of the auction
-     * - Must return outstanding bid
+     * - Must return token to owner if escrowed
      * @param _contractAddress address of ERC721 contract.
      * @param _tokenId uint256 id of the token.
      */
@@ -296,6 +296,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "cancelAuction::must be the creator of the auction"
         );
 
+        Auction memory auction = auctions[_contractAddress][_tokenId];
+
         auctions[_contractAddress][_tokenId] = Auction(
             address(0),
             0,
@@ -306,12 +308,16 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             NO_AUCTION
         );
 
-        _refundBid(_contractAddress, _tokenId);
+        // Return the token if this contract escrowed it
+        IERC721 erc721 = IERC721(_contractAddress);
+        if (erc721.ownerOf(_tokenId) == address(this)) {
+            erc721.transferFrom(address(this), msg.sender, _tokenId);
+        }
 
         emit CancelAuction(
             _contractAddress,
             _tokenId,
-            auctions[_contractAddress][_tokenId].auctionCreator
+            auction.auctionCreator
         );
     }
 
