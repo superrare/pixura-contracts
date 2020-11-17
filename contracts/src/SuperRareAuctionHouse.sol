@@ -61,6 +61,9 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
     // Max Length that an auction can be
     uint256 public maxLength;
+
+    // A minimum increase in bid amount when out bidding someone.
+    uint8 public minimumBidIncreasePercentage; // 10 = 10%
     /////////////////////////////////////////////////////////////////////////
     // Events
     /////////////////////////////////////////////////////////////////////////
@@ -133,6 +136,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Set iERC721CreatorRoyalty
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
+
+        minimumBidIncreasePercentage = 10;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -190,6 +195,22 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
 
         maxLength = _maxLength;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // setMinimumBidIncreasePercentage
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Admin function to set the minimum bid increase percentage.
+     * Rules:
+     * - only owner
+     * @param _percentage uint8 to set as the new percentage.
+     */
+    function setMinimumBidIncreasePercentage(uint8 _percentage)
+        public
+        onlyOwner
+    {
+        minimumBidIncreasePercentage = _percentage;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -508,8 +529,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Must bid higher than current bid.
         require(
-            _amount > currentBid.amount,
-            "bid::must bid higher than previous bid"
+            _amount > 
+                currentBid.amount.add(
+                    currentBid.amount.mul(minimumBidIncreasePercentage).div(100)
+                ),
+            "bid::must bid higher than previous bid + minimum percentage increase."
         );
 
         // Return previous bid
