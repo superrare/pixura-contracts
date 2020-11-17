@@ -35,7 +35,7 @@ import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, uInt256FromBigNum
 spec :: SpecT Aff Unit Aff Unit
 spec =
   beforeAll init do
-    describe "SuperRareMarketAuctionV2" do
+    describeOnly "SuperRareMarketAuctionV2" do
       it "can mark tokens as sold" \tenv@{ provider, v2SuperRare: { deployAddress: srV2Addr } } ->
         web3Test provider do
           newTokens <- mkSuperRareTokens tenv 1
@@ -688,7 +688,7 @@ init = do
   { superRareMarketAuctionV2 } <-
     buildTestConfig "http://localhost:8545" 60
       $ SuperRareMarketAuctionV2.deployScript
-          { _iERC721CreatorRoyalty: primaryAccount, _iMarketSettings: primaryAccount }
+          { _iERC721CreatorRoyalty: srRoyaltyRegistry.deployAddress, _iMarketSettings: marketplaceSettings.deployAddress }
   { testAssertFailOnPay
   , testExpensiveWallet
   , testRequireFailOnPay

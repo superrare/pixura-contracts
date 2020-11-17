@@ -129,6 +129,11 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * @param _address address of the IMarketplaceSettings.
      */
     function setMarketplaceSettings(address _address) public onlyOwner {
+        require(
+            _address != address(0),
+            "setMarketplaceSettings::Cannot have null address for _iMarketSettings"
+        );
+
         iMarketplaceSettings = IMarketplaceSettings(_address);
     }
 
@@ -143,6 +148,11 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * @param _address address of the IERC721CreatorRoyalty.
      */
     function setIERC721CreatorRoyalty(address _address) public onlyOwner {
+        require(
+            _address != address(0),
+            "setIERC721CreatorRoyalty::Cannot have null address for _iERC721CreatorRoyalty"
+        );
+
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_address);
     }
 
@@ -243,9 +253,6 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         uint256 _tokenId,
         uint256 _amount
     ) external payable {
-        // The owner of the token must have the marketplace approved
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
-
         // Make sure the tokenPrice is the expected amount
         require(
             tokenPrices[_originContract][_tokenId].amount == _amount,
@@ -287,19 +294,16 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         IERC721 erc721 = IERC721(_originContract);
         address tokenOwner = erc721.ownerOf(_tokenId);
 
-        // Transfer token.
-        erc721.safeTransferFrom(tokenOwner, msg.sender, _tokenId);
-
         // Wipe the token price.
         _resetTokenPrice(_originContract, _tokenId);
+
+        // Transfer token.
+        erc721.safeTransferFrom(tokenOwner, msg.sender, _tokenId);
 
         // if the buyer had an existing bid, return it
         if (_addressHasBidOnToken(msg.sender, _originContract, _tokenId)) {
             _refundBid(_originContract, _tokenId);
         }
-
-        // Set token as sold
-        iMarketplaceSettings.markERC721Token(_originContract, _tokenId, true);
 
         // Payout all parties.
         address payable owner = _makePayable(owner());
@@ -319,6 +323,9 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
             iERC721CreatorRoyalty.tokenCreator(_originContract, _tokenId),
             owner
         );
+
+        // Set token as sold
+        iMarketplaceSettings.markERC721Token(_originContract, _tokenId, true);
 
         emit Sold(_originContract, msg.sender, tokenOwner, sp.amount, _tokenId);
     }
@@ -474,16 +481,15 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
             ActiveBid memory currentBid
          = tokenCurrentBids[_originContract][_tokenId];
 
-        // Transfer token.
-        IERC721 erc721 = IERC721(_originContract);
-        erc721.safeTransferFrom(msg.sender, currentBid.bidder, _tokenId);
-
         // Wipe the token price and bid.
         _resetTokenPrice(_originContract, _tokenId);
         _resetBid(_originContract, _tokenId);
 
+        // Transfer token.
+        IERC721 erc721 = IERC721(_originContract);
+        erc721.safeTransferFrom(msg.sender, currentBid.bidder, _tokenId);
+
         // Payout all parties.
-        iMarketplaceSettings.markERC721Token(_originContract, _tokenId, true);
         address payable owner = _makePayable(owner());
         Payments.payout(
             currentBid.amount,
@@ -501,6 +507,9 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
             iERC721CreatorRoyalty.tokenCreator(_originContract, _tokenId),
             owner
         );
+
+        iMarketplaceSettings.markERC721Token(_originContract, _tokenId, true);
+
         emit AcceptBid(
             _originContract,
             currentBid.bidder,

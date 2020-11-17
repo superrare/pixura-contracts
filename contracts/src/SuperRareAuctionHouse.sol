@@ -146,6 +146,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _address address of the IMarketplaceSettings.
      */
     function setMarketplaceSettings(address _address) public onlyOwner {
+        require(
+            _address != address(0),
+            "setMarketplaceSettings::Cannot have null address for _iMarketSettings"
+        );
+
         iMarketSettings = IMarketplaceSettings(_address);
     }
 
@@ -160,6 +165,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _address address of the IERC721CreatorRoyalty.
      */
     function setIERC721CreatorRoyalty(address _address) public onlyOwner {
+        require(
+            _address != address(0),
+            "setIERC721CreatorRoyalty::Cannot have null address for _iERC721CreatorRoyalty"
+        );
+
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_address);
     }
 
@@ -174,6 +184,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _maxLength uint256 max length of an auction.
      */
     function setMaxLength(uint256 _maxLength) public onlyOwner {
+        require(
+            _maxLength > 0,
+            "setMaxLength::_maxLength must be greater than 0"
+        );
+
         maxLength = _maxLength;
     }
 
@@ -184,13 +199,18 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @dev Admin function to set the auctionLengthExtension of an auction.
      * Rules:
      * - only owner
-     * - _maxLangth > 0
+     * - _auctionLengthExtension > 0
      * @param _auctionLengthExtension uint256 max length of an auction.
      */
     function setAuctionLengthExtension(uint256 _auctionLengthExtension)
         public
         onlyOwner
     {
+        require(
+            _auctionLengthExtension > 0,
+            "setAuctionLengthExtension::_auctionLengthExtension must be greater than 0"
+        );
+        
         auctionLengthExtension = _auctionLengthExtension;
     }
 
@@ -253,8 +273,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             0,
             COLDIE_AUCTION
         );
-
-        _refundBid(_contractAddress, _tokenId);
 
         emit NewColdieAuction(
             _contractAddress,
@@ -382,8 +400,6 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             SCHEDULED_AUCTION
         );
 
-        _refundBid(_contractAddress, _tokenId);
-
         // Transfer the token to this contract to act as escrow.
         IERC721 erc721 = IERC721(_contractAddress);
         erc721.transferFrom(msg.sender, address(this), _tokenId);
@@ -510,12 +526,14 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
 
 
-        // if the reserve price is met, then the auction has begun.
-        if (
-            auctions[_contractAddress][_tokenId].startingBlock == 0 &&
-            _amount >= auctions[_contractAddress][_tokenId].reservePrice
-        ) {
+        // If is a pending coldie auction, start the auction
+        if (auctions[_contractAddress][_tokenId].startingBlock == 0) {
             auctions[_contractAddress][_tokenId].startingBlock = block.number;
+            erc721.transferFrom(
+                auctions[_contractAddress][_tokenId].auctionCreator, 
+                address(this), 
+                _tokenId
+            );
             emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, true, 0);
         }
         // If the time left for the auction is less than the extension limit bump the length of the auction.
@@ -557,7 +575,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             "settleAuction::Must have a current auction that has started"
         );
         require(
-            block.number > auction.startingBlock.add(auction.lengthOfAuction),
+            block.number >= auction.startingBlock.add(auction.lengthOfAuction),
             "settleAuction::Can only settle unsettled auctions"
         );
 
@@ -714,7 +732,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     {
         IERC721 erc721 = IERC721(_contractAddress);
         address owner = erc721.ownerOf(_tokenId);
-        require(owner == msg.sender, "owner must have approved contract");
+        require(owner == msg.sender, "owner must be message sender");
     }
 
     /////////////////////////////////////////////////////////////////////////

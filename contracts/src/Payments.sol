@@ -31,7 +31,7 @@ contract Payments is SendValueOrEscrow {
     ) internal {
         require(
             _payee != address(0),
-            "payout::no payees can be the zero address"
+            "refund::no payees can be the zero address"
         );
 
         if (_amount > 0) {
@@ -77,9 +77,11 @@ contract Payments is SendValueOrEscrow {
         address payable _primarySalePayee
     ) internal {
         require(
-            _marketplacePercentage.add(_royaltyPercentage).add(
-                _primarySalePercentage
-            ) <= 100,
+            _marketplacePercentage <= 100,
+            "payout::marketplace percentage cannot be above 100"
+        );
+        require(
+            _royaltyPercentage.add(_primarySalePercentage) <= 100,
             "payout::percentages cannot go beyond 100"
         );
         require(
@@ -92,8 +94,8 @@ contract Payments is SendValueOrEscrow {
 
         // Note:: Solidity is kind of terrible in that there is a limit to local
         //        variables that can be put into the stack. The real pain is that
-        //        one can put structs, arrays, or mappings into memory but basic data
-        //        types. Hence our payments array that stores these values.
+        //        one can put structs, arrays, or mappings into memory but not basic
+        //        data types. Hence our payments array that stores these values.
         uint256[4] memory payments;
 
         // uint256 marketplacePayment
@@ -146,7 +148,7 @@ contract Payments is SendValueOrEscrow {
      * @param _isPrimarySale bool of whether this is a primary sale
      * @param _amount uint256 value to be split
      * @param _percentage uint8 royalty percentage
-     * @return uint256 wei value owed the marketplace owner
+     * @return uint256 wei value owed for royalty
      */
     function calcRoyaltyPayment(
         bool _isPrimarySale,
@@ -164,13 +166,12 @@ contract Payments is SendValueOrEscrow {
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Private function to calculate PrimarySale amount.
-     *      If primary sale: 0
-     *      If no royalty percentage: 0
-     *      otherwise: royalty in wei
+     *      If not primary sale: 0
+     *      otherwise: primary sale in wei
      * @param _isPrimarySale bool of whether this is a primary sale
      * @param _amount uint256 value to be split
      * @param _percentage uint8 royalty percentage
-     * @return uint256 wei value owed the marketplace owner
+     * @return uint256 wei value owed for primary sale
      */
     function calcPrimarySalePayment(
         bool _isPrimarySale,
@@ -187,12 +188,10 @@ contract Payments is SendValueOrEscrow {
     // calcPercentagePayment
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Internal function to calculate Marketplace fees.
-     *      If primary sale:  fee + split with seller
-            otherwise:        just fee.
-     * @param _amount uint256 value to be split
+     * @dev Internal function to calculate percentage value.
+     * @param _amount uint256 wei value
      * @param _percentage uint8  percentage
-     * @return uint256 wei value owed the marketplace owner
+     * @return uint256 wei value based on percentage.
      */
     function calcPercentagePayment(uint256 _amount, uint8 _percentage)
         internal
