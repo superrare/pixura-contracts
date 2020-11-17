@@ -490,7 +490,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Check that bid is larger than minimum bid value or the reserve price.
         require(
-            _amount >= auctions[_contractAddress][_tokenId].reservePrice || _amount >= auctions[_contractAddress][_tokenId].minimumBid,
+            (_amount >= auctions[_contractAddress][_tokenId].reservePrice && auctions[_contractAddress][_tokenId].minimumBid == 0) || 
+            (_amount >= auctions[_contractAddress][_tokenId].minimumBid && auctions[_contractAddress][_tokenId].reservePrice == 0),
             "bid::Cannot bid lower than reserve or minimum bid"
         );
 
