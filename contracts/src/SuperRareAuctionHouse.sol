@@ -601,7 +601,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
         require(
             block.number >= auction.startingBlock.add(auction.lengthOfAuction),
-            "settleAuction::Can only settle unsettled auctions"
+            "settleAuction::Can only settle ended auctions."
         );
 
         ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
@@ -639,11 +639,10 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         // Transfer the token to the winner of the auction.
         erc721.transferFrom(address(this), currentBid.bidder, _tokenId);
 
-        iMarketSettings.markERC721Token(_contractAddress, _tokenId, true);
         address payable owner = _makePayable(owner());
         Payments.payout(
             currentBid.amount,
-            iMarketSettings.hasERC721TokenSold(_contractAddress, _tokenId),
+            !iMarketSettings.hasERC721TokenSold(_contractAddress, _tokenId),
             currentBid.marketplaceFee,
             iERC721CreatorRoyalty.getERC721TokenRoyaltyPercentage(
                 _contractAddress,
@@ -657,6 +656,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             iERC721CreatorRoyalty.tokenCreator(_contractAddress, _tokenId),
             owner
         );
+        iMarketSettings.markERC721Token(_contractAddress, _tokenId, true);
         emit AuctionSettled(
             _contractAddress,
             currentBid.bidder,
