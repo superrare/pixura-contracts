@@ -309,7 +309,7 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         address payable owner = _makePayable(owner());
         Payments.payout(
             sp.amount,
-            iMarketplaceSettings.hasERC721TokenSold(_originContract, _tokenId),
+            !iMarketplaceSettings.hasERC721TokenSold(_originContract, _tokenId),
             iMarketplaceSettings.getMarketplaceFeePercentage(),
             iERC721CreatorRoyalty.getERC721TokenRoyaltyPercentage(
                 _originContract,
