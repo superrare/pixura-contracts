@@ -40,9 +40,6 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     // Mapping from ERC721 contract to mapping of tokenId to sale price.
     mapping(address => mapping(uint256 => SalePrice)) private tokenPrices;
 
-    // Mapping of ERC721 contract to mapping of token ID to whether the token has been sold before.
-    mapping(address => mapping(uint256 => bool)) private tokenSolds;
-
     // Mapping of ERC721 contract to mapping of token ID to the current bid amount.
     mapping(address => mapping(uint256 => ActiveBid)) private tokenCurrentBids;
 
@@ -493,7 +490,7 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         address payable owner = _makePayable(owner());
         Payments.payout(
             currentBid.amount,
-            iMarketplaceSettings.hasERC721TokenSold(_originContract, _tokenId),
+            !iMarketplaceSettings.hasERC721TokenSold(_originContract, _tokenId),
             iMarketplaceSettings.getMarketplaceFeePercentage(),
             iERC721CreatorRoyalty.getERC721TokenRoyaltyPercentage(
                 _originContract,
