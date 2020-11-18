@@ -231,7 +231,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             _auctionLengthExtension > 0,
             "setAuctionLengthExtension::_auctionLengthExtension must be greater than 0"
         );
-        
+
         auctionLengthExtension = _auctionLengthExtension;
     }
 
@@ -353,11 +353,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             erc721.transferFrom(address(this), msg.sender, _tokenId);
         }
 
-        emit CancelAuction(
-            _contractAddress,
-            _tokenId,
-            auction.auctionCreator
-        );
+        emit CancelAuction(_contractAddress, _tokenId, auction.auctionCreator);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -490,8 +486,10 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Check that bid is larger than minimum bid value or the reserve price.
         require(
-            (_amount >= auctions[_contractAddress][_tokenId].reservePrice && auctions[_contractAddress][_tokenId].minimumBid == 0) || 
-            (_amount >= auctions[_contractAddress][_tokenId].minimumBid && auctions[_contractAddress][_tokenId].reservePrice == 0),
+            (_amount >= auctions[_contractAddress][_tokenId].reservePrice &&
+                auctions[_contractAddress][_tokenId].minimumBid == 0) ||
+                (_amount >= auctions[_contractAddress][_tokenId].minimumBid &&
+                    auctions[_contractAddress][_tokenId].reservePrice == 0),
             "bid::Cannot bid lower than reserve or minimum bid"
         );
 
@@ -506,9 +504,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
 
         // Check that enough ether was sent.
-        uint256 requiredCost = _amount.add(
-            iMarketSettings.calculateMarketplaceFee(_amount)
-        );
+        uint256 requiredCost =
+            _amount.add(iMarketSettings.calculateMarketplaceFee(_amount));
         require(requiredCost == msg.value, "bid::Must bid the correct amount.");
 
         // If owner of token is auction creator make sure they have contract approved
@@ -530,7 +527,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Must bid higher than current bid.
         require(
-            _amount > 
+            _amount > currentBid.amount &&
+                _amount >=
                 currentBid.amount.add(
                     currentBid.amount.mul(minimumBidIncreasePercentage).div(100)
                 ),
@@ -550,30 +548,55 @@ contract SuperRareAuctionHouse is Ownable, Payments {
             _amount
         );
 
-
         // If is a pending coldie auction, start the auction
         if (auctions[_contractAddress][_tokenId].startingBlock == 0) {
             auctions[_contractAddress][_tokenId].startingBlock = block.number;
             erc721.transferFrom(
-                auctions[_contractAddress][_tokenId].auctionCreator, 
-                address(this), 
+                auctions[_contractAddress][_tokenId].auctionCreator,
+                address(this),
                 _tokenId
             );
-            emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, true, 0);
+            emit AuctionBid(
+                _contractAddress,
+                msg.sender,
+                _tokenId,
+                _amount,
+                true,
+                0
+            );
         }
         // If the time left for the auction is less than the extension limit bump the length of the auction.
         else if (
-            (auctions[_contractAddress][_tokenId].startingBlock.add(auctions[_contractAddress][_tokenId].lengthOfAuction)).sub(block.number) <
-            auctionLengthExtension
+            (
+                auctions[_contractAddress][_tokenId].startingBlock.add(
+                    auctions[_contractAddress][_tokenId].lengthOfAuction
+                )
+            )
+                .sub(block.number) < auctionLengthExtension
         ) {
-            auctions[_contractAddress][_tokenId].lengthOfAuction =
-                (block.number.add(auctionLengthExtension))
-                    .sub(auctions[_contractAddress][_tokenId].startingBlock);
-            emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, false, auctions[_contractAddress][_tokenId].lengthOfAuction);
+            auctions[_contractAddress][_tokenId].lengthOfAuction = (
+                block.number.add(auctionLengthExtension)
+            )
+                .sub(auctions[_contractAddress][_tokenId].startingBlock);
+            emit AuctionBid(
+                _contractAddress,
+                msg.sender,
+                _tokenId,
+                _amount,
+                false,
+                auctions[_contractAddress][_tokenId].lengthOfAuction
+            );
         }
         // Otherwise, it's a normal bid
         else {
-            emit AuctionBid(_contractAddress, msg.sender, _tokenId, _amount, false, 0);
+            emit AuctionBid(
+                _contractAddress,
+                msg.sender,
+                _tokenId,
+                _amount,
+                false,
+                0
+            );
         }
     }
 

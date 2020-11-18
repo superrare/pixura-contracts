@@ -396,10 +396,11 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         require(_newBidAmount > 0, "bid::Cannot bid 0 Wei.");
 
         // Check that bid is higher than previous bid
-        uint256 currentBidAmount = tokenCurrentBids[_originContract][_tokenId]
-            .amount;
+        uint256 currentBidAmount =
+            tokenCurrentBids[_originContract][_tokenId].amount;
         require(
-            _newBidAmount >
+            _newBidAmount > currentBidAmount &&
+                _newBidAmount >=
                 currentBidAmount.add(
                     currentBidAmount.mul(minimumBidIncreasePercentage).div(100)
                 ),
@@ -407,9 +408,10 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         );
 
         // Check that enough ether was sent.
-        uint256 requiredCost = _newBidAmount.add(
-            iMarketplaceSettings.calculateMarketplaceFee(_newBidAmount)
-        );
+        uint256 requiredCost =
+            _newBidAmount.add(
+                iMarketplaceSettings.calculateMarketplaceFee(_newBidAmount)
+            );
         require(
             requiredCost == msg.value,
             "bid::Must purchase the token for the correct price."
@@ -474,9 +476,8 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
 
         // Get current bid on token
 
-
-            ActiveBid memory currentBid
-         = tokenCurrentBids[_originContract][_tokenId];
+        ActiveBid memory currentBid =
+            tokenCurrentBids[_originContract][_tokenId];
 
         // Wipe the token price and bid.
         _resetTokenPrice(_originContract, _tokenId);
@@ -636,9 +637,8 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * @param _tokenId uin256 id of the token.
      */
     function _refundBid(address _originContract, uint256 _tokenId) internal {
-
-            ActiveBid memory currentBid
-         = tokenCurrentBids[_originContract][_tokenId];
+        ActiveBid memory currentBid =
+            tokenCurrentBids[_originContract][_tokenId];
         if (currentBid.bidder == address(0)) {
             return;
         }
