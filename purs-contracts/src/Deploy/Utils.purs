@@ -53,35 +53,39 @@ txOptsWithGasSettings (GasSettings { gasLimit, gasPrice }) =
     # _gasPrice
     .~ maybe (defaultTxOptions ^. _gasPrice) Just gasPrice
 
-getFailedTxReason :: forall m. MonadAff m => HexString -> Provider -> m String
-getFailedTxReason txHash provider = do
+getFailedTxAndReason :: forall m. MonadAff m => HexString -> Provider -> m { reason :: String, transaction :: Transaction }
+getFailedTxAndReason txHash provider = do
   eres <-
     liftAff
       $ runWeb3 provider do
           tx@(Transaction { gas, gasPrice, value, from, to, blockNumber, input, nonce }) <- eth_getTransaction txHash
           txReceipt <- eth_getTransactionReceipt txHash
-          eth_call
-            ( defaultTxOptions
-                # _gas
-                ?~ gas
-                # _gasPrice
-                ?~ gasPrice
-                # _data
-                ?~ input
-                # _nonce
-                ?~ nonce
-                # _to
-                .~ to
-                # _from
-                ?~ from
-                # _value
-                ?~ value
-            )
-            (maybe Latest BN blockNumber)
-  r <- case eres of
+          callResult <-
+            eth_call
+              ( defaultTxOptions
+                  # _gas
+                  ?~ gas
+                  # _gasPrice
+                  ?~ gasPrice
+                  # _data
+                  ?~ input
+                  # _nonce
+                  ?~ nonce
+                  # _to
+                  .~ to
+                  # _from
+                  ?~ from
+                  # _value
+                  ?~ value
+              )
+              (maybe Latest BN blockNumber)
+          pure { callResult, transaction: tx }
+  { callResult, transaction } <- case eres of
     Left err -> liftEffect $ throw $ show err
     Right r -> pure r
-  pure $ toAscii $ dropHex 136 r
+  let
+    reason = toAscii $ dropHex 136 callResult
+  pure { transaction, reason }
 
 awaitTxSuccess :: forall m. MonadAff m => HexString -> Provider -> m Unit
 awaitTxSuccess txHash provider = do
@@ -89,15 +93,18 @@ awaitTxSuccess txHash provider = do
   case txReceipt.status of
     Succeeded -> pure unit
     Failed -> do
-      res <- getFailedTxReason txHash provider
+      { reason, transaction } <- getFailedTxAndReason txHash provider
       let
-        txReason = case res of
+        txReason = case reason of
           "" -> ""
-          reason -> "Reason for failure: " <> res <> "\n"
+          _ -> "Reason for failure: " <> reason <> "\n"
       unsafeCrashWith $ "Transaction Failed w/ hash "
         <> show txHash
-        <> "\n"
+        <> "\n Transaction: "
+        <> show transaction
+        <> "\n Reason: "
         <> txReason
+        <> "\n Transaction Receipt: "
         <> show txReceipt
 
 awaitTxSuccessWeb3 :: HexString -> Web3 Unit

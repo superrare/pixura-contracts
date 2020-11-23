@@ -104,6 +104,6 @@ run-contract-tests: ## Run contract tests
 
 contract-tests: ## Deploy test environment and run contract tests
 	make deploy-test-chain && \
-	sleep 3 && \
+	sleep 5 && \
 	make run-contract-tests; \
 	make takedown-test-chain

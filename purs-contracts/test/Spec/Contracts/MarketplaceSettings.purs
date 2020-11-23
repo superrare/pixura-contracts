@@ -158,3 +158,19 @@ setMarketplaceMinValue { marketplaceSettings: { deployAddress }, primaryAccount 
       (defaultTxOpts primaryAccount # _to ?~ deployAddress)
       { _minValue }
   awaitTxSuccessWeb3 txHash
+
+giveContractMarkTokenRole :: forall r. TestEnv r -> Address -> Web3 Unit
+giveContractMarkTokenRole { marketplaceSettings: { deployAddress }, primaryAccount } granteeAddress = do
+  tokenMarkRole <-
+    throwOnCallError
+      $ MarketplaceSettings.tOKEN_MARK_ROLE
+          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+          Latest
+  txHash <-
+    MarketplaceSettings.grantRole
+      ( defaultTxOpts primaryAccount
+          # _to
+          ?~ deployAddress
+      )
+      { account: granteeAddress, role: tokenMarkRole }
+  awaitTxSuccessWeb3 txHash

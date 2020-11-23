@@ -19,7 +19,7 @@ import Network.Ethereum.Core.HexString (nullWord, takeHex)
 import Network.Ethereum.Web3 (_to, embed, mkAddress, unUIntN)
 import Partial.Unsafe (unsafePartial)
 import Record as Record
-import Test.Spec (SpecT, beforeAll, describe, describeOnly, it)
+import Test.Spec (SpecT, beforeAll, describe, describeOnly, it, itOnly)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.Contracts.MarketplaceSettings as MarketplaceSettingsSpec
 import Test.Spec.Contracts.SupeRare as SupeRare
@@ -689,6 +689,10 @@ init = do
     buildTestConfig "http://localhost:8545" 60
       $ SuperRareMarketAuctionV2.deployScript
           { _iERC721CreatorRoyalty: srRoyaltyRegistry.deployAddress, _iMarketSettings: marketplaceSettings.deployAddress }
+  web3Test provider
+    $ MarketplaceSettingsSpec.giveContractMarkTokenRole
+        { provider, accounts, primaryAccount, marketplaceSettings }
+        superRareMarketAuctionV2.deployAddress
   { testAssertFailOnPay
   , testExpensiveWallet
   , testRequireFailOnPay

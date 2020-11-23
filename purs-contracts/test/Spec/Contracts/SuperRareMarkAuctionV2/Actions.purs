@@ -5,7 +5,7 @@ import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Contracts.Marketplace.IMarketplaceSettings as IMarketplaceSettings
 import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
-import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, iMarketplaceSettings, payments, safeAcceptBid, safeBuy, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
+import Contracts.SuperRareMarketAuctionV2 (acceptBid, bid, buy, cancelBid, currentBidDetailsOfToken, iERC721CreatorRoyalty, iMarketplaceSettings, payments, safeAcceptBid, safeBuy, setSalePrice, tokenPrice) as SuperRareMarketAuctionV2
 import Contracts.SuperRareRoyaltyRegistry (getERC721TokenRoyaltyPercentage)
 import Contracts.TestAssertFailOnPay as TestAssertFailOnPay
 import Contracts.TestExpensiveWallet as TestExpensiveWallet
@@ -42,7 +42,7 @@ import Test.Spec.Contracts.SuperRareV2 as SuperRareV2Spec
 import Test.Spec.Contracts.Utils (createTokensWithFunction, defaultTxOpts, throwOnCallError, uInt256FromBigNumber)
 
 -----------------------------------------------------------------------------
--- | TestEnv
+--- | TestEnv
 -----------------------------------------------------------------------------
 type TestEnv r
   = { supeRare :: DeployReceipt NoArgs
@@ -63,7 +63,7 @@ type TestEnv r
     }
 
 -----------------------------------------------------------------------------
--- | cancelBid
+--- | cancelBid
 -----------------------------------------------------------------------------
 cancelBid ::
   forall r r1.
@@ -91,7 +91,7 @@ cancelBid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | placeBid
+--- | placeBid
 -----------------------------------------------------------------------------
 placeBid ::
   forall r.
@@ -123,7 +123,7 @@ placeBid tenv@{ accounts } td@{ owner, tokenId, price, uri, contractAddress } = 
   pure $ Record.disjointUnion updatedPayload { purchaseTxHash }
 
 -----------------------------------------------------------------------------
--- | bid
+--- | bid
 -----------------------------------------------------------------------------
 bid ::
   forall r r1.
@@ -156,7 +156,7 @@ bid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | safeAcceptBid
+--- | safeAcceptBid
 -----------------------------------------------------------------------------
 safeAcceptBid ::
   forall r r1.
@@ -186,7 +186,7 @@ safeAcceptBid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | acceptBid
+--- | acceptBid
 -----------------------------------------------------------------------------
 acceptBid ::
   forall r r1.
@@ -215,7 +215,7 @@ acceptBid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | mkTokensAndSetForSale
+--- | mkTokensAndSetForSale
 -----------------------------------------------------------------------------
 mkTokensAndSetForSale ::
   forall r.
@@ -243,7 +243,7 @@ mkTokensAndSetForSale tenv n = do
   pure updatedDetails
 
 -----------------------------------------------------------------------------
--- | setSalePrice
+--- | setSalePrice
 -----------------------------------------------------------------------------
 setSalePrice ::
   forall r.
@@ -261,7 +261,7 @@ setSalePrice tenv _originContract owner _tokenId _amount =
       >>= awaitTxSuccessWeb3
 
 -----------------------------------------------------------------------------
--- | genPriceAndSet
+--- | genPriceAndSet
 -----------------------------------------------------------------------------
 genPriceAndSet ::
   forall r. TestEnv r -> Address -> Address -> UIntN S256 -> Web3 BigNumber
@@ -276,7 +276,7 @@ genPriceAndSet tenv contractAddress owner tokenId = do
     pure $ unUIntN price
 
 -----------------------------------------------------------------------------
--- | marketplaceFee
+--- | marketplaceFee
 -----------------------------------------------------------------------------
 marketplaceFee ::
   forall r. TestEnv r -> Web3 (UIntN S8)
@@ -296,7 +296,7 @@ marketplaceFee tenv = do
         Latest
 
 -----------------------------------------------------------------------------
--- | currentBidDetailsOfToken
+--- | currentBidDetailsOfToken
 -----------------------------------------------------------------------------
 currentBidDetailsOfToken ::
   forall r. TestEnv r -> Address -> UIntN S256 -> Web3 { price :: UIntN S256, bidder :: Address }
@@ -314,7 +314,35 @@ currentBidDetailsOfToken tenv _originContract _tokenId = do
   pure { price, bidder }
 
 -----------------------------------------------------------------------------
--- | getTokenRoyaltyPercentage
+--- | getIERC721TokenRoyaltyContract
+-----------------------------------------------------------------------------
+getIERC721TokenRoyaltyContract :: forall r. TestEnv r -> Web3 Address
+getIERC721TokenRoyaltyContract tenv = do
+  let
+    { v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  throwOnCallError
+    $ SuperRareMarketAuctionV2.iERC721CreatorRoyalty
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+
+-----------------------------------------------------------------------------
+--- | getIMarketplaceSettingsContract
+-----------------------------------------------------------------------------
+getIMarketplaceSettingsContract :: forall r. TestEnv r -> Web3 Address
+getIMarketplaceSettingsContract tenv = do
+  let
+    { v2Marketplace: { deployAddress }
+    , primaryAccount
+    } = tenv
+  throwOnCallError
+    $ SuperRareMarketAuctionV2.iMarketplaceSettings
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+
+-----------------------------------------------------------------------------
+--- | getTokenRoyaltyPercentage
 -----------------------------------------------------------------------------
 getTokenRoyaltyPercentage ::
   forall r. TestEnv r -> Address -> UIntN S256 -> Web3 (UIntN S8)
@@ -323,14 +351,15 @@ getTokenRoyaltyPercentage tenv _contractAddress _tokenId = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
+  icAddr <- getIERC721TokenRoyaltyContract tenv
   throwOnCallError
     $ getERC721TokenRoyaltyPercentage
-        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        (defaultTxOpts primaryAccount # _to ?~ icAddr)
         Latest
         { _contractAddress, _tokenId }
 
 -----------------------------------------------------------------------------
--- | getERC721ContractPrimarySaleFee
+--- | getERC721ContractPrimarySaleFee
 -----------------------------------------------------------------------------
 getERC721ContractPrimarySaleFee ::
   forall r. TestEnv r -> Address -> Web3 (UIntN S8)
@@ -339,11 +368,7 @@ getERC721ContractPrimarySaleFee tenv _contractAddress = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <-
-    throwOnCallError
-      $ SuperRareMarketAuctionV2.iMarketplaceSettings
-          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-          Latest
+  ims <- getIMarketplaceSettingsContract tenv
   throwOnCallError
     $ IMarketplaceSettings.getERC721ContractPrimarySaleFeePercentage
         (defaultTxOpts primaryAccount # _to ?~ ims)
@@ -351,7 +376,7 @@ getERC721ContractPrimarySaleFee tenv _contractAddress = do
         { _contractAddress }
 
 -----------------------------------------------------------------------------
--- | markTokensAsSold
+--- | markTokensAsSold
 -----------------------------------------------------------------------------
 markTokensAsSold ::
   forall r. TestEnv r -> Address -> Array (UIntN S256) -> Web3 Unit
@@ -360,18 +385,14 @@ markTokensAsSold tenv _originContract _tokenIds = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <-
-    throwOnCallError
-      $ SuperRareMarketAuctionV2.iMarketplaceSettings
-          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-          Latest
+  ims <- getIMarketplaceSettingsContract tenv
   MarketplaceSettings.markTokensAsSold
     (defaultTxOpts primaryAccount # _to ?~ ims)
     { _originContract, _tokenIds }
     >>= awaitTxSuccessWeb3
 
 -----------------------------------------------------------------------------
--- | hasTokenBeenSold
+--- | hasTokenBeenSold
 -----------------------------------------------------------------------------
 hasTokenBeenSold ::
   forall r. TestEnv r -> Address -> UIntN S256 -> Web3 Boolean
@@ -380,11 +401,7 @@ hasTokenBeenSold tenv _contractAddress _tokenId = do
     { v2Marketplace: { deployAddress }
     , primaryAccount
     } = tenv
-  ims <-
-    throwOnCallError
-      $ SuperRareMarketAuctionV2.iMarketplaceSettings
-          (defaultTxOpts primaryAccount # _to ?~ deployAddress)
-          Latest
+  ims <- getIMarketplaceSettingsContract tenv
   throwOnCallError
     $ IMarketplaceSettings.hasERC721TokenSold
         (defaultTxOpts primaryAccount # _to ?~ ims)
@@ -392,7 +409,7 @@ hasTokenBeenSold tenv _contractAddress _tokenId = do
         { _contractAddress, _tokenId }
 
 -----------------------------------------------------------------------------
--- | tokenPrice
+--- | tokenPrice
 -----------------------------------------------------------------------------
 tokenPrice ::
   forall r. TestEnv r -> Address -> UIntN S256 -> Web3 (UIntN S256)
@@ -409,7 +426,7 @@ tokenPrice tenv _originContract _tokenId =
           { _originContract, _tokenId }
 
 -----------------------------------------------------------------------------
--- | mkSuperRareTokens
+--- | mkSuperRareTokens
 -----------------------------------------------------------------------------
 mkSuperRareTokens ::
   forall r.
@@ -423,7 +440,7 @@ mkSuperRareTokens tenv n = do
     (SuperRareV2Spec.addNewToken tenv)
 
 -----------------------------------------------------------------------------
--- | genTokenPrices
+--- | genTokenPrices
 -----------------------------------------------------------------------------
 genPercentageLessThan :: forall m. MonadEffect m => Int -> m (UIntN S256)
 genPercentageLessThan n =
@@ -431,7 +448,7 @@ genPercentageLessThan n =
     >>= \v -> pure $ uInt256FromBigNumber $ embed $ unsafePartial $ head v
 
 -----------------------------------------------------------------------------
--- | genPercentage
+--- | genPercentage
 -----------------------------------------------------------------------------
 genTokenPrices :: forall m. MonadEffect m => Int -> m (Array (UIntN S256))
 genTokenPrices n =
@@ -443,7 +460,7 @@ genTokenPrices n =
           pure $ uInt256FromBigNumber $ (*) (embed 10) $ toMinorUnit unitPrice
 
 -----------------------------------------------------------------------------
--- | mkPurchasePayload
+--- | mkPurchasePayload
 -----------------------------------------------------------------------------
 mkPurchasePayload ::
   forall r.
@@ -483,7 +500,7 @@ mkPurchasePayload tenv td = do
   pure $ Record.merge { buyerFee, sellerFee } td
 
 -----------------------------------------------------------------------------
--- | checkNewOwnerStatus
+--- | checkNewOwnerStatus
 -----------------------------------------------------------------------------
 checkNewOwnerStatus ::
   forall r r1.
@@ -498,7 +515,7 @@ checkNewOwnerStatus tenv { buyer, tokenId } = do
   buyer `shouldEqual` owner
 
 -----------------------------------------------------------------------------
--- | checkEthDifference
+--- | checkEthDifference
 -----------------------------------------------------------------------------
 checkEthDifference :: Address -> BigNumber -> HexString -> Web3 Unit
 checkEthDifference addr diff txHash = do
@@ -524,7 +541,7 @@ checkEthDifference addr diff txHash = do
     pure { blockNumber, gasPrice, gasUsed, from, to }
 
 -----------------------------------------------------------------------------
--- | checkPayout
+--- | checkPayout
 -----------------------------------------------------------------------------
 checkPayout ::
   forall r.
@@ -542,7 +559,7 @@ checkPayout p@{ buyer, owner, purchaseTxHash, price, buyerFee, sellerFee } = do
   checkEthDifference owner (price - sellerFee) purchaseTxHash
 
 -----------------------------------------------------------------------------
--- | safeBuy
+--- | safeBuy
 -----------------------------------------------------------------------------
 safeBuy ::
   forall r r1.
@@ -585,7 +602,7 @@ safeBuy tenv pd = do
   pure $ Record.insert (SProxy :: _ "purchaseTxHash") txHash pd
 
 -----------------------------------------------------------------------------
--- | buy
+--- | buy
 -----------------------------------------------------------------------------
 buy ::
   forall r r1.
@@ -628,7 +645,7 @@ buy tenv pd = do
   pure $ Record.insert (SProxy :: _ "purchaseTxHash") txHash pd
 
 -----------------------------------------------------------------------------
--- | expensiveWalletBid
+--- | expensiveWalletBid
 -----------------------------------------------------------------------------
 expensiveWalletBid ::
   forall r r1.
@@ -668,7 +685,7 @@ expensiveWalletBid tenv pd = do
     pure txHash
 
 -----------------------------------------------------------------------------
--- | claimMoneyFromExpensiveWallet
+--- | claimMoneyFromExpensiveWallet
 -----------------------------------------------------------------------------
 claimMoneyFromExpensiveWallet ::
   forall r r1.
@@ -701,7 +718,7 @@ claimMoneyFromExpensiveWallet tenv pd = do
     pure txHash
 
 -----------------------------------------------------------------------------
--- | asOwnerOfContract
+--- | asOwnerOfContract
 -----------------------------------------------------------------------------
 asOwnerOfContract ::
   forall r a. { primaryAccount :: Address | r } -> Address -> Address -> Web3 a -> Web3 a
@@ -724,7 +741,7 @@ asOwnerOfContract { primaryAccount } tmpOwner cAddr f = do
   pure res
 
 -----------------------------------------------------------------------------
--- | payments
+--- | payments
 -----------------------------------------------------------------------------
 payments ::
   forall r. TestEnv r -> Address -> Web3 (UIntN S256)
@@ -741,7 +758,7 @@ payments tenv dest =
           { dest }
 
 -----------------------------------------------------------------------------
--- | assertFailBid
+--- | assertFailBid
 -----------------------------------------------------------------------------
 assertFailBid ::
   forall r r1.
@@ -780,7 +797,7 @@ assertFailBid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | requireFailBid
+--- | requireFailBid
 -----------------------------------------------------------------------------
 requireFailBid ::
   forall r r1.
@@ -819,7 +836,7 @@ requireFailBid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | revertFailBid
+--- | revertFailBid
 -----------------------------------------------------------------------------
 revertFailBid ::
   forall r r1.
@@ -859,7 +876,7 @@ revertFailBid tenv pd = do
   pure txHash
 
 -----------------------------------------------------------------------------
--- | assertWithContext
+--- | assertWithContext
 -----------------------------------------------------------------------------
 assertWithContext :: forall a b m. Show b => MonadAff m => MonadError Error m => b -> m a -> m a
 assertWithContext ctx f = catchError f \e -> throwError $ error ("Context: " <> show ctx <> "\n" <> message e)
