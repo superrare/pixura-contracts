@@ -554,7 +554,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // If is a pending coldie auction, start the auction
         if (auction.startingBlock == 0) {
-            auction.startingBlock = block.number;
+            auctions[_contractAddress][_tokenId].startingBlock = block.number;
             erc721.transferFrom(
                 auction.auctionCreator,
                 address(this),
