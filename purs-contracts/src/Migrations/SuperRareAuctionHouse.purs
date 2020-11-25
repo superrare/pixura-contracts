@@ -76,3 +76,16 @@ migration { migrationArgs, getProgress, gasSettings: mgs, updateProgress } = do
               { iMarketSettings } = migrationArgs
             txHash <- setMarketplaceWithTokenMarkRole gasSettings iMarketSettings superRareAuctionHouse
             updateProgress \prog -> prog { setAuctionHouseRoleForMarkingSoldTx = Just txHash }
+
+  -- Mark already sold tokens as sold
+  setAuctionHouseRoleForMarkingSold gasSettings =
+    getProgress
+      >>= case _ of
+          { setAuctionHouseRoleForMarkingSoldTx: Just _ } -> pure unit
+          { setAuctionHouseRoleForMarkingSoldTx: Nothing } -> do
+            superRareAuctionHouse <- getSuperRareAuctionHouse
+            DeployConfig { provider, primaryAccount } <- ask
+            let
+              { iMarketSettings } = migrationArgs
+            txHash <- setMarketplaceWithTokenMarkRole gasSettings iMarketSettings superRareAuctionHouse
+            updateProgress \prog -> prog { setAuctionHouseRoleForMarkingSoldTx = Just txHash }

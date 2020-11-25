@@ -40,16 +40,16 @@ constructor x0 bc r = uncurryFields  r $ constructor' x0 bc
 --------------------------------------------------------------------------------
 
 
-newtype AuctionBid = AuctionBid {_contractAddress :: Address,_bidder :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_amount :: (UIntN (D2 :& D5 :& DOne D6)),_startedAuction :: Boolean,_newAuctionLength :: (UIntN (D2 :& D5 :& DOne D6))}
+newtype AuctionBid = AuctionBid {_contractAddress :: Address,_bidder :: Address,_tokenId :: (UIntN (D2 :& D5 :& DOne D6)),_amount :: (UIntN (D2 :& D5 :& DOne D6)),_startedAuction :: Boolean,_newAuctionLength :: (UIntN (D2 :& D5 :& DOne D6)),_previousBidder :: Address}
 
 derive instance newtypeAuctionBid :: Newtype AuctionBid _
 
 instance eventFilterAuctionBid :: EventFilter AuctionBid where
   eventFilter _ addr = defaultFilter
     # _address .~ Just addr
-    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "7e432b85bfaf0ee553fd5c83af2e70a255cccbcfe5c82abe858dc3982183f314"),Nothing,Nothing,Nothing]
+    # _topics .~ Just [Just ( unsafePartial $ fromJust $ mkHexString "5d22b2d23515fb6c26c46ebec88f4a8b503493be518661c852adf894344cbae7"),Nothing,Nothing,Nothing]
 
-instance indexedEventAuctionBid :: IndexedEvent (Tuple3 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple3 (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_startedAuction") Boolean) (Tagged (SProxy "_newAuctionLength") (UIntN (D2 :& D5 :& DOne D6)))) AuctionBid where
+instance indexedEventAuctionBid :: IndexedEvent (Tuple3 (Tagged (SProxy "_contractAddress") Address) (Tagged (SProxy "_bidder") Address) (Tagged (SProxy "_tokenId") (UIntN (D2 :& D5 :& DOne D6)))) (Tuple4 (Tagged (SProxy "_amount") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_startedAuction") Boolean) (Tagged (SProxy "_newAuctionLength") (UIntN (D2 :& D5 :& DOne D6))) (Tagged (SProxy "_previousBidder") Address)) AuctionBid where
   isAnonymous _ = false
 
 derive instance genericAuctionBid :: Generic AuctionBid _

@@ -96,7 +96,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 indexed _tokenId,
         uint256 _amount,
         bool _startedAuction,
-        uint256 _newAuctionLength
+        uint256 _newAuctionLength,
+        address _previousBidder
     );
 
     event AuctionSettled(
@@ -457,15 +458,23 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _tokenId,
         uint256 _amount
     ) external payable {
+        Auction memory auction = auctions[_contractAddress][_tokenId];
+
         // Must have existing auction.
         require(
-            auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
+            auction.auctionType != NO_AUCTION,
             "bid::Must have existing auction"
+        );
+
+        // Must have existing auction.
+        require(
+            auction.auctionCreator != msg.sender,
+            "bid::Cannot bid on your own auction"
         );
 
         // Must have pending coldie auction or running auction.
         require(
-            auctions[_contractAddress][_tokenId].startingBlock <= block.number,
+            auction.startingBlock <= block.number,
             "bid::Must have a running auction or pending coldie auction"
         );
 
@@ -486,20 +495,16 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Check that bid is larger than minimum bid value or the reserve price.
         require(
-            (_amount >= auctions[_contractAddress][_tokenId].reservePrice &&
-                auctions[_contractAddress][_tokenId].minimumBid == 0) ||
-                (_amount >= auctions[_contractAddress][_tokenId].minimumBid &&
-                    auctions[_contractAddress][_tokenId].reservePrice == 0),
+            (_amount >= auction.reservePrice && auction.minimumBid == 0) ||
+                (_amount >= auction.minimumBid && auction.reservePrice == 0),
             "bid::Cannot bid lower than reserve or minimum bid"
         );
 
         // Auction cannot have ended.
         require(
-            auctions[_contractAddress][_tokenId].startingBlock == 0 ||
+            auction.startingBlock == 0 ||
                 block.number <
-                auctions[_contractAddress][_tokenId].startingBlock.add(
-                    auctions[_contractAddress][_tokenId].lengthOfAuction
-                ),
+                auction.startingBlock.add(auction.lengthOfAuction),
             "bid::Cannot have ended"
         );
 
@@ -514,12 +519,11 @@ contract SuperRareAuctionHouse is Ownable, Payments {
 
         // Check that token is owned by creator or by this contract
         require(
-            auctions[_contractAddress][_tokenId].auctionCreator == owner ||
-                owner == address(this),
+            auction.auctionCreator == owner || owner == address(this),
             "bid::Cannot bid on auction if auction creator is no longer owner."
         );
 
-        if (auctions[_contractAddress][_tokenId].auctionCreator == owner) {
+        if (auction.auctionCreator == owner) {
             _requireOwnerApproval(_contractAddress, _tokenId);
         }
 
@@ -549,10 +553,10 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         );
 
         // If is a pending coldie auction, start the auction
-        if (auctions[_contractAddress][_tokenId].startingBlock == 0) {
-            auctions[_contractAddress][_tokenId].startingBlock = block.number;
+        if (auction.startingBlock == 0) {
+            auction.startingBlock = block.number;
             erc721.transferFrom(
-                auctions[_contractAddress][_tokenId].auctionCreator,
+                auction.auctionCreator,
                 address(this),
                 _tokenId
             );
@@ -562,29 +566,28 @@ contract SuperRareAuctionHouse is Ownable, Payments {
                 _tokenId,
                 _amount,
                 true,
-                0
+                0,
+                currentBid.bidder
             );
         }
         // If the time left for the auction is less than the extension limit bump the length of the auction.
         else if (
-            (
-                auctions[_contractAddress][_tokenId].startingBlock.add(
-                    auctions[_contractAddress][_tokenId].lengthOfAuction
-                )
-            )
-                .sub(block.number) < auctionLengthExtension
+            (auction.startingBlock.add(auction.lengthOfAuction)).sub(
+                block.number
+            ) < auctionLengthExtension
         ) {
             auctions[_contractAddress][_tokenId].lengthOfAuction = (
                 block.number.add(auctionLengthExtension)
             )
-                .sub(auctions[_contractAddress][_tokenId].startingBlock);
+                .sub(auction.startingBlock);
             emit AuctionBid(
                 _contractAddress,
                 msg.sender,
                 _tokenId,
                 _amount,
                 false,
-                auctions[_contractAddress][_tokenId].lengthOfAuction
+                auctions[_contractAddress][_tokenId].lengthOfAuction,
+                currentBid.bidder
             );
         }
         // Otherwise, it's a normal bid
@@ -595,7 +598,8 @@ contract SuperRareAuctionHouse is Ownable, Payments {
                 _tokenId,
                 _amount,
                 false,
-                0
+                0,
+                currentBid.bidder
             );
         }
     }

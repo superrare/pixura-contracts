@@ -4,14 +4,24 @@ import Prelude
 import Chanterelle.Internal.Types (DeployConfig(..), DeployM, throwDeploy)
 import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
 import Control.Monad.Reader (ask)
+import Data.Array (catMaybes, nub)
 import Data.Either (Either(..))
 import Data.Lens ((?~))
-import Deploy.Utils (GasSettings, awaitTxSuccessAndLogEthStats, throwOnCallError, txOptsWithGasSettings)
-import Effect.Aff.Class (liftAff)
-import Effect.Exception (error)
+import Data.Maybe (Maybe(..))
+import Data.Traversable (for)
+import Deploy.Utils (GasSettings, awaitTxSuccessAndLogEthStats, defaultTxOptions, throwOnCallError, txOptsWithGasSettings)
+import Effect.Aff.Class (class MonadAff, liftAff)
+import Effect.Class (liftEffect)
+import Effect.Exception (error, throw)
 import Network.Ethereum.Core.Signatures (Address)
-import Network.Ethereum.Web3 (ChainCursor(..), HexString, _from, _to, runWeb3)
+import Network.Ethereum.Web3 (ChainCursor(..), HexString, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber)
+import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
+import Simple.Graphql.Query (runQuery)
+import Simple.Graphql.Types (GraphQlQuery(..), runQueryT)
 
+-----------------------------------------------------------------------------
+--- | setMarketplaceWithTokenMarkRole
+-----------------------------------------------------------------------------
 setMarketplaceWithTokenMarkRole :: GasSettings -> Address -> Address -> DeployM HexString
 setMarketplaceWithTokenMarkRole gs settingsAddress granteeAddress = do
   (DeployConfig { provider, networkID, primaryAccount, writeArtifacts }) <- ask
@@ -38,3 +48,70 @@ setMarketplaceWithTokenMarkRole gs settingsAddress granteeAddress = do
         <> " for token mark role with error: "
         <> show err
     Right txHash -> pure txHash
+
+-----------------------------------------------------------------------------
+--- | lookUpSoldTokens
+-----------------------------------------------------------------------------
+type LookUpSoldTokensRes
+  = { allNonFungibleTokenEvents ::
+        { nodes :: Array { tokenId :: Int }
+        }
+    }
+
+lookUpSoldTokens ::
+  forall m.
+  MonadAff m =>
+  { tokenContract :: Address, url :: String, apiKey :: String } -> m (Array (UIntN S256))
+lookUpSoldTokens { tokenContract, url, apiKey } = do
+  res <- liftAff $ runQueryT (runQuery url (Just apiKey) gqlQuery)
+  case res of
+    { data: Nothing, errors: Nothing } -> liftEffect $ throw $ "No response for query \n" <> show gqlQuery
+    { data: Nothing, errors: Just err } -> liftEffect $ throw $ show err
+    { data: Just { allNonFungibleTokenEvents: { nodes } } } ->
+      pure $ nub $ catMaybes
+        $ nodes
+        <#> \{ tokenId } -> uIntNFromBigNumber s256 (embed tokenId)
+  where
+  gqlQuery :: GraphQlQuery { contractAddress :: Address } LookUpSoldTokensRes
+  gqlQuery = GraphQlQuery { query, variables: { contractAddress: tokenContract } }
+
+  query =
+    """
+    query getNft($contractAddress: String!) {
+      allNonFungibleTokenEvents(
+        orderBy: TIMESTAMP_DESC
+        condition: { tokenContractAddress: $contractAddress }
+        filter: { nftEventType: { in: [SALE, ACCEPT_BID] } }
+      ) {
+        totalCount
+        nodes {
+          tokenId
+        }
+      }
+    }
+    """
+
+-----------------------------------------------------------------------------
+--- | filterAlreadyMarkedSoldTokens
+-----------------------------------------------------------------------------
+filterAlreadyMarkedSoldTokens ::
+  Address -> Address -> Array (UIntN S256) -> DeployM (Array (UIntN S256))
+filterAlreadyMarkedSoldTokens settingsAddress _contractAddress tids = do
+  DeployConfig { provider } <- ask
+  catMaybes
+    <$> for tids \_tokenId -> do
+        ehasSold <-
+          liftAff
+            $ runWeb3 provider
+            $ throwOnCallError
+            $ MarketplaceSettings.hasERC721TokenSold
+                (defaultTxOptions # _to ?~ settingsAddress)
+                Latest
+                { _contractAddress, _tokenId }
+        case ehasSold of
+          Left err ->
+            throwDeploy $ error
+              $ "Failed filtering already sold tokens"
+              <> show err
+          Right true -> pure Nothing
+          Right false -> pure (Just _tokenId)
