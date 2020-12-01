@@ -1,12 +1,14 @@
 module Migrations.MarketplaceSettings where
 
 import Prelude
+
 import Chanterelle.Internal.Types (DeployConfig(..), DeployM, throwDeploy)
 import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
 import Control.Monad.Reader (ask)
 import Data.Either (Either(..))
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
+import Deploy.Contracts.Common (markTokensNotInFilterList)
 import Deploy.Contracts.MarketplaceSettings (deployScriptWithGasSettings)
 import Deploy.Utils (awaitTxSuccessAndLogEthStats, txOptsWithGasSettings)
 import Effect (Effect)
@@ -104,4 +106,8 @@ migration { migrationArgs, getProgress, gasSettings: mgs, updateProgress } = do
               Right txHash -> updateProgress \prog -> prog { setSuperRareV2PrimarySaleFeeTx = Just txHash }
 
   --  Mark tokens for SuperRareV2 as sold
-  markTokensSold gasSettings = pure unit
+  markTokensSold gasSettings = 
+    getProgress 
+      >>= case _ of 
+        { markedTokens: Just tokens } -> pure $ markTokensNotInFilterList tokens
+        { markedTokens: Nothing } -> pure $ markTokensNotInFilterList []

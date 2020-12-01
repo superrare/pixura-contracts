@@ -1,6 +1,7 @@
 module Deploy.Contracts.Common where
 
 import Prelude
+
 import Chanterelle.Internal.Types (DeployConfig(..), DeployM, throwDeploy)
 import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
 import Control.Monad.Reader (ask)
@@ -15,7 +16,7 @@ import Effect.Class (liftEffect)
 import Effect.Exception (error, throw)
 import Network.Ethereum.Core.HexString (toAscii)
 import Network.Ethereum.Core.Signatures (Address, unAddress)
-import Network.Ethereum.Web3 (ChainCursor(..), HexString, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber)
+import Network.Ethereum.Web3 (BigNumber, ChainCursor(..), HexString, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Simple.Graphql.Query (runQuery)
 import Simple.Graphql.Types (GraphQlQuery(..), runQueryT)
@@ -118,7 +119,7 @@ filterAlreadyMarkedSoldTokens settingsAddress _contractAddress tids = do
           Right false -> pure (Just _tokenId)
 
 -----------------------------------------------------------------------------
---- | filterAlreadyMarkedSoldTokens
+--- | batchMarkSold
 -----------------------------------------------------------------------------
 batchMarkSold ::
   Address -> Address -> Array (UIntN S256) -> DeployM (Array (UIntN S256))
@@ -152,3 +153,11 @@ batchMarkSold settingsAddress _contractAddress tids = do
 
   addressToString :: Address -> String
   addressToString = toAscii <<< unAddress
+
+-----------------------------------------------------------------------------
+--- | markTokensNotInFilterList
+-----------------------------------------------------------------------------
+markTokensNotInFilterList :: 
+  Array ( { hash :: HexString, tokens :: Array ( { tokenId :: BigNumber, contractAddress :: Address } ) } )
+  -> Unit
+markTokensNotInFilterList filterList = unit
