@@ -14,7 +14,7 @@ import Effect.Aff (error)
 import Effect.Aff.Class (liftAff)
 import Migrations.Utils (MigrationSettings, emptyGasSettings, runMigration)
 import Network.Ethereum.Core.HexString (HexString)
-import Network.Ethereum.Web3 (Address, _from, _to, runWeb3)
+import Network.Ethereum.Web3 (Address, BigNumber, _from, _to, runWeb3)
 import Network.Ethereum.Web3.Solidity.Sizes (s8)
 import Partial.Unsafe (unsafePartial)
 import Test.Spec.Contracts.Utils (intToUIntN)
@@ -25,12 +25,24 @@ type MigrationArgs
 type MigrationProgress
   = { marketSettingsAddress :: Maybe Address
     , setSuperRareV2PrimarySaleFeeTx :: Maybe HexString
+    , markedTokens ::
+        Maybe
+          ( Array
+              { hash :: HexString
+              , tokens ::
+                  Array
+                    { tokenId :: BigNumber
+                    , contractAddress :: Address
+                    }
+              }
+          )
     }
 
 emptyMigrationProgress :: MigrationProgress
 emptyMigrationProgress =
   { marketSettingsAddress: Nothing
   , setSuperRareV2PrimarySaleFeeTx: Nothing
+  , markedTokens: Nothing
   }
 
 main :: Effect Unit
@@ -43,6 +55,7 @@ migration { migrationArgs, getProgress, gasSettings: mgs, updateProgress } = do
     gasSettings = fromMaybe emptyGasSettings mgs
   deployContract gasSettings
   setSuperRareV2PrimarySaleFee gasSettings
+  markTokensSold gasSettings
   where
   -- Get the market settings address
   getMarketSettingsAddress = getProgress >>= \{ marketSettingsAddress } -> pure $ unsafePartial fromJust marketSettingsAddress
@@ -89,3 +102,6 @@ migration { migrationArgs, getProgress, gasSettings: mgs, updateProgress } = do
                   $ "Failed setting SuperRareV2 primary sale percentage with error: "
                   <> show err
               Right txHash -> updateProgress \prog -> prog { setSuperRareV2PrimarySaleFeeTx = Just txHash }
+
+  --  Mark tokens for SuperRareV2 as sold
+  markTokensSold gasSettings = pure unit

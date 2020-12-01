@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Types (DeployConfig(..), DeployM, throwDeploy)
 import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
 import Control.Monad.Reader (ask)
-import Data.Array (catMaybes, nub)
+import Data.Array (catMaybes, drop, nub, take, (:))
 import Data.Either (Either(..))
 import Data.Lens ((?~))
 import Data.Maybe (Maybe(..))
@@ -13,7 +13,8 @@ import Deploy.Utils (GasSettings, awaitTxSuccessAndLogEthStats, defaultTxOptions
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (error, throw)
-import Network.Ethereum.Core.Signatures (Address)
+import Network.Ethereum.Core.HexString (toAscii)
+import Network.Ethereum.Core.Signatures (Address, unAddress)
 import Network.Ethereum.Web3 (ChainCursor(..), HexString, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Simple.Graphql.Query (runQuery)
@@ -115,3 +116,39 @@ filterAlreadyMarkedSoldTokens settingsAddress _contractAddress tids = do
               <> show err
           Right true -> pure Nothing
           Right false -> pure (Just _tokenId)
+
+-----------------------------------------------------------------------------
+--- | filterAlreadyMarkedSoldTokens
+-----------------------------------------------------------------------------
+batchMarkSold ::
+  Address -> Address -> Array (UIntN S256) -> DeployM (Array (UIntN S256))
+batchMarkSold settingsAddress _contractAddress tids = do
+  DeployConfig { provider } <- ask
+  catMaybes
+    <$> for tids \_tokenId -> do
+        ehasSold <-
+          liftAff
+            $ runWeb3 provider
+            $ throwOnCallError
+            $ MarketplaceSettings.hasERC721TokenSold
+                (defaultTxOptions # _to ?~ settingsAddress)
+                Latest
+                { _contractAddress, _tokenId }
+        case ehasSold of
+          Left err ->
+            throwDeploy $ error
+              $ "Failed filtering already sold tokens"
+              <> show err
+          Right true -> pure Nothing
+          Right false -> pure (Just _tokenId)
+  where
+  batch :: forall m a b. (MonadAff m) => Int -> Array a -> (Array a -> m b) -> m (Array b)
+  batch batchSize xs f = for (chunk batchSize xs) f
+
+  chunk :: forall a. Int -> Array a -> Array (Array a)
+  chunk n = case _ of
+    [] -> []
+    xs -> take n xs : chunk n (drop n xs)
+
+  addressToString :: Address -> String
+  addressToString = toAscii <<< unAddress
