@@ -6,6 +6,10 @@
 ######################################################
 MARKETPLACEV2_CONFIG ?= "./deploy-configs/marketplacev2.json"
 SUPERRARE_LEGACY_CONFIG ?= "./deploy-configs/superrareLegacy.json"
+SUPERRARE_AUCTION_HOUSE_CONFIG ?= "./deploy-configs/superrareAuctionHouse.json"
+SUPERRARE_TOKEN_CREATOR_REGISTRY_CONFIG ?= "./deploy-configs/superrareTokenCreatorRegistry.json"
+SUPERRARE_ROYALTY_REGISTRY_CONFIG ?= "./deploy-configs/superrareRoyaltyRegistry.json"
+MARKETPLACE_SETTINGS_CONFIG ?= "./deploy-configs/marketplaceSettings.json"
 
 ######################################################
 #### Utils
@@ -16,6 +20,10 @@ help: ## Ask for help!
 
 clean: ## clean stack
 	stack clean
+	rm -rf node_modules \
+		output \
+		.spago
+
 
 hlint: ## hlint all
 	find ./libs -name "*.hs" | xargs hlint "--ignore=Parse error" ;
@@ -25,38 +33,21 @@ stylish: ## stylish all
 
 init: ## install node files
 	yarn && \
-	[ -d contracts/v4/node_modules ] || ( cp -r node_modules contracts/v4/node_modules ) && \
-	[ -d contracts/v5/node_modules ] || ( cp -r node_modules contracts/v5/node_modules ) && \
 	yarn spago install && \
 	yarn spago build -d
 
 ######################################################
 #### Smart Contract / Solidity related commands
 ######################################################
-compile-contracts-v4: ## compiles contracts solc v4
-	yarn chanterelle -r contracts/v4 compile
-
-compile-contracts-v5: ## compiles contracts solc v5
-	yarn chanterelle -r contracts/v5 compile
-
 compile-contracts: ## compiles contracts 
-	make compile-contracts-v4 && \
-	make compile-contracts-v5
-
-purs-contract-gen-v4: ## Generate purscript libraries for solc v4 smart contracts
-	yarn chanterelle -r contracts/v4 codegen
-
-purs-contract-gen-v5: ## Generate purscript libraries for solc v5 smart contracts
-	yarn chanterelle -r contracts/v5 codegen
+	yarn chanterelle compile
 
 purs-contract-gen: ## Generate purscript libraries for smart contracts
-	make purs-contract-gen-v4 && \
-	make purs-contract-gen-v5
+	yarn chanterelle codegen
 
 ######################################################
 #### Build
 ######################################################
-
 hs-build: ## Build haskell bindings
 	make compile-contracts && \
 	stack build;
@@ -81,6 +72,22 @@ migrate-legacy:  ## Deploy test environment and run contract tests
 	CONFIG=$(SUPERRARE_LEGACY_CONFIG) \
 	yarn spago run --main Migrations.SuperRareLegacy
 
+migrate-auction-house:  ## Migration for Auction House
+	CONFIG=$(SUPERRARE_AUCTION_HOUSE_CONFIG) \
+	yarn spago run --main Migrations.SuperRareAuctionHouse
+
+migrate-token-creator-registry:  ## Migration for token creator registry
+	CONFIG=$(SUPERRARE_TOKEN_CREATOR_REGISTRY_CONFIG) \
+	yarn spago run --main Migrations.SuperRareTokenCreatorRegistry
+
+migrate-royalty-registry:  ## Migration for royalty registry
+	CONFIG=$(SUPERRARE_ROYALTY_REGISTRY_CONFIG) \
+	yarn spago run --main Migrations.SuperRareRoyaltyRegistry
+
+migrate-marketplace-settings:  ## Migration for marketplace settings
+	CONFIG=$(MARKETPLACE_SETTINGS_CONFIG) \
+	yarn spago run --main Migrations.MarketplaceSettings
+
 ######################################################
 #### Test
 ######################################################
@@ -97,6 +104,6 @@ run-contract-tests: ## Run contract tests
 
 contract-tests: ## Deploy test environment and run contract tests
 	make deploy-test-chain && \
-	sleep 3 && \
+	sleep 5 && \
 	make run-contract-tests; \
 	make takedown-test-chain

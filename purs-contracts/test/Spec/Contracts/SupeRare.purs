@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.V4.SupeRare (addNewToken, creatorOfToken, isWhitelisted, ownerOf, tokenURI, totalSupply, transfer, whitelistCreator) as SupeRare
+import Contracts.SupeRare (addNewToken, creatorOfToken, isWhitelisted, ownerOf, tokenURI, totalSupply, transfer, whitelistCreator) as SupeRare
 import Data.Array (drop, length, replicate, take, zipWith, (..))
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
@@ -13,12 +13,11 @@ import Deploy.Contracts.SupeRare (deployScript) as SupeRare
 import Deploy.Utils (awaitTxSuccessWeb3)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class.Console (logShow)
 import Network.Ethereum.Core.BigNumber (unsafeToInt)
 import Network.Ethereum.Web3 (Address, ChainCursor(..), HexString, Provider, UIntN, Web3, _to, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256)
 import Partial.Unsafe (unsafePartial)
-import Test.Spec (SpecT, beforeAll, describe, it)
+import Test.Spec (SpecT, beforeAll, describe, describeOnly, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Contracts.Utils (defaultTxOpts, intToUInt256, mkTokenUris, throwOnCallError, web3Test)
 

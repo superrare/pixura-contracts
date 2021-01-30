@@ -3,7 +3,8 @@ module Migrations.SuperRareMarketAuctionV2 where
 import Prelude
 import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (DeployConfig(..), throwDeploy)
-import Contracts.V5.SuperRareMarketAuctionV2 (markTokensAsSold)
+import Contracts.Marketplace.MarketplaceSettings as MarketplaceSettings
+import Contracts.SuperRareMarketAuctionV2 as SuperRareMarketAuctionV2
 import Control.Monad.Reader (ask)
 import Data.Array (catMaybes, concat, drop, elem, filter, nub, take, (:))
 import Data.Either (Either(..), either)
@@ -11,7 +12,7 @@ import Data.Lens ((?~))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Traversable (for, sequence)
 import Deploy.Contracts.SuperRareMarketAuctionV2 (deployScriptWithGasSettings)
-import Deploy.Utils (GasSettings, awaitTxSuccessWeb3, txOptsWithGasSettings)
+import Deploy.Utils (GasSettings, awaitTxSuccessWeb3, throwOnCallError, txOptsWithGasSettings)
 import Effect (Effect)
 import Effect.Aff (Aff, error, runAff_, throwError, try)
 import Effect.Aff.AVar as AVar
@@ -20,7 +21,7 @@ import Effect.Class (liftEffect)
 import Effect.Exception (throw, throwException)
 import Migrations.Utils (attempt, emptyGasSettings, runMigration)
 import Network.Ethereum.Core.HexString (HexString, nullWord, toAscii)
-import Network.Ethereum.Web3 (Address, BigNumber, Provider, TransactionOptions, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber, unAddress, unUIntN)
+import Network.Ethereum.Web3 (Address, BigNumber, ChainCursor(..), Provider, TransactionOptions, UIntN, _from, _to, embed, runWeb3, uIntNFromBigNumber, unAddress, unUIntN)
 import Network.Ethereum.Web3.Solidity.Sizes (S256, s256)
 import Network.Ethereum.Web3.Types (NoPay)
 import Node.Encoding (Encoding(..))
@@ -69,63 +70,54 @@ emptyMigrationDetails =
   }
 
 main :: Effect Unit
-main =
-  runAff_ (either throwException (const $ log Info "Completed Migration"))
-    $ runMigration \(args :: { gasSettings :: Maybe GasSettings, migrationArgs :: MigrationArgs }) -> do
-        DeployConfig { provider, primaryAccount } <- ask
-        cwd' <- liftEffect cwd
-        let
-          { migrationArgs
-          , gasSettings: mgs
-          } = args
+main = pure unit
 
-          gasSettings = fromMaybe emptyGasSettings mgs
-
-          { migrationArgs
-          , gasSettings: mgs
-          } = args
-
-          { v2SuperRareAddress
-          , oldSuperRareAddress
-          , legacySuperRareAddress
-          , migrationDetailsFile
-          , pixuraApi: { url, apiKey }
-          } = migrationArgs
-
-          txOpts = txOptsWithGasSettings gasSettings # _from ?~ primaryAccount
-
-          writeFilename = fromMaybe (cwd' <> "/migration-details.json") migrationDetailsFile
-
-          readJSONFile n = do
-            t <- liftAff $ FS.readTextFile UTF8 n
-            case readJSON t of
-              Left err -> throwDeploy (error $ show err)
-              Right v -> pure v
-        migrationDetails <- case migrationDetailsFile of
-          Nothing -> do
-            { superRareMarketAuctionV2: { deployAddress } } <- deployScriptWithGasSettings gasSettings
-            pure $ emptyMigrationDetails deployAddress
-          Just mdf -> readJSONFile mdf
-        avMd <- liftAff $ AVar.new migrationDetails
-        let
-          batchMark =
-            batchMarkSold
-              { url, apiKey, txOpts, migrationDetails: avMd, writeFilename, provider }
-              100
-              migrationDetails.marketContractAddress
-
-          markSolds = [ batchMark v2SuperRareAddress v2SuperRareAddress, batchMark oldSuperRareAddress legacySuperRareAddress ]
-        eres <- liftAff $ try $ sequence markSolds
-        mmd <- liftAff $ AVar.tryRead avMd
-        case mmd of
-          Nothing -> throwDeploy (error "MigrationDetails found to be empty")
-          Just md -> liftAff $ FS.writeTextFile UTF8 writeFilename (writeJSON md)
-        case eres of
-          Left err -> do
-            throwDeploy (error $ show err)
-          _ -> pure unit
-        pure unit
-
+-- runMigration \(args :: { gasSettings :: Maybe GasSettings, migrationArgs :: MigrationArgs }) -> do
+--   DeployConfig { provider, primaryAccount } <- ask
+--   cwd' <- liftEffect cwd
+--   let
+--     { migrationArgs
+--     , gasSettings: mgs
+--     } = args
+--     gasSettings = fromMaybe emptyGasSettings mgs
+--     { migrationArgs
+--     , gasSettings: mgs
+--     } = args
+--     { v2SuperRareAddress
+--     , oldSuperRareAddress
+--     , legacySuperRareAddress
+--     , migrationDetailsFile
+--     , pixuraApi: { url, apiKey }
+--     } = migrationArgs
+--     txOpts = txOptsWithGasSettings gasSettings # _from ?~ primaryAccount
+--     writeFilename = fromMaybe (cwd' <> "/migration-details.json") migrationDetailsFile
+--     readJSONFile n = do
+--       t <- liftAff $ FS.readTextFile UTF8 n
+--       case readJSON t of
+--         Left err -> throwDeploy (error $ show err)
+--         Right v -> pure v
+-- migrationDetails <- case migrationDetailsFile of
+--   Nothing -> do
+--     { superRareMarketAuctionV2: { deployAddress } } <- deployScriptWithGasSettings gasSettings
+--     pure $ emptyMigrationDetails deployAddress
+--   Just mdf -> readJSONFile mdf
+-- avMd <- liftAff $ AVar.new migrationDetails
+-- let
+--   batchMark =
+--     batchMarkSold
+--       { url, apiKey, txOpts, migrationDetails: avMd, writeFilename, provider }
+--       100
+--       migrationDetails.marketContractAddress
+--   markSolds = [ batchMark v2SuperRareAddress v2SuperRareAddress, batchMark oldSuperRareAddress legacySuperRareAddress ]
+-- eres <- liftAff $ try $ sequence markSolds
+-- mmd <- liftAff $ AVar.tryRead avMd
+-- case mmd of
+--   Nothing -> throwDeploy (error "MigrationDetails found to be empty")
+--   Just md -> liftAff $ FS.writeTextFile UTF8 writeFilename (writeJSON md)
+-- case eres of
+--   Left err -> do
+--     throwDeploy (error $ show err)
+--   _ -> pure unit
 -----------------------------------------------------------------------------
 -- | batchMarkSold
 -----------------------------------------------------------------------------
@@ -177,10 +169,15 @@ batchMarkSold cfg batchSize deployAddress _originContract upgradedOriginContract
           tokenAndAddrs = concat $ md.successfulTransactions <#> \{ tokens } -> tokens
 
           filteredTokens = filter (\tid -> not $ elem { tokenId: unUIntN tid, contractAddress: upgradedOriginContract } tokenAndAddrs) _tokenIds
+        ims <-
+          throwOnCallError
+            $ SuperRareMarketAuctionV2.iMarketplaceSettings
+                (txOpts # _to ?~ deployAddress)
+                Latest
         txHash <-
           attempt 3
-            $ markTokensAsSold
-                (txOpts # _to ?~ deployAddress)
+            $ MarketplaceSettings.markTokensAsSold
+                (txOpts # _to ?~ ims)
                 { _originContract, _tokenIds: filteredTokens }
         log Info $ "Batch marking tokens sold: " <> show _tokenIds
         log Info $ "Polling for markTokensAsSold transaction receipt: " <> show txHash

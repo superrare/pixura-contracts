@@ -3,38 +3,79 @@ module Migrations.Utils where
 import Prelude
 import Chanterelle.Deploy (deployWithProvider)
 import Chanterelle.Internal.Logging (LogLevel(..), log)
-import Chanterelle.Internal.Types (DeployM)
-import Control.Monad.Error.Class (class MonadError)
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..), maybe)
+import Chanterelle.Internal.Types (DeployConfig(..), DeployM, throwDeploy)
+import Control.Comonad.Env (ask)
+import Control.Monad.Error.Class (class MonadError, class MonadThrow, throwError, try)
+import Data.Either (Either(..), either)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Nullable (null)
-import Deploy.Utils (GasSettings(..))
+import Deploy.Utils (GasSettings(..), txOptsWithGasSettings)
 import Effect (Effect)
-import Effect.Aff (Aff, Milliseconds(..), delay, try)
+import Effect.AVar (AVar)
+import Effect.Aff (Aff, Error, Milliseconds(..), delay, error, runAff_, try)
+import Effect.Aff.AVar as AVar
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (liftEffect)
-import Effect.Exception (throw)
-import Network.Ethereum.Web3 (Provider, httpProvider)
+import Effect.Exception (throw, throwException)
+import Network.Ethereum.Web3 (CallError, Provider, TransactionOptions(..), httpProvider)
 import Network.Ethereum.Web3.Types.HdWalletProvider (hdWalletProvider, unHdWalletProvider)
 import Node.Encoding (Encoding(..))
-import Node.FS.Aff (readTextFile)
-import Node.Process (lookupEnv)
+import Node.FS.Aff (readTextFile, writeTextFile, realpath)
+import Node.FS.Aff as FS
+import Node.Process (cwd, exit, lookupEnv)
 import Simple.JSON as JSON
 
 runMigration ::
-  forall a b.
+  forall a b c.
   JSON.ReadForeign b =>
-  ( { migrationArgs :: b
-    , gasSettings ::
-        Maybe GasSettings
-    } ->
+  JSON.ReadForeign c =>
+  JSON.WriteForeign c =>
+  c ->
+  ( MigrationSettings b c ->
     DeployM a
   ) ->
-  Aff a
-runMigration migration = do
-  config@{ migrationArgs, gasSettings } <- loadMigrationConfig
-  provider <- liftEffect $ mkProvider config
-  deployWithProvider provider (60 * 1000) (migration { migrationArgs, gasSettings })
+  Effect Unit
+runMigration emptyMigrationProgress migration =
+  runAff_ (either throwException exitSuccessfully) do
+    config@{ migrationArgs, gasSettings, progressFile } <- loadMigrationConfig
+    provider <- liftEffect $ mkProvider config
+    ep <- try $ readJSONFile progressFile
+    let
+      migrationProgress = case ep of
+        Left _ -> emptyMigrationProgress
+        Right mp -> mp
+    avMp <- AVar.new migrationProgress
+    emigration <- try $ deployWithProvider provider (60 * 1000) (migration { migrationArgs, gasSettings, getProgress: getAVar avMp, updateProgress: updateAVar progressFile avMp })
+    case emigration of
+      Left err -> do
+        log Error $ "Failed to complete migration with error: " <> show err
+        throwError err
+      Right _ -> pure unit
+  where
+  exitSuccessfully _ = do
+    log Info "Completed Migration"
+    exit 0
+
+  writeProgressFile progressFile avMp = do
+    mmd <- AVar.tryRead avMp
+    case mmd of
+      Nothing -> throwError (error "Migration Progress found to be empty")
+      Just md -> writeTextFile UTF8 progressFile (JSON.writeJSON md)
+
+  getAVar avMp = liftAff $ AVar.read avMp
+
+  updateAVar progressFile avMp f =
+    liftAff do
+      mp <- AVar.take avMp
+      AVar.put (f mp) avMp
+      writeProgressFile progressFile avMp
+
+readJSONFile :: forall t3. JSON.ReadForeign t3 => String -> Aff t3
+readJSONFile n = do
+  t <- readTextFile UTF8 n
+  case JSON.readJSON t of
+    Left err -> throwError (error $ show err)
+    Right v -> pure v
 
 loadMigrationConfig :: forall a. JSON.ReadForeign a => Aff (MigrationConfig a)
 loadMigrationConfig = do
@@ -48,7 +89,8 @@ emptyGasSettings :: GasSettings
 emptyGasSettings = GasSettings { gasPrice: Nothing, gasLimit: Nothing }
 
 mkProvider :: forall a. (MigrationConfig (a)) -> Effect Provider
-mkProvider cfg@{ rpcUrl } =
+mkProvider cfg@{ rpcUrl } = do
+  log Info $ "Using rpc from url: " <> rpcUrl
   liftEffect case cfg of
     { mnemonic: Just mnemonic } ->
       unHdWalletProvider
@@ -60,6 +102,15 @@ type MigrationConfig a
     , mnemonic :: Maybe String
     , gasSettings :: Maybe GasSettings
     , migrationArgs :: a
+    , progressFile :: String
+    }
+
+type MigrationSettings b c
+  = { migrationArgs :: b
+    , getProgress :: DeployM c
+    , updateProgress :: (c -> c) -> DeployM Unit
+    , gasSettings ::
+        Maybe GasSettings
     }
 
 attempt ::

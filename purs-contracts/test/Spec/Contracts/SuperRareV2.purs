@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
 import Chanterelle.Test (buildTestConfig)
-import Contracts.V4.SuperRareV2 (addNewToken, addToWhitelist, isApprovedForAll, isWhitelisted, ownerOf, setApprovalForAll, tokenByIndex, tokenURI, totalSupply, transferFrom) as SuperRareV2
+import Contracts.SuperRareV2 (addNewToken, addToWhitelist, isApprovedForAll, isWhitelisted, ownerOf, setApprovalForAll, tokenByIndex, tokenCreator, tokenURI, totalSupply, transferFrom) as SuperRareV2
 import Data.Array (filter, length, replicate)
 import Data.Array.Partial (head)
 import Data.Lens ((?~))
@@ -170,6 +170,14 @@ ownerOf { v2SuperRare: { deployAddress }, primaryAccount } tokenId =
         (defaultTxOpts primaryAccount # _to ?~ deployAddress)
         Latest
         { tokenId }
+
+tokenCreator :: forall r. TestEnv r -> UIntN S256 -> Web3 Address
+tokenCreator { v2SuperRare: { deployAddress }, primaryAccount } _tokenId =
+  throwOnCallError
+    $ SuperRareV2.tokenCreator
+        (defaultTxOpts primaryAccount # _to ?~ deployAddress)
+        Latest
+        { _tokenId }
 
 totalSupply :: forall r. TestEnv r -> Web3 (UIntN S256)
 totalSupply { v2SuperRare: { deployAddress }, primaryAccount } =

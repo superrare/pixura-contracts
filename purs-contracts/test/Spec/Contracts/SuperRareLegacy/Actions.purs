@@ -3,8 +3,8 @@ module Test.Spec.Contracts.SuperRareLegacy.Actions where
 import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Types (NoArgs)
-import Contracts.V4.SupeRare as SupeRare
-import Contracts.V5.SuperRareLegacy as SuperRareLegacy
+import Contracts.SupeRare as SupeRare
+import Contracts.SuperRareLegacy as SuperRareLegacy
 import Data.Lens ((?~))
 import Deploy.Contracts.SuperRareLegacy (SuperRareLegacy)
 import Deploy.Utils (awaitTxSuccessWeb3)
@@ -162,7 +162,7 @@ setApprovalForAll tenv owner operator approved = do
           # _to
           ?~ deployAddress
       )
-      { approved, to: operator }
+      { approved, operator }
   awaitTxSuccessWeb3 txHash
   pure txHash
 

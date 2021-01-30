@@ -119,10 +119,9 @@ let additions =
 
 
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.13.6-20200226/packages.dhall sha256:3a52562e05b31a7b51d12d5b228ccbe567c527781a88e9028ab42374ab55c0f1
+      https://github.com/purescript/package-sets/releases/download/psc-0.13.8-20201007/packages.dhall sha256:35633f6f591b94d216392c9e0500207bb1fec42dd355f4fecdfd186956567b6b
 
-let overrides =
-      { string-parsers = upstream.string-parsers ⫽ { version = "v4.0.1" } }
+let overrides = {=}
 
 let additions =
       { logging =
@@ -145,16 +144,18 @@ let additions =
           }
       , mkdirp =
           { dependencies =
-            [ "prelude"
+            [ "console"
             , "effect"
-            , "node-fs"
-            , "functions"
-            , "nullable"
             , "either"
             , "exceptions"
+            , "functions"
+            , "node-fs"
+            , "nullable"
+            , "prelude"
+            , "psci-support"
             ]
-          , repo = "https://github.com/joshuahhh/purescript-mkdirp"
-          , version = "48ecb4039d5fe3be82d0e82c3a9f2338d1af82d2"
+          , repo = "https://github.com/f-o-a-m/purescript-mkdirp"
+          , version = "v1.0.0"
           }
       , tagged =
           { dependencies = [ "identity", "profunctor" ]
@@ -177,8 +178,8 @@ let additions =
             , "fixed-points"
             , "record-extra"
             ]
-          , repo = "https://github.com/f-o-a-m/purescript-web3-generator"
-          , version = "v2.0.0"
+          , repo = "https://github.com/charlescrain/purescript-web3-generator"
+          , version = "765bd7c93a96fab63e1e4c24880e78a9a699a123"
           }
       , eth-core =
           { dependencies =
@@ -192,7 +193,7 @@ let additions =
             , "parsing"
             ]
           , repo = "https://github.com/f-o-a-m/purescript-eth-core"
-          , version = "v5.0.0"
+          , version = "v6.0.0"
           }
       , solc =
           { dependencies =
@@ -204,13 +205,14 @@ let additions =
             , "aff"
             ]
           , repo = "https://github.com/f-o-a-m/purescript-solc.git"
-          , version = "v1.0.0"
+          , version = "v2.0.0"
           }
       , coroutine-transducers =
-          { dependencies = [ "freet", "coroutines" ]
+          { dependencies =
+            [ "aff", "coroutines", "effect", "maybe", "psci-support" ]
           , repo =
-              "https://github.com/blinky3713/purescript-coroutine-transducers.git"
-          , version = "4fafbbfc9d654146638e783c7e28f61c0a061f79"
+              "https://github.com/blinky3713/purescript-coroutine-transducers"
+          , version = "v1.0.0"
           }
       , web3 =
           { dependencies =
@@ -236,7 +238,7 @@ let additions =
             , "heterogeneous"
             ]
           , repo = "https://github.com/f-o-a-m/purescript-web3.git"
-          , version = "a5e5a6e01e3effa5656ef26fa8fded69fd165131"
+          , version = "v3.0.0"
           }
       , chanterelle =
           { dependencies =
@@ -251,7 +253,7 @@ let additions =
             , "foreign-object"
             ]
           , repo = "https://github.com/f-o-a-m/chanterelle.git"
-          , version = "v4.0.0"
+          , version = "a918c3e9ff2590d456955cc4fe5ea5dc98102a8b"
           }
       , truffle-hd-wallet =
           { dependencies = [ "web3" ]

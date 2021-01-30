@@ -51,7 +51,7 @@ deployScript = do
 -----------------------------------------------------------------------------
 makeTestAssertFailOnPayConfig :: ContractConfig NoArgs
 makeTestAssertFailOnPayConfig =
-  { filepath: "./contracts/v5/build/TestAssertFailOnPay.json"
+  { filepath: "./contracts/build/TestAssertFailOnPay.json"
   , name: "TestAssertFailOnPay"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -59,7 +59,7 @@ makeTestAssertFailOnPayConfig =
 
 makeTestExpensiveWalletConfig :: ContractConfig NoArgs
 makeTestExpensiveWalletConfig =
-  { filepath: "./contracts/v5/build/TestExpensiveWallet.json"
+  { filepath: "./contracts/build/TestExpensiveWallet.json"
   , name: "TestExpensiveWallet"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -67,7 +67,7 @@ makeTestExpensiveWalletConfig =
 
 makeTestRequireFailOnPayConfig :: ContractConfig NoArgs
 makeTestRequireFailOnPayConfig =
-  { filepath: "./contracts/v5/build/TestRequireFailOnPay.json"
+  { filepath: "./contracts/build/TestRequireFailOnPay.json"
   , name: "TestRequireFailOnPay"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs
@@ -75,7 +75,7 @@ makeTestRequireFailOnPayConfig =
 
 makeTestRevertOnPayConfig :: ContractConfig NoArgs
 makeTestRevertOnPayConfig =
-  { filepath: "./contracts/v5/build/TestRevertOnPay.json"
+  { filepath: "./contracts/build/TestRevertOnPay.json"
   , name: "TestRevertOnPay"
   , constructor: constructorNoArgs
   , unvalidatedArgs: noArgs

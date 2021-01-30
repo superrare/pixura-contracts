@@ -4,7 +4,7 @@ import Prelude
 import Chanterelle.Internal.Deploy (DeployReceipt)
 import Chanterelle.Internal.Logging (LogLevel(..), log)
 import Chanterelle.Internal.Types (ContractConfig, DeployM)
-import Contracts.V5.SuperRareLegacy as SuperRareLegacy
+import Contracts.SuperRareLegacy as SuperRareLegacy
 import Control.Monad.Error.Class (try)
 import Data.Array (drop, take, (:))
 import Data.Either (Either(..))
@@ -30,7 +30,7 @@ type SuperRareLegacy
 
 makeSuperRareLegacyConfig :: Record SuperRareLegacy -> ContractConfig SuperRareLegacy
 makeSuperRareLegacyConfig { _name, _symbol, _oldSuperRare } =
-  { filepath: "./contracts/v5/build/SuperRareLegacy.json"
+  { filepath: "./contracts/build/SuperRareLegacy.json"
   , name: "SuperRareLegacy"
   , constructor: SuperRareLegacy.constructor
   , unvalidatedArgs: pure { _name, _symbol, _oldSuperRare }
