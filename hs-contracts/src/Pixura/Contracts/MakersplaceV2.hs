@@ -6,8 +6,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 
-module Pixura.Contracts.KnownOriginDigitalAsset where
+module Pixura.Contracts.MakersplaceV2 where
 
 import Network.Ethereum.Contract.TH
 
-[abiFrom|contracts/abis/KnownOriginDigitalAsset.json|]
+[abiFrom|contracts/abis/MakersplaceV2.json|]
