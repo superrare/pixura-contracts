@@ -40,11 +40,14 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     // Mapping from ERC721 contract to mapping of tokenId to sale price.
     mapping(address => mapping(uint256 => SalePrice)) private tokenPrices;
 
-    // Mapping of ERC721 contract to mapping of token ID to the current bid amount.
-    mapping(address => mapping(uint256 => ActiveBid)) private tokenCurrentBids;
+    // Mapping of ERC721 contract to mapping of token ID to mapping of bidder to current bid.
+    mapping(address => mapping(uint256 => mapping(address => ActiveBid))) private tokenCurrentBids;
 
-    // A minimum increase in bid amount when out bidding someone.
-    uint8 public minimumBidIncreasePercentage; // 10 = 10%
+    // Mapping of ERC721 contract to mapping of token ID to mapping of bidders.
+    mapping(address => mapping(uint256 => address[])) private bidders;
+
+    // Temporarily removing bid increases for now.
+    // uint8 public minimumBidIncreasePercentage;
 
     /////////////////////////////////////////////////////////////////////////////
     // Events
@@ -112,7 +115,7 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         // Set iERC721CreatorRoyalty
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
 
-        minimumBidIncreasePercentage = 10;
+        // minimumBidIncreasePercentage = 10;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -297,9 +300,9 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         // Transfer token.
         erc721.safeTransferFrom(tokenOwner, msg.sender, _tokenId);
 
-        // if the buyer had an existing bid, return it
+        // If the buyer had an existing bid, return it
         if (_addressHasBidOnToken(msg.sender, _originContract, _tokenId)) {
-            _refundBid(_originContract, _tokenId);
+            _refundBid(_originContract, msg.sender, _tokenId);
         }
 
         // Payout all parties.
@@ -392,20 +395,8 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         address _originContract,
         uint256 _tokenId
     ) external payable {
-        // Check that bid is greater than 0.
+        // Check that bid is greater than 0. Currently removing bid increase requirements for now.
         require(_newBidAmount > 0, "bid::Cannot bid 0 Wei.");
-
-        // Check that bid is higher than previous bid
-        uint256 currentBidAmount =
-            tokenCurrentBids[_originContract][_tokenId].amount;
-        require(
-            _newBidAmount > currentBidAmount &&
-                _newBidAmount >=
-                currentBidAmount.add(
-                    currentBidAmount.mul(minimumBidIncreasePercentage).div(100)
-                ),
-            "bid::Must place higher bid than existing bid + minimum percentage."
-        );
 
         // Check that enough ether was sent.
         uint256 requiredCost =
@@ -422,8 +413,11 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         address tokenOwner = erc721.ownerOf(_tokenId);
         require(tokenOwner != msg.sender, "bid::Bidder cannot be owner.");
 
-        // Refund previous bidder.
-        _refundBid(_originContract, _tokenId);
+        // Do not refund previous bidders per the multi-offers spec unless the
+        // buyer already had an existing bid, in which case return it
+        if (_addressHasBidOnToken(msg.sender, _originContract, _tokenId)) {
+            _refundBid(_originContract, msg.sender, _tokenId);
+        }
 
         // Set the new bid.
         _setBid(_newBidAmount, msg.sender, _originContract, _tokenId);
@@ -437,20 +431,22 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     /**
      * @dev Accept the bid on the token with the expected bid amount.
      * @param _originContract address of the contract storing the token.
+     * @param _bidder address of the winning bidder
      * @param _tokenId uint256 ID of the token
      * @param _amount uint256 wei amount of the bid
      */
     function safeAcceptBid(
         address _originContract,
+        address payable _bidder,
         uint256 _tokenId,
         uint256 _amount
     ) external {
         // Make sure accepting bid is the expected amount
         require(
-            tokenCurrentBids[_originContract][_tokenId].amount == _amount,
+            tokenCurrentBids[_originContract][_tokenId][_bidder].amount == _amount,
             "safeAcceptBid::Bid amount must equal expected amount"
         );
-        acceptBid(_originContract, _tokenId);
+        acceptBid(_originContract, _bidder, _tokenId);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -459,29 +455,32 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     /**
      * @dev Accept the bid on the token.
      * @param _originContract address of the contract storing the token.
+     * @param _bidder address of the winning bidder
      * @param _tokenId uint256 ID of the token
      */
-    function acceptBid(address _originContract, uint256 _tokenId) public {
+    function acceptBid(address _originContract, address payable _bidder, uint256 _tokenId) public {
         // The owner of the token must have the marketplace approved
         ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
 
         // The sender must be the token owner
         senderMustBeTokenOwner(_originContract, _tokenId);
 
-        // Check that a bid exists.
+        // Check that a bid exists for a given address.
         require(
-            _tokenHasBid(_originContract, _tokenId),
-            "acceptBid::Cannot accept a bid when there is none."
+            _tokenHasBidFromBidder(_originContract, _bidder, _tokenId),
+            "acceptBid::No bid from that address."
         );
 
         // Get current bid on token
-
         ActiveBid memory currentBid =
-            tokenCurrentBids[_originContract][_tokenId];
+            tokenCurrentBids[_originContract][_tokenId][_bidder];
 
         // Wipe the token price and bid.
         _resetTokenPrice(_originContract, _tokenId);
-        _resetBid(_originContract, _tokenId);
+        // Reset the winning bid
+        _resetBid(_originContract, _bidder, _tokenId);
+        // Reset and refund all the other bids
+        _refundAndResetAllBids(_originContract, _tokenId);
 
         // Transfer token.
         IERC721 erc721 = IERC721(_originContract);
@@ -526,19 +525,19 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * @param _tokenId uint256 ID of the token.
      */
     function cancelBid(address _originContract, uint256 _tokenId) external {
-        // Check that sender has a current bid.
+        // Check that the sender has a current bid.
         require(
             _addressHasBidOnToken(msg.sender, _originContract, _tokenId),
             "cancelBid::Cannot cancel a bid if sender hasn't made one."
         );
 
         // Refund the bidder.
-        _refundBid(_originContract, _tokenId);
+        _refundBid(_originContract, msg.sender, _tokenId);
 
         emit CancelBid(
             _originContract,
             msg.sender,
-            tokenCurrentBids[_originContract][_tokenId].amount,
+            tokenCurrentBids[_originContract][_tokenId][msg.sender].amount,
             _tokenId
         );
     }
@@ -547,18 +546,24 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     // currentBidDetailsOfToken
     /////////////////////////////////////////////////////////////////////////
     /**
-     * @dev Function to get current bid and bidder of a token.
+     * @dev Function to get current bids and bidders of a token.
      * @param _originContract address of ERC721 contract.
      * @param _tokenId uin256 id of the token.
      */
     function currentBidDetailsOfToken(address _originContract, uint256 _tokenId)
         public
         view
-        returns (uint256, address)
+        returns (address[] memory, uint256[] memory)
     {
+        address[] memory currentBidders = bidders[_originContract][_tokenId];
+        uint256[] memory bidAmounts = new uint256[](currentBidders.length);
+        // Get bid amounts from the list of bidders
+        for (uint i = 0; i < currentBidders.length; i++) {
+            bidAmounts[i] = tokenCurrentBids[_originContract][_tokenId][currentBidders[i]].amount;
+        }
         return (
-            tokenCurrentBids[_originContract][_tokenId].amount,
-            tokenCurrentBids[_originContract][_tokenId].bidder
+            currentBidders,
+            bidAmounts
         );
     }
 
@@ -608,7 +613,7 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         address _originContract,
         uint256 _tokenId
     ) internal view returns (bool) {
-        return tokenCurrentBids[_originContract][_tokenId].bidder == _bidder;
+        return tokenCurrentBids[_originContract][_tokenId][_bidder].bidder == _bidder;
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -617,14 +622,15 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     /**
      * @dev Internal function see if the token has an existing bid.
      * @param _originContract address of ERC721 contract.
+     * @param _bidder address of the bidder
      * @param _tokenId uin256 id of the token.
      */
-    function _tokenHasBid(address _originContract, uint256 _tokenId)
+    function _tokenHasBidFromBidder(address _originContract, address _bidder, uint256 _tokenId)
         internal
         view
         returns (bool)
     {
-        return tokenCurrentBids[_originContract][_tokenId].bidder != address(0);
+        return tokenCurrentBids[_originContract][_tokenId][_bidder].bidder != address(0);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -634,15 +640,16 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * @dev Internal function to return an existing bid on a token to the
      *      bidder and reset bid.
      * @param _originContract address of ERC721 contract.
+     * @param _bidder address of the bidder.
      * @param _tokenId uin256 id of the token.
      */
-    function _refundBid(address _originContract, uint256 _tokenId) internal {
+    function _refundBid(address _originContract, address payable _bidder, uint256 _tokenId) internal {
         ActiveBid memory currentBid =
-            tokenCurrentBids[_originContract][_tokenId];
+            tokenCurrentBids[_originContract][_tokenId][_bidder];
         if (currentBid.bidder == address(0)) {
             return;
         }
-        _resetBid(_originContract, _tokenId);
+        _resetBid(_originContract, _bidder, _tokenId);
         Payments.refund(
             currentBid.marketplaceFee,
             currentBid.bidder,
@@ -658,12 +665,42 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * @param _originContract address of ERC721 contract.
      * @param _tokenId uin256 id of the token.
      */
-    function _resetBid(address _originContract, uint256 _tokenId) internal {
-        tokenCurrentBids[_originContract][_tokenId] = ActiveBid(
+    function _resetBid(address _originContract, address _bidder, uint256 _tokenId) internal {
+        tokenCurrentBids[_originContract][_tokenId][_bidder] = ActiveBid(
             address(0),
             0,
             0
         );
+        _removeBidder(_originContract, _bidder, _tokenId);
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // _refundAndResetAllBids
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Internal function to reset and refunds all bids for a token.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     */
+    function _refundAndResetAllBids(address _originContract, uint256 _tokenId) internal {
+        address[] memory currentBidders = bidders[_originContract][_tokenId];
+        for (uint i = 0; i < currentBidders.length; i++) {
+            ActiveBid memory currentBid =
+                tokenCurrentBids[_originContract][_tokenId][currentBidders[i]];
+            // Clear the bid
+            tokenCurrentBids[_originContract][_tokenId][currentBidders[i]] = ActiveBid(
+                address(0),
+                0,
+                0
+            );
+            // Refund bid
+            Payments.refund(
+                currentBid.marketplaceFee,
+                currentBid.bidder,
+                currentBid.amount
+            );
+        }
+        delete bidders[_originContract][_tokenId];
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -685,8 +722,12 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         // Check bidder not 0 address.
         require(_bidder != address(0), "Bidder cannot be 0 address.");
 
+        // Check if user has bidded before and if not, add to list of bidders
+        if (tokenCurrentBids[_originContract][_tokenId][_bidder].bidder == address(0)) {
+            bidders[_originContract][_tokenId].push(_bidder);
+        }
         // Set bid.
-        tokenCurrentBids[_originContract][_tokenId] = ActiveBid(
+        tokenCurrentBids[_originContract][_tokenId][_bidder] = ActiveBid(
             _bidder,
             iMarketplaceSettings.getMarketplaceFeePercentage(),
             _amount
@@ -707,5 +748,26 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
         returns (address payable)
     {
         return address(uint160(_address));
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // _removeBidder
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Internal function to remove a single bid from the bidders array for a token.
+     * @param _originContract address of ERC721 contract.
+     * @param _bidder address of the bidder to be removed
+     * @param _tokenId uin256 id of the token.
+     */
+    function _removeBidder(address _originContract, address _bidder, uint256 _tokenId) internal {
+        address[] memory currentBidders = bidders[_originContract][_tokenId];
+        if (currentBidders.length > 1) {
+            uint i = 0;
+            while (currentBidders[i] != _bidder) {
+                i++;
+            }
+            bidders[_originContract][_tokenId][i] = currentBidders[currentBidders.length-1];
+        }
+        bidders[_originContract][_tokenId].pop();
     }
 }
