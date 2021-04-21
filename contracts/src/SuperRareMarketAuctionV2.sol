@@ -165,12 +165,12 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
      * - only owner
      * @param _percentage uint8 to set as the new percentage.
      */
-    function setMinimumBidIncreasePercentage(uint8 _percentage)
+    /* function setMinimumBidIncreasePercentage(uint8 _percentage)
         public
         onlyOwner
     {
         minimumBidIncreasePercentage = _percentage;
-    }
+    } */
 
     /////////////////////////////////////////////////////////////////////////
     // Modifiers (as functions)
@@ -548,7 +548,9 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
     /**
      * @dev Function to get current bids and bidders of a token.
      * @param _originContract address of ERC721 contract.
-     * @param _tokenId uin256 id of the token.
+     * @param _tokenId uint256 id of the token.
+     * @return address[] bidders
+     * @return uint256[] bid amounts
      */
     function currentBidDetailsOfToken(address _originContract, uint256 _tokenId)
         public
@@ -769,5 +771,30 @@ contract SuperRareMarketAuctionV2 is Ownable, Payments {
             bidders[_originContract][_tokenId][i] = currentBidders[currentBidders.length-1];
         }
         bidders[_originContract][_tokenId].pop();
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+    // getHighestBidderAndBid
+    /////////////////////////////////////////////////////////////////////////
+    /**
+     * @dev Gets the highest bidder and bid amount for a token.
+     * @param _originContract address of ERC721 contract.
+     * @param _tokenId uin256 id of the token.
+     * @return address highest bidder
+     * @return uint256 highest bid amount
+     */
+    function getHighestBidderAndBid(address _originContract, uint256 _tokenId)
+        external
+        view
+        returns (address, uint256)
+    {
+        address[] memory currentBidders = bidders[_originContract][_tokenId];
+        ActiveBid memory highestBid = tokenCurrentBids[_originContract][_tokenId][currentBidders[0]];
+        for (uint i = 1; i < currentBidders.length; i++) {
+            if (tokenCurrentBids[_originContract][_tokenId][currentBidders[i]].amount > highestBid.amount) {
+                highestBid = tokenCurrentBids[_originContract][_tokenId][currentBidders[i]];
+            }
+        }
+        return (highestBid.bidder, highestBid.amount);
     }
 }
