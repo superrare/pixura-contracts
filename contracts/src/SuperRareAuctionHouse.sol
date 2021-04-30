@@ -6,8 +6,9 @@ import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
 import "./IERC721CreatorRoyalty.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./Payments.sol";
+import "./ISuperRareAuctionHouseV2.sol";
 
-contract SuperRareAuctionHouse is Ownable, Payments {
+contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     using SafeMath for uint256;
 
     /////////////////////////////////////////////////////////////////////////
@@ -258,7 +259,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _tokenId,
         uint256 _reservePrice,
         uint256 _lengthOfAuction
-    ) public {
+    ) public override {
         // Rules
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
@@ -319,7 +320,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _tokenId uint256 id of the token.
      */
     function cancelAuction(address _contractAddress, uint256 _tokenId)
-        external
+        external override
     {
         require(
             auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
@@ -381,7 +382,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         uint256 _minimumBid,
         uint256 _lengthOfAuction,
         uint256 _startingBlock
-    ) external {
+    ) external override {
         require(
             _lengthOfAuction > 0,
             "createScheduledAuction::_lengthOfAuction must be greater than 0"
@@ -457,7 +458,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
         address _contractAddress,
         uint256 _tokenId,
         uint256 _amount
-    ) external payable {
+    ) external override payable {
         Auction memory auction = auctions[_contractAddress][_tokenId];
 
         // Must have existing auction.
@@ -618,7 +619,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
      * @param _tokenId uint256 id of the token.
      */
     function settleAuction(address _contractAddress, uint256 _tokenId)
-        external
+        external override
     {
         Auction memory auction = auctions[_contractAddress][_tokenId];
 
@@ -706,6 +707,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     function getAuctionDetails(address _contractAddress, uint256 _tokenId)
         external
         view
+        override
         returns (
             bytes32,
             uint256,
@@ -742,6 +744,7 @@ contract SuperRareAuctionHouse is Ownable, Payments {
     function getCurrentBid(address _contractAddress, uint256 _tokenId)
         external
         view
+        override
         returns (address, uint256)
     {
         return (
