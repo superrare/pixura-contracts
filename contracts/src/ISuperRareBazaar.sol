@@ -97,9 +97,4 @@ interface ISuperRareBazaar {
         external
         view
         returns (address[] memory, uint256[] memory);
-
-    function getHighestBidderAndBid(address _originContract, uint256 _tokenId)
-		external
-		view
-		returns (address payable, uint256);
 }

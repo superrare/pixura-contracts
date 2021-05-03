@@ -7,18 +7,10 @@ import "./IERC721CreatorRoyalty.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./Payments.sol";
 import "./ISuperRareAuctionHouseV2.sol";
+import "hardhat/console.sol";
 
 contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     using SafeMath for uint256;
-
-    /////////////////////////////////////////////////////////////////////////
-    // Constants
-    /////////////////////////////////////////////////////////////////////////
-
-    // Types of Auctions
-    bytes32 public constant COLDIE_AUCTION = "COLDIE_AUCTION";
-    bytes32 public constant SCHEDULED_AUCTION = "SCHEDULED_AUCTION";
-    bytes32 public constant NO_AUCTION = bytes32(0);
 
     /////////////////////////////////////////////////////////////////////////
     // Structs
@@ -41,15 +33,47 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         uint256 amount;
     }
 
+    // The sale price for a given token containing the seller and the amount of wei to be sold for
+    struct SalePrice {
+        address payable seller;
+        uint256 amount;
+    }
+
     /////////////////////////////////////////////////////////////////////////
-    // State Variables
+    // Interfaces
     /////////////////////////////////////////////////////////////////////////
 
     // Marketplace Settings Interface
-    IMarketplaceSettings public iMarketSettings;
+    IMarketplaceSettings public iMarketplaceSettings;
 
     // Creator Royalty Interface
     IERC721CreatorRoyalty public iERC721CreatorRoyalty;
+
+    /////////////////////////////////////////////////////////////////////////
+    // Constants
+    /////////////////////////////////////////////////////////////////////////
+
+    // Types of Auctions
+    bytes32 public constant COLDIE_AUCTION = "COLDIE_AUCTION";
+    bytes32 public constant SCHEDULED_AUCTION = "SCHEDULED_AUCTION";
+    bytes32 public constant NO_AUCTION = bytes32(0);
+
+    /////////////////////////////////////////////////////////////////////////
+    // Marketplace State Variables
+    /////////////////////////////////////////////////////////////////////////
+
+    // Mapping from ERC721 contract to mapping of tokenId to sale price.
+    mapping(address => mapping(uint256 => SalePrice)) private tokenPrices;
+
+    // Mapping of ERC721 contract to mapping of token ID to mapping of bidder to current bid.
+    mapping(address => mapping(uint256 => mapping(address => ActiveBid))) private tokenCurrentBids;
+
+    // Mapping of ERC721 contract to mapping of token ID to mapping of bidders.
+    mapping(address => mapping(uint256 => address[])) private bidders;
+
+    /////////////////////////////////////////////////////////////////////////
+    // Auction State Variables
+    /////////////////////////////////////////////////////////////////////////
 
     // Mapping from ERC721 contract to mapping of tokenId to Auctions.
     mapping(address => mapping(uint256 => Auction)) private auctions;
@@ -65,6 +89,7 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
 
     // A minimum increase in bid amount when out bidding someone.
     uint8 public minimumBidIncreasePercentage; // 10 = 10%
+
     /////////////////////////////////////////////////////////////////////////
     // Events
     /////////////////////////////////////////////////////////////////////////
@@ -114,18 +139,18 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     /////////////////////////////////////////////////////////////////////////
     /**
      * @dev Initializes the contract setting the market settings and creator royalty interfaces.
-     * @param _iMarketSettings address to set as iMarketSettings.
+     * @param _iMarketplaceSettings address to set as iMarketplaceSettings.
      * @param _iERC721CreatorRoyalty address to set as iERC721CreatorRoyalty.
      */
-    constructor(address _iMarketSettings, address _iERC721CreatorRoyalty)
+    constructor(address _iMarketplaceSettings, address _iERC721CreatorRoyalty)
         public
     {
         maxLength = 43200; // ~ 7 days == 7 days * 24 hours * 3600s / 14s per block
         auctionLengthExtension = 65; // ~ 15 min == 15 min * 60s / 14s per block
 
         require(
-            _iMarketSettings != address(0),
-            "constructor::Cannot have null address for _iMarketSettings"
+            _iMarketplaceSettings != address(0),
+            "constructor::Cannot have null address for _iMarketplaceSettings"
         );
 
         require(
@@ -133,8 +158,8 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
             "constructor::Cannot have null address for _iERC721CreatorRoyalty"
         );
 
-        // Set iMarketSettings
-        iMarketSettings = IMarketplaceSettings(_iMarketSettings);
+        // Set iMarketplaceSettings
+        iMarketplaceSettings = IMarketplaceSettings(_iMarketplaceSettings);
 
         // Set iERC721CreatorRoyalty
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
@@ -155,10 +180,10 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     function setMarketplaceSettings(address _address) public onlyOwner {
         require(
             _address != address(0),
-            "setMarketplaceSettings::Cannot have null address for _iMarketSettings"
+            "setMarketplaceSettings::Cannot have null address for _iMarketplaceSettings"
         );
 
-        iMarketSettings = IMarketplaceSettings(_address);
+        iMarketplaceSettings = IMarketplaceSettings(_address);
     }
 
     /////////////////////////////////////////////////////////////////////////
@@ -263,16 +288,19 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         // Rules
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
+
         require(
             _lengthOfAuction <= maxLength,
             "createColdieAuction::Cannot have auction longer than maxLength"
         );
+
         require(
             auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
                 (msg.sender !=
                     auctions[_contractAddress][_tokenId].auctionCreator),
             "createColdieAuction::Cannot have a current auction"
         );
+
         require(
             _lengthOfAuction > 0,
             "createColdieAuction::_lengthOfAuction must be > 0"
@@ -282,7 +310,7 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
             "createColdieAuction::_reservePrice must be >= 0"
         );
         require(
-            _reservePrice <= iMarketSettings.getMarketplaceMaxValue(),
+            _reservePrice <= iMarketplaceSettings.getMarketplaceMaxValue(),
             "createColdieAuction::Cannot set reserve price higher than max value"
         );
 
@@ -396,7 +424,7 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
             "createScheduledAuction::_startingBlock must be greater than block.number"
         );
         require(
-            _minimumBid <= iMarketSettings.getMarketplaceMaxValue(),
+            _minimumBid <= iMarketplaceSettings.getMarketplaceMaxValue(),
             "createScheduledAuction::Cannot set minimum bid higher than max value"
         );
         _requireOwnerApproval(_contractAddress, _tokenId);
@@ -484,13 +512,13 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
 
         // Check that bid is less than max value.
         require(
-            _amount <= iMarketSettings.getMarketplaceMaxValue(),
+            _amount <= iMarketplaceSettings.getMarketplaceMaxValue(),
             "bid::Cannot bid higher than max value"
         );
 
         // Check that bid is larger than min value.
         require(
-            _amount >= iMarketSettings.getMarketplaceMinValue(),
+            _amount >= iMarketplaceSettings.getMarketplaceMinValue(),
             "bid::Cannot bid lower than min value"
         );
 
@@ -511,7 +539,7 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
 
         // Check that enough ether was sent.
         uint256 requiredCost =
-            _amount.add(iMarketSettings.calculateMarketplaceFee(_amount));
+            _amount.add(iMarketplaceSettings.calculateMarketplaceFee(_amount));
         require(requiredCost == msg.value, "bid::Must bid the correct amount.");
 
         // If owner of token is auction creator make sure they have contract approved
@@ -549,7 +577,7 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         // Set the new bid
         currentBids[_contractAddress][_tokenId] = ActiveBid(
             msg.sender,
-            iMarketSettings.getMarketplaceFeePercentage(),
+            iMarketplaceSettings.getMarketplaceFeePercentage(),
             _amount
         );
 
@@ -670,13 +698,13 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         address payable owner = _makePayable(owner());
         Payments.payout(
             currentBid.amount,
-            !iMarketSettings.hasERC721TokenSold(_contractAddress, _tokenId),
+            !iMarketplaceSettings.hasERC721TokenSold(_contractAddress, _tokenId),
             currentBid.marketplaceFee,
             iERC721CreatorRoyalty.getERC721TokenRoyaltyPercentage(
                 _contractAddress,
                 _tokenId
             ),
-            iMarketSettings.getERC721ContractPrimarySaleFeePercentage(
+            iMarketplaceSettings.getERC721ContractPrimarySaleFeePercentage(
                 _contractAddress
             ),
             auction.auctionCreator,
@@ -684,7 +712,7 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
             iERC721CreatorRoyalty.tokenCreator(_contractAddress, _tokenId),
             owner
         );
-        iMarketSettings.markERC721Token(_contractAddress, _tokenId, true);
+        iMarketplaceSettings.markERC721Token(_contractAddress, _tokenId, true);
         emit AuctionSettled(
             _contractAddress,
             currentBid.bidder,

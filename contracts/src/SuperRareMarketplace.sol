@@ -7,6 +7,7 @@ import "./IERC721CreatorRoyalty.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./Payments.sol";
 import "./ISuperRareMarketplace.sol";
+import "hardhat/console.sol";
 
 contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
     using SafeMath for uint256;
@@ -48,7 +49,6 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
     // Creator Royalty Interface
     IERC721CreatorRoyalty public iERC721CreatorRoyalty;
 
-
     /////////////////////////////////////////////////////////////////////////
     // Constants
     /////////////////////////////////////////////////////////////////////////
@@ -89,6 +89,45 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
 
     // A minimum increase in bid amount when out bidding someone.
     uint8 public minimumBidIncreasePercentage; // 10 = 10%
+
+    /////////////////////////////////////////////////////////////////////////////
+    // Events
+    /////////////////////////////////////////////////////////////////////////////
+    event Sold(
+        address indexed _originContract,
+        address indexed _buyer,
+        address indexed _seller,
+        uint256 _amount,
+        uint256 _tokenId
+    );
+
+    event SetSalePrice(
+        address indexed _originContract,
+        uint256 _amount,
+        uint256 _tokenId
+    );
+
+    event Bid(
+        address indexed _originContract,
+        address indexed _bidder,
+        uint256 _amount,
+        uint256 _tokenId
+    );
+
+    event AcceptBid(
+        address indexed _originContract,
+        address indexed _bidder,
+        address indexed _seller,
+        uint256 _amount,
+        uint256 _tokenId
+    );
+
+    event CancelBid(
+        address indexed _originContract,
+        address indexed _bidder,
+        uint256 _amount,
+        uint256 _tokenId
+    );
 
     /////////////////////////////////////////////////////////////////////////
     // Constructor
