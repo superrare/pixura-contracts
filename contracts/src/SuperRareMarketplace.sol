@@ -1,13 +1,12 @@
 pragma solidity 0.6.12;
 
-import "openzeppelin-solidity-solc6/contracts/token/ERC721/IERC721.sol";
-import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./IERC721CreatorRoyalty.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./Payments.sol";
 import "./ISuperRareMarketplace.sol";
-import "hardhat/console.sol";
 
 contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
     using SafeMath for uint256;

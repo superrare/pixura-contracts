@@ -9,7 +9,6 @@ import "./ISuperRareAuctionHouseV2.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./IERC721CreatorRoyalty.sol";
 import "./Payments.sol";
-import "hardhat/console.sol";
 
 contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
     using SafeMath for uint256;
@@ -147,6 +146,9 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         iERC721CreatorRoyalty = IERC721CreatorRoyalty(_iERC721CreatorRoyalty);
     }
 
+    /////////////////////////////////////////////////////////////////////////
+    // Auction Functions
+    /////////////////////////////////////////////////////////////////////////
     function createColdieAuction(
         address _contractAddress,
         uint256 _tokenId,
@@ -162,10 +164,6 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         // Get the highest bidder/bid amount for that token if applicable
         (address payable bidder, uint256 amount) = getHighestBidderAndBid(_contractAddress, _tokenId);
         if (amount >= _reservePrice) {
-            // Get auction details
-            Auction memory auction = auctions[_contractAddress][_tokenId];
-            IERC721 erc721 = IERC721(_contractAddress);
-
             // Set the new bid
             currentBids[_contractAddress][_tokenId] = ActiveBid(
                 bidder,
@@ -175,11 +173,16 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
 
             // Start the coldie auction
             auctions[_contractAddress][_tokenId].startingBlock = block.number;
+
+            // Transfer token to escrow
+            IERC721 erc721 = IERC721(_contractAddress);
             erc721.transferFrom(
-                auction.auctionCreator,
+                auctions[_contractAddress][_tokenId].auctionCreator,
                 address(this),
                 _tokenId
             );
+
+            // Not sure if this is right
             emit AuctionBid(
                 _contractAddress,
                 bidder,
@@ -220,6 +223,42 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
                 _contractAddress, _tokenId, _minimumBid, _lengthOfAuction, _startingBlock)
         );
         require(success);
+        // Get the highest bidder/bid amount for that token if applicable
+        (address payable bidder, uint256 amount) = getHighestBidderAndBid(_contractAddress, _tokenId);
+        if (amount >= _minimumBid) {
+            // Set the new bid
+            currentBids[_contractAddress][_tokenId] = ActiveBid(
+                bidder,
+                iMarketplaceSettings.getMarketplaceFeePercentage(),
+                amount
+            );
+
+            // Not sure if this is right
+            emit AuctionBid(
+                _contractAddress,
+                bidder,
+                _tokenId,
+                amount,
+                false,
+                0,
+                address(0)
+            );
+
+            // Make sure to clear the bid
+            (success, data) = address(iSuperRareMarketplace).delegatecall(
+                abi.encodeWithSignature(
+                    "_resetBid(address,address,uint256)",
+                    _contractAddress, bidder, _tokenId)
+            );
+            require (success);
+        }
+        // Refund and reset the offers for this token
+        (success, data) = address(iSuperRareMarketplace).delegatecall(
+            abi.encodeWithSignature(
+                "_refundAndResetAllBids(address,uint256)",
+                _contractAddress, _tokenId)
+        );
+        require (success);
     }
 
     function cancelAuction(address _contractAddress, uint256 _tokenId) external override {
@@ -292,7 +331,9 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         );
     }
 
-    // Marketplace Functionality
+    /////////////////////////////////////////////////////////////////////////
+    // Marketplace Functions
+    /////////////////////////////////////////////////////////////////////////
     function setSalePrice(
         address _originContract,
         uint256 _tokenId,
@@ -328,21 +369,62 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         require(success);
     }
 
-    /* function tokenPrice(address _originContract, uint256 _tokenId)
+    function tokenPrice(address _originContract, uint256 _tokenId)
         external
         view
         override
         returns (uint256)
     {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId); // TODO: Make sure to write test to verify that this returns 0 when it fails
+
+        if (_priceSetterStillOwnsTheToken(_originContract, _tokenId)) {
+            return tokenPrices[_originContract][_tokenId].amount;
+        }
+        return 0;
     }
 
     function tokenPriceFeeIncluded(address _originContract, uint256 _tokenId)
-        public
+        external
         view
         override
         returns (uint256)
     {
-    } */
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId); // TODO: Make sure to write test to verify that this returns 0 when it fails
+
+        if (_priceSetterStillOwnsTheToken(_originContract, _tokenId)) {
+            return
+                tokenPrices[_originContract][_tokenId].amount.add(
+                    iMarketplaceSettings.calculateMarketplaceFee(
+                        tokenPrices[_originContract][_tokenId].amount
+                    )
+                );
+        }
+        return 0;
+    }
+
+    function ownerMustHaveMarketplaceApproved(
+        address _originContract,
+        uint256 _tokenId
+    ) public view {
+        IERC721 erc721 = IERC721(_originContract);
+        address owner = erc721.ownerOf(_tokenId);
+        require(
+            erc721.isApprovedForAll(owner, address(this)),
+            "owner must have approved contract"
+        );
+    }
+
+    function _priceSetterStillOwnsTheToken(
+        address _originContract,
+        uint256 _tokenId
+    ) public view returns (bool) {
+        IERC721 erc721 = IERC721(_originContract);
+        return
+            erc721.ownerOf(_tokenId) ==
+            tokenPrices[_originContract][_tokenId].seller;
+    }
 
     function offer(
         uint256 _newBidAmount,
@@ -411,9 +493,9 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
     }
 
     function getHighestBidderAndBid(address _originContract, uint256 _tokenId)
-		public
-		view
-		returns (address payable, uint256)
+        public
+        view
+        returns (address payable, uint256)
     {
         if (bidders[_originContract][_tokenId].length == 0) {
             return (address(0), 0);

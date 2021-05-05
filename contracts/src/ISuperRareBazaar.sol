@@ -66,7 +66,7 @@ interface ISuperRareBazaar {
 
     function buy(address _originContract, uint256 _tokenId) external payable;
 
-    /* function tokenPrice(address _originContract, uint256 _tokenId)
+    function tokenPrice(address _originContract, uint256 _tokenId)
         external
         view
         returns (uint256);
@@ -74,7 +74,7 @@ interface ISuperRareBazaar {
     function tokenPriceFeeIncluded(address _originContract, uint256 _tokenId)
         external
         view
-        returns (uint256); */
+        returns (uint256);
 
     function offer(
         uint256 _newBidAmount,

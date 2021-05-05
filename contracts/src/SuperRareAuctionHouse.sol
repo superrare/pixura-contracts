@@ -7,7 +7,6 @@ import "./IERC721CreatorRoyalty.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./Payments.sol";
 import "./ISuperRareAuctionHouseV2.sol";
-import "hardhat/console.sol";
 
 contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     using SafeMath for uint256;
