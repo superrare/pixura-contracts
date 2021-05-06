@@ -155,6 +155,32 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         uint256 _reservePrice,
         uint256 _lengthOfAuction
     ) external override {
+        // Rules
+        require(
+            _lengthOfAuction <= maxLength,
+            "createColdieAuction::Cannot have auction longer than maxLength"
+        );
+
+        require(
+            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
+                (msg.sender !=
+                    auctions[_contractAddress][_tokenId].auctionCreator),
+            "createColdieAuction::Cannot have a current auction"
+        );
+
+        require(
+            _lengthOfAuction > 0,
+            "createColdieAuction::_lengthOfAuction must be > 0"
+        );
+        require(
+            _reservePrice >= 0,
+            "createColdieAuction::_reservePrice must be >= 0"
+        );
+        require(
+            _reservePrice <= iMarketplaceSettings.getMarketplaceMaxValue(),
+            "createColdieAuction::Cannot set reserve price higher than max value"
+        );
+
         (bool success, bytes memory data) = address(iSuperRareAuctionHouseV2).delegatecall(
             abi.encodeWithSignature(
                 "createColdieAuction(address,uint256,uint256,uint256)",
@@ -217,51 +243,53 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         uint256 _lengthOfAuction,
         uint256 _startingBlock
     ) external override {
+        require(
+            _lengthOfAuction > 0,
+            "createScheduledAuction::_lengthOfAuction must be greater than 0"
+        );
+        require(
+            _lengthOfAuction <= maxLength,
+            "createScheduledAuction::Cannot have auction longer than maxLength"
+        );
+        require(
+            _startingBlock > block.number,
+            "createScheduledAuction::_startingBlock must be greater than block.number"
+        );
+        require(
+            _minimumBid <= iMarketplaceSettings.getMarketplaceMaxValue(),
+            "createScheduledAuction::Cannot set minimum bid higher than max value"
+        );
+        require(
+            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
+                (msg.sender !=
+                    auctions[_contractAddress][_tokenId].auctionCreator),
+            "createScheduledAuction::Cannot have a current auction"
+        );
+
         (bool success, bytes memory data) = address(iSuperRareAuctionHouseV2).delegatecall(
             abi.encodeWithSignature(
                 "createScheduledAuction(address,uint256,uint256,uint256,uint256)",
                 _contractAddress, _tokenId, _minimumBid, _lengthOfAuction, _startingBlock)
         );
         require(success);
-        // Get the highest bidder/bid amount for that token if applicable
-        (address payable bidder, uint256 amount) = getHighestBidderAndBid(_contractAddress, _tokenId);
-        if (amount >= _minimumBid) {
-            // Set the new bid
-            currentBids[_contractAddress][_tokenId] = ActiveBid(
-                bidder,
-                iMarketplaceSettings.getMarketplaceFeePercentage(),
-                amount
-            );
-
-            // Not sure if this is right
-            emit AuctionBid(
-                _contractAddress,
-                bidder,
-                _tokenId,
-                amount,
-                false,
-                0,
-                address(0)
-            );
-
-            // Make sure to clear the bid
-            (success, data) = address(iSuperRareMarketplace).delegatecall(
-                abi.encodeWithSignature(
-                    "_resetBid(address,address,uint256)",
-                    _contractAddress, bidder, _tokenId)
-            );
-            require (success);
-        }
-        // Refund and reset the offers for this token
-        (success, data) = address(iSuperRareMarketplace).delegatecall(
-            abi.encodeWithSignature(
-                "_refundAndResetAllBids(address,uint256)",
-                _contractAddress, _tokenId)
-        );
-        require (success);
     }
 
     function cancelAuction(address _contractAddress, uint256 _tokenId) external override {
+        require(
+            auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
+            "cancelAuction::Must have a current auction"
+        );
+        require(
+            auctions[_contractAddress][_tokenId].startingBlock == 0 ||
+                auctions[_contractAddress][_tokenId].startingBlock >
+                block.number,
+            "cancelAuction::auction cannot be started"
+        );
+        require(
+            auctions[_contractAddress][_tokenId].auctionCreator == msg.sender,
+            "cancelAuction::must be the creator of the auction"
+        );
+
         (bool success, bytes memory data) = address(iSuperRareAuctionHouseV2).delegatecall(
             abi.encodeWithSignature(
                 "cancelAuction(address,uint256)",
@@ -275,6 +303,62 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         uint256 _tokenId,
         uint256 _amount
     ) external override payable {
+        Auction memory auction = auctions[_contractAddress][_tokenId];
+
+        // Must have existing auction.
+        require(
+            auction.auctionType != NO_AUCTION,
+            "bid::Must have existing auction"
+        );
+
+        // Must have existing auction.
+        require(
+            auction.auctionCreator != msg.sender,
+            "bid::Cannot bid on your own auction"
+        );
+
+        // Must have pending coldie auction or running auction.
+        require(
+            auction.startingBlock <= block.number,
+            "bid::Must have a running auction or pending coldie auction"
+        );
+
+        // Check that bid is greater than 0.
+        require(_amount > 0, "bid::Cannot bid 0 Wei.");
+
+        // Check that bid is less than max value.
+        require(
+            _amount <= iMarketplaceSettings.getMarketplaceMaxValue(),
+            "bid::Cannot bid higher than max value"
+        );
+
+        // Check that bid is larger than min value.
+        require(
+            _amount >= iMarketplaceSettings.getMarketplaceMinValue(),
+            "bid::Cannot bid lower than min value"
+        );
+
+        // Check that bid is larger than minimum bid value or the reserve price.
+        require(
+            (_amount >= auction.reservePrice && auction.minimumBid == 0) ||
+                (_amount >= auction.minimumBid && auction.reservePrice == 0),
+            "bid::Cannot bid lower than reserve or minimum bid"
+        );
+
+        // Auction cannot have ended.
+        require(
+            auction.startingBlock == 0 ||
+                block.number <
+                auction.startingBlock.add(auction.lengthOfAuction),
+            "bid::Cannot have ended"
+        );
+
+        // Check that enough ether was sent.
+        uint256 requiredCost =
+            _amount.add(iMarketplaceSettings.calculateMarketplaceFee(_amount));
+
+        require(requiredCost == msg.value, "bid::Must bid the correct amount.");
+
         (bool success, bytes memory data) = address(iSuperRareAuctionHouseV2).delegatecall(
             abi.encodeWithSignature(
                 "bid(address,uint256,uint256)",
@@ -284,6 +368,17 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
     }
 
     function settleAuction(address _contractAddress, uint256 _tokenId) external override {
+        Auction memory auction = auctions[_contractAddress][_tokenId];
+
+        require(
+            auction.auctionType != NO_AUCTION && auction.startingBlock != 0,
+            "settleAuction::Must have a current auction that has started"
+        );
+        require(
+            block.number >= auction.startingBlock.add(auction.lengthOfAuction),
+            "settleAuction::Can only settle ended auctions."
+        );
+
         (bool success, bytes memory data) = address(iSuperRareAuctionHouseV2).delegatecall(
             abi.encodeWithSignature(
                 "settleAuction(address,uint256)",
@@ -334,41 +429,6 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
     /////////////////////////////////////////////////////////////////////////
     // Marketplace Functions
     /////////////////////////////////////////////////////////////////////////
-    function setSalePrice(
-        address _originContract,
-        uint256 _tokenId,
-        uint256 _amount
-    ) external override {
-        (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
-            abi.encodeWithSignature(
-                "setSalePrice(address,uint256,uint256)",
-                _originContract, _tokenId, _amount)
-        );
-        require(success);
-    }
-
-    function safeBuy(
-        address _originContract,
-        uint256 _tokenId,
-        uint256 _amount
-    ) external override payable {
-        (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
-            abi.encodeWithSignature(
-                "safeBuy(address,uint256,uint256)",
-                _originContract, _tokenId, _amount)
-        );
-        require(success);
-    }
-
-    function buy(address _originContract, uint256 _tokenId) public override payable {
-        (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
-            abi.encodeWithSignature(
-                "buy(address,uint256)",
-                _originContract, _tokenId)
-        );
-        require(success);
-    }
-
     function tokenPrice(address _originContract, uint256 _tokenId)
         external
         view
@@ -426,11 +486,73 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
             tokenPrices[_originContract][_tokenId].seller;
     }
 
+    function setSalePrice(
+        address _originContract,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external override {
+        (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
+            abi.encodeWithSignature(
+                "setSalePrice(address,uint256,uint256)",
+                _originContract, _tokenId, _amount)
+        );
+        require(success);
+    }
+
+    function safeBuy(
+        address _originContract,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external override payable {
+        (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
+            abi.encodeWithSignature(
+                "safeBuy(address,uint256,uint256)",
+                _originContract, _tokenId, _amount)
+        );
+        require(success);
+    }
+
+    function buy(address _originContract, uint256 _tokenId) public override payable {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
+
+        // Check that the person who set the price still owns the token.
+        require(
+            _priceSetterStillOwnsTheToken(_originContract, _tokenId),
+            "buy::Current token owner must be the person to have the latest price."
+        );
+
+        (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
+            abi.encodeWithSignature(
+                "buy(address,uint256)",
+                _originContract, _tokenId)
+        );
+        require(success);
+    }
+
     function offer(
         uint256 _newBidAmount,
         address _originContract,
         uint256 _tokenId
     ) external override payable {
+        // Check that bid is greater than 0. Currently removing bid increase requirements for now.
+        require(_newBidAmount > 0, "bid::Cannot bid 0 Wei.");
+
+        // Check that enough ether was sent.
+        uint256 requiredCost =
+            _newBidAmount.add(
+                iMarketplaceSettings.calculateMarketplaceFee(_newBidAmount)
+            );
+        require(
+            requiredCost == msg.value,
+            "offer::Must purchase the token for the correct price."
+        );
+
+        // Check that bidder is not owner.
+        IERC721 erc721 = IERC721(_originContract);
+        address tokenOwner = erc721.ownerOf(_tokenId);
+        require(tokenOwner != msg.sender, "bid::Bidder cannot be owner.");
+
         (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
             abi.encodeWithSignature(
                 "offer(uint256,address,uint256)",
@@ -457,6 +579,9 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
         public
         override
     {
+        // The owner of the token must have the marketplace approved
+        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
+
         (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
             abi.encodeWithSignature(
                 "acceptOffer(address,address,uint256)",
@@ -466,6 +591,7 @@ contract SuperRareBazaar is Ownable, Payments, ISuperRareBazaar {
     }
 
     function cancelOffer(address _originContract, uint256 _tokenId) external override {
+        // Check that the sender has a current bid.
         (bool success, bytes memory data) = address(iSuperRareMarketplace).delegatecall(
             abi.encodeWithSignature(
                 "cancelOffer(address,uint256)",

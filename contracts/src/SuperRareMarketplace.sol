@@ -1,8 +1,8 @@
 pragma solidity 0.6.12;
 
-import "openzeppelin-solidity/contracts/token/ERC721/IERC721.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "openzeppelin-solidity-solc6/contracts/token/ERC721/IERC721.sol";
+import "openzeppelin-solidity-solc6/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity-solc6/contracts/access/Ownable.sol";
 import "./IERC721CreatorRoyalty.sol";
 import "./Marketplace/IMarketplaceSettings.sol";
 import "./Payments.sol";
@@ -292,25 +292,16 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
      * @param _tokenId uint256 ID of the token.
      */
     function buy(address _originContract, uint256 _tokenId) public override payable {
-        // The owner of the token must have the marketplace approved
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
-
-        // Check that the person who set the price still owns the token.
+        // Check that enough ether was sent.
         require(
-            _priceSetterStillOwnsTheToken(_originContract, _tokenId),
-            "buy::Current token owner must be the person to have the latest price."
+            tokenPriceFeeIncluded(_originContract, _tokenId) == msg.value,
+            "buy::Must purchase the token for the correct price"
         );
 
         SalePrice memory sp = tokenPrices[_originContract][_tokenId];
 
         // Check that token is for sale.
         require(sp.amount > 0, "buy::Tokens priced at 0 are not for sale.");
-
-        // Check that enough ether was sent.
-        require(
-            tokenPriceFeeIncluded(_originContract, _tokenId) == msg.value,
-            "buy::Must purchase the token for the correct price"
-        );
 
         // Get token contract details.
         IERC721 erc721 = IERC721(_originContract);
@@ -419,24 +410,6 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
         address _originContract,
         uint256 _tokenId
     ) external override payable {
-        // Check that bid is greater than 0. Currently removing bid increase requirements for now.
-        require(_newBidAmount > 0, "bid::Cannot bid 0 Wei.");
-
-        // Check that enough ether was sent.
-        uint256 requiredCost =
-            _newBidAmount.add(
-                iMarketplaceSettings.calculateMarketplaceFee(_newBidAmount)
-            );
-        require(
-            requiredCost == msg.value,
-            "offer::Must purchase the token for the correct price."
-        );
-
-        // Check that bidder is not owner.
-        IERC721 erc721 = IERC721(_originContract);
-        address tokenOwner = erc721.ownerOf(_tokenId);
-        require(tokenOwner != msg.sender, "bid::Bidder cannot be owner.");
-
         // Do not refund previous bidders per the multi-offers spec unless the
         // buyer already had an existing bid, in which case return it
         if (_addressHasBidOnToken(msg.sender, _originContract, _tokenId)) {
@@ -486,9 +459,6 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
         public
         override
     {
-        // The owner of the token must have the marketplace approved
-        ownerMustHaveMarketplaceApproved(_originContract, _tokenId);
-
         // The sender must be the token owner
         senderMustBeTokenOwner(_originContract, _tokenId);
 
@@ -552,7 +522,6 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
      * @param _tokenId uint256 ID of the token.
      */
     function cancelOffer(address _originContract, uint256 _tokenId) external override {
-        // Check that the sender has a current bid.
         require(
             _addressHasBidOnToken(msg.sender, _originContract, _tokenId),
             "cancelOffer::Cannot cancel a bid if sender hasn't made one."
@@ -829,5 +798,4 @@ contract SuperRareMarketplace is Ownable, Payments, ISuperRareMarketplace {
         }
         return (highestBid.bidder, highestBid.amount);
     }
-
 }

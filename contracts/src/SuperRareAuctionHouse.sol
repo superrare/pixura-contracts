@@ -288,31 +288,6 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
 
-        require(
-            _lengthOfAuction <= maxLength,
-            "createColdieAuction::Cannot have auction longer than maxLength"
-        );
-
-        require(
-            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
-                (msg.sender !=
-                    auctions[_contractAddress][_tokenId].auctionCreator),
-            "createColdieAuction::Cannot have a current auction"
-        );
-
-        require(
-            _lengthOfAuction > 0,
-            "createColdieAuction::_lengthOfAuction must be > 0"
-        );
-        require(
-            _reservePrice >= 0,
-            "createColdieAuction::_reservePrice must be >= 0"
-        );
-        require(
-            _reservePrice <= iMarketplaceSettings.getMarketplaceMaxValue(),
-            "createColdieAuction::Cannot set reserve price higher than max value"
-        );
-
         // Create the auction
         auctions[_contractAddress][_tokenId] = Auction(
             msg.sender,
@@ -349,21 +324,6 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     function cancelAuction(address _contractAddress, uint256 _tokenId)
         external override
     {
-        require(
-            auctions[_contractAddress][_tokenId].auctionType != NO_AUCTION,
-            "cancelAuction::Must have a current auction"
-        );
-        require(
-            auctions[_contractAddress][_tokenId].startingBlock == 0 ||
-                auctions[_contractAddress][_tokenId].startingBlock >
-                block.number,
-            "cancelAuction::auction cannot be started"
-        );
-        require(
-            auctions[_contractAddress][_tokenId].auctionCreator == msg.sender,
-            "cancelAuction::must be the creator of the auction"
-        );
-
         Auction memory auction = auctions[_contractAddress][_tokenId];
 
         auctions[_contractAddress][_tokenId] = Auction(
@@ -410,30 +370,8 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         uint256 _lengthOfAuction,
         uint256 _startingBlock
     ) external override {
-        require(
-            _lengthOfAuction > 0,
-            "createScheduledAuction::_lengthOfAuction must be greater than 0"
-        );
-        require(
-            _lengthOfAuction <= maxLength,
-            "createScheduledAuction::Cannot have auction longer than maxLength"
-        );
-        require(
-            _startingBlock > block.number,
-            "createScheduledAuction::_startingBlock must be greater than block.number"
-        );
-        require(
-            _minimumBid <= iMarketplaceSettings.getMarketplaceMaxValue(),
-            "createScheduledAuction::Cannot set minimum bid higher than max value"
-        );
         _requireOwnerApproval(_contractAddress, _tokenId);
         _requireOwnerAsSender(_contractAddress, _tokenId);
-        require(
-            auctions[_contractAddress][_tokenId].auctionType == NO_AUCTION ||
-                (msg.sender !=
-                    auctions[_contractAddress][_tokenId].auctionCreator),
-            "createScheduledAuction::Cannot have a current auction"
-        );
 
         // Create the scheduled auction.
         auctions[_contractAddress][_tokenId] = Auction(
@@ -487,59 +425,6 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
         uint256 _amount
     ) external override payable {
         Auction memory auction = auctions[_contractAddress][_tokenId];
-
-        // Must have existing auction.
-        require(
-            auction.auctionType != NO_AUCTION,
-            "bid::Must have existing auction"
-        );
-
-        // Must have existing auction.
-        require(
-            auction.auctionCreator != msg.sender,
-            "bid::Cannot bid on your own auction"
-        );
-
-        // Must have pending coldie auction or running auction.
-        require(
-            auction.startingBlock <= block.number,
-            "bid::Must have a running auction or pending coldie auction"
-        );
-
-        // Check that bid is greater than 0.
-        require(_amount > 0, "bid::Cannot bid 0 Wei.");
-
-        // Check that bid is less than max value.
-        require(
-            _amount <= iMarketplaceSettings.getMarketplaceMaxValue(),
-            "bid::Cannot bid higher than max value"
-        );
-
-        // Check that bid is larger than min value.
-        require(
-            _amount >= iMarketplaceSettings.getMarketplaceMinValue(),
-            "bid::Cannot bid lower than min value"
-        );
-
-        // Check that bid is larger than minimum bid value or the reserve price.
-        require(
-            (_amount >= auction.reservePrice && auction.minimumBid == 0) ||
-                (_amount >= auction.minimumBid && auction.reservePrice == 0),
-            "bid::Cannot bid lower than reserve or minimum bid"
-        );
-
-        // Auction cannot have ended.
-        require(
-            auction.startingBlock == 0 ||
-                block.number <
-                auction.startingBlock.add(auction.lengthOfAuction),
-            "bid::Cannot have ended"
-        );
-
-        // Check that enough ether was sent.
-        uint256 requiredCost =
-            _amount.add(iMarketplaceSettings.calculateMarketplaceFee(_amount));
-        require(requiredCost == msg.value, "bid::Must bid the correct amount.");
 
         // If owner of token is auction creator make sure they have contract approved
         IERC721 erc721 = IERC721(_contractAddress);
@@ -648,18 +533,8 @@ contract SuperRareAuctionHouse is Ownable, Payments, ISuperRareAuctionHouseV2 {
     function settleAuction(address _contractAddress, uint256 _tokenId)
         external override
     {
-        Auction memory auction = auctions[_contractAddress][_tokenId];
-
-        require(
-            auction.auctionType != NO_AUCTION && auction.startingBlock != 0,
-            "settleAuction::Must have a current auction that has started"
-        );
-        require(
-            block.number >= auction.startingBlock.add(auction.lengthOfAuction),
-            "settleAuction::Can only settle ended auctions."
-        );
-
         ActiveBid memory currentBid = currentBids[_contractAddress][_tokenId];
+        Auction memory auction = auctions[_contractAddress][_tokenId];
 
         currentBids[_contractAddress][_tokenId] = ActiveBid(address(0), 0, 0);
         auctions[_contractAddress][_tokenId] = Auction(
