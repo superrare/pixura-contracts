@@ -1,5 +1,7 @@
 # Pixura Contracts
 
+This repo has been archived. For the Latest Rare Protocol contracts please see the [Rare Protocol Github](https://github.com/rareprotocol)
+
 Smart Contracts and various language bindings for the [SuperRare](https://superrare.co/activity) and [Pixura](http://platform.pixura.io/) ecosystem.
 
 We use [chanterelle](https://docs.chntrl.io/en/latest/) to manage smart contract compilation, deployment, and testing.
