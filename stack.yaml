@@ -1,8 +1,24 @@
-resolver: lts-14.6
+resolver:
+  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/7/28.yaml
 
 packages:
   - "."
 
+allow-newer: true
+
 extra-deps:
-  - git: https://github.com/Pixura/hs-web3
-    commit: 175ca55de9be31054a8246d8c5ed8d7ce7813d83
+  - git: git@github.com:superrare/hs-web3.git
+    commit: ac45f1fe34c2290739dcb7603a075c55385c2a51
+    subdirs:
+      - packages/bignum
+      - packages/crypto
+      - packages/ethereum
+      - packages/hexstring
+      - packages/ipfs
+      - packages/jsonrpc
+      - packages/polkadot
+      - packages/provider
+      - packages/scale
+      - packages/solidity
+      - packages/web3
+  - relapse-1.0.0.0@sha256:b89ea23189e07f377be4e2a4deccf3d6ba7f547ed8ad77e27b35d78801efd81c
